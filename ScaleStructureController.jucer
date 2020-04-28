@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="Lx2rJp" name="ScaleStructureController" projectType="guiapp"
+              jucerVersion="5.4.7">
+  <MAINGROUP id="beGhad" name="ScaleStructureController">
+    <GROUP id="{C32CC330-DD57-B0CF-1455-158ECD9B3F8C}" name="Source">
+      <FILE id="EdOkEq" name="NumberSelector.cpp" compile="1" resource="0"
+            file="Source/NumberSelector.cpp"/>
+      <FILE id="xtusXg" name="NumberSelector.h" compile="0" resource="0"
+            file="Source/NumberSelector.h"/>
+      <FILE id="vxJv0r" name="ScaleMath.h" compile="0" resource="0" file="Source/ScaleMath.h"/>
+      <FILE id="jr4cmn" name="GroupingCircle.cpp" compile="1" resource="0"
+            file="Source/GroupingCircle.cpp"/>
+      <FILE id="G5eldq" name="GroupingCircle.h" compile="0" resource="0"
+            file="Source/GroupingCircle.h"/>
+      <FILE id="IsEecu" name="ScaleStructureComponent.cpp" compile="1" resource="0"
+            file="Source/ScaleStructureComponent.cpp"/>
+      <FILE id="oB2xrQ" name="ScaleStructureComponent.h" compile="0" resource="0"
+            file="Source/ScaleStructureComponent.h"/>
+      <FILE id="wVk8Vv" name="ScaleStructure.cpp" compile="1" resource="0"
+            file="Source/ScaleStructure.cpp"/>
+      <FILE id="JtbI51" name="ScaleStructure.h" compile="0" resource="0"
+            file="Source/ScaleStructure.h"/>
+      <FILE id="cOCSlW" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="i8HvOa" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/MainComponent.cpp"/>
+      <FILE id="S0jMXD" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <VS2019 targetFolder="Builds/VisualStudio2019">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="../../../Programming-Resources/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../Programming-Resources/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../Programming-Resources/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../Programming-Resources/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../Programming-Resources/JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2019>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <LIVE_SETTINGS>
+    <WINDOWS buildEnabled="0"/>
+  </LIVE_SETTINGS>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+</JUCERPROJECT>
