@@ -68,7 +68,7 @@ ScaleStructureComponent::ScaleStructureComponent ()
 
 
     //[UserPreSize]
-
+	//generatorSlider->setSelectionType(NumberSelector::SelectionType::List);
     //[/UserPreSize]
 
     setSize (800, 800);
@@ -140,6 +140,8 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		// TODO: make this a suggested generator
 		generatorSlider->setValue(periodSlider->getValue() / 2 + 1);
 
+		//generatorSlider->setList(getCoprimes(periodSlider->getValue()));
+		//generatorSlider->setIndex(generatorSlider->getList().size() / 2);
 	}
 
 	else if (selectorThatHasChanged == generatorSlider.get())

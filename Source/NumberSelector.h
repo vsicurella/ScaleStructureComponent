@@ -69,6 +69,8 @@ public:
 	// Subtracts one from the index and updates the value
 	void decrement();
 
+	void setSelectionType(SelectionType typeIn);
+
 	// Sets the value regardless of range/list. Index will be set to 0 if number is out of bounds
 	void setValue(int valueIn);
 

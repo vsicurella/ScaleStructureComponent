@@ -84,6 +84,13 @@ void NumberSelector::decrement()
 	}
 }
 
+void NumberSelector::setSelectionType(SelectionType typeIn)
+{
+	selectionType = typeIn;
+	updateValueFromIndex();
+	setValue(valueSelected);
+}
+
 // Sets the value regardless of range/list. Index will be set to 0 if number is out of bounds
 void NumberSelector::setValue(int valueIn)
 {
