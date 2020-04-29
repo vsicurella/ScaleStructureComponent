@@ -16,16 +16,24 @@ NumberSelector::NumberSelector()
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
-	textValue.reset(new Label());
-	addAndMakeVisible(textValue.get());
+	valueLabel.reset(new Label());
+	addAndMakeVisible(valueLabel.get());
 
-	incrementButton.reset(new TextButton(">"));
+	incrementButton.reset(new ArrowButton("incrementButton", 0.0f, Colours::white));
 	addAndMakeVisible(incrementButton.get());
 	incrementButton->addListener(this);
 
-	decrementButton.reset(new TextButton("<"));
+	ShapeButton btn("increment", Colours::white, Colours::lightgrey, Colours::dimgrey);
+	Path triangle = Path();
+	triangle.addPolygon(Point<float>(), 3, 12.0f);
+	btn.setShape(triangle, true, true, true);
+
+
+	decrementButton.reset(new ArrowButton("decrementButton", 0.5f, Colours::white));
 	addAndMakeVisible(decrementButton.get());
 	decrementButton->addListener(this);
+
+	setupDefaultColours();
 }
 
 NumberSelector::~NumberSelector()
@@ -149,13 +157,13 @@ void NumberSelector::resized()
     // This method is where you should set the bounds of any child
     // components that your component contains..
 
-	textValue->setBounds(proportionOfWidth(0.25f), 0, proportionOfWidth(0.5f), proportionOfHeight(1.0f));
-	decrementButton->setBounds(0, 0, proportionOfWidth(0.25f), proportionOfHeight(1.0f));
-	incrementButton->setBounds(proportionOfWidth(0.75f), 0, proportionOfWidth(0.25f), proportionOfHeight(1.0f));
+	valueLabel->setBounds(proportionOfWidth(0.25f), 0, proportionOfWidth(0.5f), proportionOfHeight(1.0f));
+	decrementButton->setBounds(0, proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
+	incrementButton->setBounds(proportionOfWidth(0.8f), proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
 
 	valueFont.setHeight(proportionOfHeight(0.9f));
-	textValue->setFont(valueFont);
-	textValue->setJustificationType(Justification::centred);
+	valueLabel->setFont(valueFont);
+	valueLabel->setJustificationType(Justification::centred);
 }
 
 void NumberSelector::updateValueFromIndex()
@@ -174,7 +182,7 @@ void NumberSelector::updateIndexFromValue()
 
 void NumberSelector::updateTextBox()
 {
-	textValue->setText(String(valueSelected), dontSendNotification);
+	valueLabel->setText(String(valueSelected), dontSendNotification);
 }
 
 void NumberSelector::buttonClicked(Button* buttonThatHasChanged)
@@ -184,4 +192,36 @@ void NumberSelector::buttonClicked(Button* buttonThatHasChanged)
 
 	else if (buttonThatHasChanged == decrementButton.get())
 		decrement();
+}
+
+void NumberSelector::setupDefaultColours()
+{
+	setColour(valueTextBackgroundColourId, Colour());
+	setColour(valueTextBackgroundMouseOverColourId, Colours::white.withAlpha(0.1f));
+	setColour(valueTextColourId, Colours::white);
+	setColour(valueTextColourMouseOverColourId, Colours::white.withAlpha(0.1f));
+	setColour(valueOutlineColourId, Colour());
+
+	setColour(buttonBackgroundColourId, Colour());
+	setColour(buttonBackgroundMouseOverColourId, Colours::white.withAlpha(0.1f));
+	setColour(buttonBackgroundMouseDownColourId, Colours::lightgrey);
+	setColour(buttonTextColourId, Colours::white);
+	setColour(buttonTextMouseOverColourId, Colours::white.withAlpha(0.1f));
+	setColour(buttonTextMouseDownColourId, Colours::lightgrey);
+	setColour(buttonOutlineColourId, Colour());
+
+	valueLabel->setColour(Label::ColourIds::backgroundColourId, findColour(valueTextBackgroundColourId));
+	valueLabel->setColour(Label::ColourIds::textColourId, findColour(valueTextColourId));
+	valueLabel->setColour(Label::ColourIds::outlineColourId, findColour(valueOutlineColourId));
+
+	//incrementButton->setColour(TextButton::ColourIds::buttonColourId, findColour(buttonBackgroundColourId));
+	//incrementButton->setColour(TextButton::ColourIds::buttonOnColourId, findColour(buttonBackgroundMouseDownColourId));
+	//incrementButton->setColour(TextButton::ColourIds::textColourOffId, findColour(buttonTextColourId));
+	//incrementButton->setColour(TextButton::ColourIds::textColourOnId, findColour(buttonTextMouseDownColourId));
+	//
+
+	//decrementButton->setColour(TextButton::ColourIds::buttonColourId, findColour(buttonBackgroundColourId));
+	//decrementButton->setColour(TextButton::ColourIds::buttonOnColourId, findColour(buttonBackgroundMouseDownColourId));
+	//decrementButton->setColour(TextButton::ColourIds::textColourOffId, findColour(buttonTextColourId));
+	//decrementButton->setColour(TextButton::ColourIds::textColourOnId, findColour(buttonTextMouseDownColourId));
 }

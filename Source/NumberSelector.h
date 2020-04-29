@@ -42,8 +42,10 @@ public:
 
 		buttonBackgroundColourId = 0x1001500,
 		buttonBackgroundMouseOverColourId = 0x1001510,
+		buttonBackgroundMouseDownColourId = 0x1001520,
 		buttonTextColourId = 0x1001600,
 		buttonTextMouseOverColourId = 0x1001610,
+		buttonTextMouseDownColourId = 0x1001620,
 		buttonOutlineColourId = 0x1001700
 	};
 
@@ -108,9 +110,9 @@ protected:
 	ListenerList<Listener> listeners;
 
 private:
-	std::unique_ptr<TextButton> incrementButton;
-	std::unique_ptr<TextButton> decrementButton;
-	std::unique_ptr<Label> textValue;
+	std::unique_ptr<Label> valueLabel;
+	std::unique_ptr<ArrowButton> incrementButton;
+	std::unique_ptr<ArrowButton> decrementButton;
 
 	int valueSelected = 0;
 	int indexSelected = 0;
@@ -126,6 +128,8 @@ private:
 	void updateTextBox();
 
 	void buttonClicked(Button* buttonThatHasChanged) override;
+
+	void setupDefaultColours();
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NumberSelector)
 };
