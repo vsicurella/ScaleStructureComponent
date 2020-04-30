@@ -74,6 +74,9 @@ public:
 	Array<int> getSizeGrouping() const;
     Array<Array<int>> getDegreeGroupings() const;
 
+	const Array<int>& getGeneratorChainReference();
+	const Array<int>& getGroupingSizesReference();
+
 	Array<Point<int>> getMODMOSProperties() const;
 	int naturalDegreeToScaleDegree(int naturalDegree) const;
 	int getAlterationOfDegree(int naturalDegree) const;

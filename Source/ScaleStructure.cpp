@@ -155,6 +155,16 @@ Array<Array<int>> ScaleStructure::getDegreeGroupings() const
     return degreeGroupings;
 }
 
+const Array<int>& ScaleStructure::getGeneratorChainReference()
+{
+	return generatorChain;
+}
+
+const Array<int>& ScaleStructure::getGroupingSizesReference()
+{
+	return sizeGroupings;
+}
+
 Array<Point<int>> ScaleStructure::getMODMOSProperties() const
 {
 	return modmosProperties;
