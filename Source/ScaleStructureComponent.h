@@ -42,7 +42,7 @@ class ScaleStructureComponent  : public Component,
 {
 public:
     //==============================================================================
-    ScaleStructureComponent ();
+    ScaleStructureComponent (ScaleStructure& scaleStructureIn);
     ~ScaleStructureComponent() override;
 
     //==============================================================================
@@ -58,10 +58,17 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
+	ScaleStructure& scaleStructure;
+	Array<Colour> degreeGroupColours;
+
+	GroupingCircle* circle;
+
+	int periodSelected;
+	int generatorSelected;
     //[/UserVariables]
 
     //==============================================================================
-    std::unique_ptr<Component> groupingCircle;
+    std::unique_ptr<GroupingCircle> circleComponent;
     std::unique_ptr<Component> offsetSlider;
     std::unique_ptr<NumberSelector> generatorSlider;
     std::unique_ptr<NumberSelector> periodSlider;

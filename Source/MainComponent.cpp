@@ -11,12 +11,16 @@
 //==============================================================================
 MainComponent::MainComponent()
 {
-    scaleController.reset(new ScaleStructureComponent());
+	scaleStructure.reset(new ScaleStructure(12));
+	scaleStructure->setGenerator(scaleStructure->getSuggestedGenerator());
+	scaleStructure->setSizeIndex(4);
+
+    scaleController.reset(new ScaleStructureComponent(*scaleStructure.get()));
     scaleController->setName("ScaleStructureComponent");
 
 	addAndMakeVisible(scaleController.get());
     
-    setSize (600, 400);
+    setSize (800, 800);
 }
 
 MainComponent::~MainComponent()
