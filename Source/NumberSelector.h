@@ -123,6 +123,8 @@ private:
 
 	Font valueFont;
 
+private:
+
 	void updateValueFromIndex();
 	void updateIndexFromValue();
 	void updateTextBox();

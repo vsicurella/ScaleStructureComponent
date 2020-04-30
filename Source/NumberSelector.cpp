@@ -23,12 +23,6 @@ NumberSelector::NumberSelector()
 	addAndMakeVisible(incrementButton.get());
 	incrementButton->addListener(this);
 
-	ShapeButton btn("increment", Colours::white, Colours::lightgrey, Colours::dimgrey);
-	Path triangle = Path();
-	triangle.addPolygon(Point<float>(), 3, 12.0f);
-	btn.setShape(triangle, true, true, true);
-
-
 	decrementButton.reset(new ArrowButton("decrementButton", 0.5f, Colours::white));
 	addAndMakeVisible(decrementButton.get());
 	decrementButton->addListener(this);
@@ -157,7 +151,7 @@ void NumberSelector::resized()
     // This method is where you should set the bounds of any child
     // components that your component contains..
 
-	valueLabel->setBounds(proportionOfWidth(0.25f), 0, proportionOfWidth(0.5f), proportionOfHeight(1.0f));
+	valueLabel->setBounds(proportionOfWidth(0.2f), 0, proportionOfWidth(0.6f), proportionOfHeight(1.0f));
 	decrementButton->setBounds(0, proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
 	incrementButton->setBounds(proportionOfWidth(0.8f), proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
 
