@@ -33,6 +33,9 @@ public:
 
 	void setControlMode(ControlMode controlModeIn);
 
+	void updatePeriod(int periodIn);
+	void updateGenerator();
+
     void paint (Graphics&) override;
     void resized() override;
 
@@ -64,9 +67,29 @@ private:
 	
 	bool showDegreesInLayoutMode = true;
 
+	// Drawing related members
+	float innerToOuterRadius = 3.0f / 4.0f;
+	float circleRadiusOuter;
+	float circleRadiusInner;
+	float circleRadiusMiddle;
+	Point<float> center;
+
+	float ringWidth;
+	Rectangle<float> innerCircleBounds;
+
+	double angleIncrement;
+	double angleHalf;
+
+	Array<Line<float>> radiLines;
+	Path arcDegreeSections;
+	Path arcGroupSections;
+	PathStrokeType strokeType = PathStrokeType(2.0f);
+
 private:
 
-	void updateChildren();
+	// Arc path helper
+	static void addArcToPath(Path& pathIn, Rectangle<float>& ellipseBounds, float fromRadians, float toRadians, bool startAsNewSubPath = false);
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GroupingCircle)
 };

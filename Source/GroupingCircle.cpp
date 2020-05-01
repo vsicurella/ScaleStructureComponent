@@ -18,8 +18,6 @@ GroupingCircle::GroupingCircle(const Array<int>& generatorChainIn, const Array<i
 		groupColours(groupColoursIn)
 {
 	//jassert(degreeGroupSize.size() == groupColours.size())
-	//updateChildren();
-	
 }
 
 GroupingCircle::~GroupingCircle()
@@ -40,55 +38,31 @@ void GroupingCircle::paint (Graphics& g)
 {
 	g.fillAll(Colour());
 
-	const float innerToOuterRadius = 3.0f / 4.0f;
-	const float ringWidth = proportionOfWidth(1 - innerToOuterRadius) / 2.0f;
-	const float circleRadiusOuter = getWidth() / 2.0f;
-	const float circleRadiusInner = circleRadiusOuter * innerToOuterRadius;
-	const Point<float> center = Point<float>(getWidth() / 2.0f, getHeight() / 2.0f);
-
-	const Rectangle<float> innerCircleBounds = getBounds().toFloat().reduced(ringWidth);
-
 	// Draw outline
 	g.setColour(Colours::black);
-	g.drawEllipse(getBounds().toFloat(), 4.0f);
-	g.drawEllipse(innerCircleBounds, 4.0f);
+	/*g.drawEllipse(getBounds().toFloat(), 4.0f);
+	g.drawEllipse(innerCircleBounds, 4.0f);*/
 
-	// Set up degree edges
-	Array<Line<float>> radiLines;
-
-	for (int i = 0; i < generatorChain.size(); i++)
-	{
-		float ang = 2 * float_Pi * i / generatorChain.size();
-		
-		float lineStartX = center.x + cosf(ang) * circleRadiusInner;
-		float lineStartY = center.y + sinf(ang) * circleRadiusInner;
-
-		float lineEndX = center.x + cosf(ang) * circleRadiusOuter;
-		float lineEndY = center.y + sinf(ang) * circleRadiusOuter;
-		
-		radiLines.add(Line<float>(lineStartX, lineStartY, lineEndX, lineEndY));
-		DBG("CIRCLE:\tAngle #" + String(i) + " = " + String(ang) + " for degree " + String(generatorChain[i]));
-	}
-
-	// TODO: Use Path based method to be able to rotate lines
 
 	if (showDegreesInLayoutMode)
 	{
+		strokeType.setStrokeThickness(2.0f);
+
 		if (controlModeSelected == ControlMode::Notes)
 		{
-			// TODO: Set up different styles
 		}
 		else
 		{
-
 		}
 
-		int i = 0;
-		for (auto line : radiLines)
-		{
-			g.drawLine(line, 2.0f);
-		}
+		// Draw degree edges
+		//int i = 0;
+		//for (auto line : radiLines)
+		//{
+		//	g.drawLine(line, 2.0f);
+		//}
 
+		g.strokePath(arcDegreeSections, strokeType);
 	}
 
 	if (controlModeSelected == ControlMode::Layout)
@@ -99,27 +73,86 @@ void GroupingCircle::paint (Graphics& g)
 
 void GroupingCircle::resized()
 {
+	circleRadiusOuter = getWidth() / 2.0f;
+	circleRadiusInner = circleRadiusOuter * innerToOuterRadius;
+	circleRadiusMiddle = (circleRadiusInner + circleRadiusOuter) / 2.0f;
 
+	center = Point<float>(getWidth() / 2.0f, getHeight() / 2.0f);
+	ringWidth = proportionOfWidth(1 - innerToOuterRadius) / 2.0f;
+	innerCircleBounds = getBounds().toFloat().reduced(ringWidth);
+	
+	angleIncrement = 2 * double_Pi / generatorChain.size();
+	angleHalf = angleIncrement / 2.0f; // Middle of top section should be at 12 o'clock
 
+	arcDegreeSections.clear();
+	for (int i = 0; i < generatorChainLabels.size(); i++)
+	{
+		float ang = angleIncrement * i;
+		float arcFrom = ang - angleHalf;
+		float arcTo = ang + angleIncrement - angleHalf;
+
+		// draw arc sections
+		addArcToPath(arcDegreeSections, innerCircleBounds, arcFrom, arcTo, true);
+		addArcToPath(arcDegreeSections, getBounds().toFloat(), arcTo, arcFrom);
+		arcDegreeSections.closeSubPath();
+
+		// place labels
+		// TODO: get section offset
+		generatorChainLabels[i]->setSize(ringWidth, ringWidth);
+		generatorChainLabels[i]->setFont(Font().withHeight(ringWidth / 4.0f));
+		generatorChainLabels[i]->setCentrePosition(Point<int>(
+			center.x + cosf(ang - float_Pi / 2.0f) * circleRadiusMiddle,
+			center.y + sinf(ang - float_Pi / 2.0f) * circleRadiusMiddle
+		));
+	}
+
+	DBG("Circle: Resized");
 }
 
-void GroupingCircle::updateChildren()
+void GroupingCircle::updatePeriod(int periodIn)
 {
+	DBG("Circle: Updating");
+
 	removeAllChildren();
 
 	generatorChainLabels.clear();
-	for (auto degree : generatorChain)
+	for (int i = 0; i < periodIn; i++)
 	{
 		Label* l = generatorChainLabels.add(new Label());
-		l->setText(String(degree), dontSendNotification);
+		l->setJustificationType(Justification::centred);
 		addAndMakeVisible(l);
+	}
+}
+
+void GroupingCircle::updateGenerator()
+{
+	DBG("Circle: Generator changed, updating labels");
+	for (int i = 0; i < generatorChainLabels.size(); i++)
+	{
+		generatorChainLabels[i]->setText(String(generatorChain[i]), dontSendNotification);
 	}
 
-	degreeGroupLabels.clear();
-	for (auto groupSize : degreeGroupSizes)
-	{
-		Label* l = degreeGroupLabels.add(new Label());
-		l->setText(String(groupSize), dontSendNotification);
-		addAndMakeVisible(l);
-	}
+	//degreeGroupLabels.clear();
+	//for (auto groupSize : degreeGroupSizes)
+	//{
+	//	Label* l = degreeGroupLabels.add(new Label());
+	//	l->setText(String(groupSize), dontSendNotification);
+	//	addAndMakeVisible(l);
+	//}
+
+	resized();
+	repaint();
+}
+
+void GroupingCircle::addArcToPath(Path& pathIn, Rectangle<float>& ellipseBounds, float fromRadians, float toRadians, bool startAsNewSubPath)
+{
+	pathIn.addArc(
+		ellipseBounds.getX(),
+		ellipseBounds.getY(),
+		ellipseBounds.getWidth(),
+		ellipseBounds.getHeight(),
+		fromRadians,
+		toRadians,
+		startAsNewSubPath
+	);
 }
