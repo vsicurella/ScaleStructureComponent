@@ -94,41 +94,49 @@ void NumberSelector::setSelectionType(SelectionType typeIn)
 }
 
 // Sets the value regardless of range/list. Index will be set to 0 if number is out of bounds
-void NumberSelector::setValue(int valueIn)
+void NumberSelector::setValue(int valueIn, bool sendNotification)
 {
 	valueSelected = valueIn;
 	updateIndexFromValue();
 	updateTextBox();
-	listeners.call(&NumberSelector::Listener::selectorValueChanged, this);
+	if (sendNotification)
+		listeners.call(&NumberSelector::Listener::selectorValueChanged, this);
 }
 
-void NumberSelector::setIndex(int indexIn)
+void NumberSelector::setIndex(int indexIn, bool sendNotification)
 {
 	indexSelected = indexIn;
 	updateValueFromIndex();
 	updateTextBox();
-	listeners.call(&NumberSelector::Listener::selectorValueChanged, this);
+	if (sendNotification)
+		listeners.call(&NumberSelector::Listener::selectorValueChanged, this);
 }
 
-void NumberSelector::setRange(IntRange rangeIn, bool updateValueAndIndex)
+void NumberSelector::setRange(IntRange rangeIn, bool updateValueAndIndex, bool sendNotification)
 {
 	selectionRange = rangeIn;
-	listeners.call(&NumberSelector::Listener::selectorRangeChanged, this);
-
-	setIndex(rangeIn.clipValue(indexSelected));
+	
+	if (sendNotification)
+		listeners.call(&NumberSelector::Listener::selectorRangeChanged, this);
+	
+	if (updateValueAndIndex)
+		setIndex(rangeIn.clipValue(indexSelected), sendNotification);
 }
 
-void NumberSelector::setRange(int min, int max, bool updateValueAndIndex)
+void NumberSelector::setRange(int min, int max, bool updateValueAndIndex, bool sendNotification)
 {
-	setRange(IntRange(min, max), updateValueAndIndex);
+	setRange(IntRange(min, max), updateValueAndIndex, sendNotification);
 }
 
-void NumberSelector::setList(IntList listIn, bool updateValueAndIndex)
+void NumberSelector::setList(IntList listIn, bool updateValueAndIndex, bool sendNotification)
 {
 	selectionList = listIn;
-	listeners.call(&NumberSelector::Listener::selectorListChanged, this);
+	
+	if (sendNotification)
+		listeners.call(&NumberSelector::Listener::selectorListChanged, this);
 
-	setIndex(jlimit(0, listIn.size() - 1, indexSelected));
+	if (updateValueAndIndex)
+		setIndex(jlimit(0, listIn.size() - 1, indexSelected), sendNotification);
 }
 
 void NumberSelector::addListener(Listener* listenerIn)

@@ -74,14 +74,14 @@ public:
 	void setSelectionType(SelectionType typeIn);
 
 	// Sets the value regardless of range/list. Index will be set to 0 if number is out of bounds
-	void setValue(int valueIn);
+	void setValue(int valueIn, bool sendNotification=true);
 
-	void setIndex(int indexIn);
+	void setIndex(int indexIn, bool sendNotification=true);
 
-	void setRange(IntRange rangeIn, bool updateValueAndIndex = true);
-	void setRange(int min, int max, bool updateValueAndIndex = true);
+	void setRange(IntRange rangeIn, bool updateValueAndIndex = true, bool sendNotification = true);
+	void setRange(int min, int max, bool updateValueAndIndex = true, bool sendNotification = true);
 
-	void setList(IntList listIn, bool updateValueAndIndex = true);
+	void setList(IntList listIn, bool updateValueAndIndex = true, bool sendNotification = true);
 
 	void paint(Graphics&) override;
 
