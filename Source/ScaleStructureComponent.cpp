@@ -81,7 +81,7 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	periodSlider->addListener(this);
 	generatorSlider->addListener(this);
 
-	periodSlider->setRange(5, 400, false);
+	periodSlider->setRange(5, 400, true, false);
 	periodSlider->setValue(scaleStructure.getPeriod());
     //[/Constructor]
 }
@@ -138,11 +138,12 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 	if (selectorThatHasChanged == periodSlider.get())
 	{
 		periodSelected = periodSlider->getValue();
-		DBG("Period is: " + String(periodSelected));
+		DBG("SSC: Period changed to " + String(periodSelected));
 
 		scaleStructure.resetToPeriod(periodSelected);
-		generatorSlider->setRange(1, periodSelected, 1);
+		circle->updatePeriod(periodSelected);
 
+		generatorSlider->setRange(1, periodSelected, false, false);
 		generatorSlider->setValue(scaleStructure.getSuggestedGenerator());
 
 		//generatorSlider->setList(getCoprimes(periodSlider->getValue()));
@@ -153,13 +154,13 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 	{
 		generatorSelected = generatorSlider->getValue();
 		scaleStructure.setGenerator(generatorSelected);
-		DBG("Generator is: " + String(generatorSelected));
-	}
+		circle->updateGenerator();
+		DBG("SSC: Generator changed to : " + String(generatorSelected));
 
-	float cents = roundf(log2(pow(2, (double)generatorSelected / periodSelected)) * 1200000) / 1000.0f;
-	generatorValueLbl->setText(String(cents) + " cents", dontSendNotification);
-
-	circle->repaint();
+		float cents = roundf(log2(pow(2, (double)generatorSelected / periodSelected)) * 1200000) / 1000.0f;
+		generatorValueLbl->setText(String(cents) + " cents", dontSendNotification);
+		return;
+	}	
 }
 //[/MiscUserCode]
 
