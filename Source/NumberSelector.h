@@ -49,11 +49,20 @@ public:
 		buttonOutlineColourId = 0x1001700
 	};
 
+	enum NamePlacement
+	{
+		AboveValue = 0,
+		BelowValue
+	};
+
 public:
-	NumberSelector();
+	NumberSelector(String componentName = "");
 	~NumberSelector();
 
 	int getSelectionType() const;
+
+	NamePlacement getNamePlacement() const;
+	bool isShowingName() const;
 
 	int getValue() const;
 
@@ -72,6 +81,9 @@ public:
 	void decrement();
 
 	void setSelectionType(SelectionType typeIn);
+
+	void setNamePlacement(NamePlacement placementIn);
+	void showNameLabel(bool toShow = true);
 
 	// Sets the value regardless of range/list. Index will be set to 0 if number is out of bounds
 	void setValue(int valueIn, bool sendNotification=true);
@@ -114,9 +126,12 @@ private:
 	std::unique_ptr<ArrowButton> incrementButton;
 	std::unique_ptr<ArrowButton> decrementButton;
 
+	std::unique_ptr<Label> nameLabel;
+
 	int valueSelected = 0;
 	int indexSelected = 0;
 	SelectionType selectionType = SelectionType::Range;
+	NamePlacement namePlacementSelected = AboveValue;
 
 	IntRange selectionRange;
 	IntList selectionList;

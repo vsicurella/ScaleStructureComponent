@@ -12,10 +12,10 @@
 #include "NumberSelector.h"
 
 //==============================================================================
-NumberSelector::NumberSelector()
+NumberSelector::NumberSelector(String componentName)
 {
-    // In your constructor, you should add any child components, and
-    // initialise any special settings that your component needs.
+	setName(componentName);
+
 	valueLabel.reset(new Label());
 	addAndMakeVisible(valueLabel.get());
 
@@ -26,6 +26,9 @@ NumberSelector::NumberSelector()
 	decrementButton.reset(new ArrowButton("decrementButton", 0.5f, Colours::white));
 	addAndMakeVisible(decrementButton.get());
 	decrementButton->addListener(this);
+
+	nameLabel.reset(new Label(componentName + "Label", getName()));
+	addChildComponent(nameLabel.get());
 
 	setupDefaultColours();
 }
@@ -38,6 +41,16 @@ NumberSelector::~NumberSelector()
 int NumberSelector::getSelectionType() const
 {
 	return selectionType;
+}
+
+NumberSelector::NamePlacement NumberSelector::getNamePlacement() const
+{
+	return namePlacementSelected;
+}
+
+bool NumberSelector::isShowingName() const
+{
+	return nameLabel->isVisible();
 }
 
 int NumberSelector::getValue() const
@@ -91,6 +104,18 @@ void NumberSelector::setSelectionType(SelectionType typeIn)
 	selectionType = typeIn;
 	updateValueFromIndex();
 	setValue(valueSelected);
+}
+
+void NumberSelector::setNamePlacement(NamePlacement placementIn)
+{
+	namePlacementSelected = placementIn;
+	resized();
+}
+
+void NumberSelector::showNameLabel(bool toShow)
+{
+	nameLabel->setVisible(toShow);
+	//repaint();
 }
 
 // Sets the value regardless of range/list. Index will be set to 0 if number is out of bounds
@@ -162,10 +187,18 @@ void NumberSelector::resized()
 	valueLabel->setBounds(proportionOfWidth(0.2f), 0, proportionOfWidth(0.6f), proportionOfHeight(1.0f));
 	decrementButton->setBounds(0, proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
 	incrementButton->setBounds(proportionOfWidth(0.8f), proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
+	
+	nameLabel->setFont(Font().withHeight(proportionOfHeight(0.2f)));
+	int nameStringWidth = nameLabel->getFont().getStringWidth(getName()) * 1.05f;
+	int nameStringHeight = nameLabel->getFont().getHeight();
+	float nameHeight = (namePlacementSelected == NamePlacement::AboveValue)
+		? valueLabel->getPosition().y - proportionOfHeight(0.01f)
+		: valueLabel->getPosition().y + valueLabel->getFont().getHeight() + proportionOfHeight(0.01f);
+	nameLabel->setBounds(proportionOfWidth(0.5f) - nameStringWidth / 2.0f, nameHeight, nameStringWidth, nameStringHeight);
 
 	valueFont.setHeight(proportionOfHeight(0.9f));
 	valueLabel->setFont(valueFont);
-	valueLabel->setJustificationType(Justification::centred);
+	valueLabel->setJustificationType(Justification::centred);	
 }
 
 void NumberSelector::updateValueFromIndex()
