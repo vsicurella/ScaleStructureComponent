@@ -41,13 +41,13 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
     addAndMakeVisible (offsetSlider.get());
     offsetSlider->setName ("offsetSlider");
 
-    generatorSlider.reset (new NumberSelector());
+    generatorSlider.reset (new NumberSelector ("Generator"));
     addAndMakeVisible (generatorSlider.get());
-    generatorSlider->setName ("generatorSlider");
+    generatorSlider->setName ("Generator");
 
-    periodSlider.reset (new NumberSelector());
+    periodSlider.reset (new NumberSelector ("Period"));
     addAndMakeVisible (periodSlider.get());
-    periodSlider->setName ("periodSlider");
+    periodSlider->setName ("Period");
 
     generatorValueLbl.reset (new Label ("generatorValueLbl",
                                         TRANS("700 cents")));
@@ -70,6 +70,8 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 
     //[UserPreSize]
 	//generatorSlider->setSelectionType(NumberSelector::SelectionType::List);
+	periodSlider->showNameLabel();
+	generatorSlider->showNameLabel();
     //[/UserPreSize]
 
     setSize (800, 800);
@@ -122,10 +124,10 @@ void ScaleStructureComponent::resized()
 
     circleComponent->setBounds (0, 0, proportionOfWidth (1.0000f), proportionOfHeight (1.0000f));
     offsetSlider->setBounds (proportionOfWidth (0.5004f) - (proportionOfWidth (0.1449f) / 2), proportionOfHeight (0.0604f), proportionOfWidth (0.1449f), proportionOfHeight (0.0638f));
-    generatorSlider->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1742f) / 2), proportionOfHeight (0.5200f), proportionOfWidth (0.1742f), proportionOfHeight (0.1378f));
-    periodSlider->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1742f) / 2), proportionOfHeight (0.3400f), proportionOfWidth (0.1742f), proportionOfHeight (0.1378f));
-    generatorValueLbl->setBounds (proportionOfWidth (0.3600f) - (103 / 2), proportionOfHeight (0.7500f), 103, 24);
-    stepSizePatternLbl->setBounds (proportionOfWidth (0.6396f) - (96 / 2), proportionOfHeight (0.7500f), 96, 24);
+    generatorSlider->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1742f) / 2), proportionOfHeight (0.4795f), proportionOfWidth (0.1742f), proportionOfHeight (0.1378f));
+    periodSlider->setBounds (proportionOfWidth (0.5015f) - (proportionOfWidth (0.2000f) / 2), proportionOfHeight (0.3155f), proportionOfWidth (0.2000f), proportionOfHeight (0.1378f));
+    generatorValueLbl->setBounds (proportionOfWidth (0.3600f) - (103 / 2), proportionOfHeight (0.7494f), 103, 24);
+    stepSizePatternLbl->setBounds (proportionOfWidth (0.6396f) - (96 / 2), proportionOfHeight (0.7494f), 96, 24);
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
@@ -160,7 +162,7 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		float cents = roundf(log2(pow(2, (double)generatorSelected / periodSelected)) * 1200000) / 1000.0f;
 		generatorValueLbl->setText(String(cents) + " cents", dontSendNotification);
 		return;
-	}	
+	}
 }
 //[/MiscUserCode]
 
@@ -186,12 +188,12 @@ BEGIN_JUCER_METADATA
   <GENERICCOMPONENT name="offsetSlider" id="1bfdf4c1ccc67e63" memberName="offsetSlider"
                     virtualName="" explicitFocusOrder="0" pos="50.038%c 6.036% 14.489% 6.378%"
                     class="Component" params=""/>
-  <GENERICCOMPONENT name="generatorSlider" id="efbe5586805bc62b" memberName="generatorSlider"
-                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50%c 52.05% 17.417% 13.781%"
-                    class="Component" params=""/>
-  <GENERICCOMPONENT name="periodSlider" id="39f9599ebb9952a" memberName="periodSlider"
-                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50%c 34.055% 17.417% 13.781%"
-                    class="Component" params=""/>
+  <GENERICCOMPONENT name="Generator" id="efbe5586805bc62b" memberName="generatorSlider"
+                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50%c 47.95% 17.417% 13.781%"
+                    class="Component" params="&quot;Generator&quot;"/>
+  <GENERICCOMPONENT name="Period" id="39f9599ebb9952a" memberName="periodSlider"
+                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50.15%c 31.549% 19.97% 13.781%"
+                    class="Component" params="&quot;Period&quot;"/>
   <LABEL name="generatorValueLbl" id="7250d3d0fa11afcf" memberName="generatorValueLbl"
          virtualName="" explicitFocusOrder="0" pos="35.998%c 74.943% 103 24"
          edTextCol="ff000000" edBkgCol="0" labelText="700 cents" editableSingleClick="0"
