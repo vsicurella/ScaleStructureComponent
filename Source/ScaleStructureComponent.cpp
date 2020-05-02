@@ -69,9 +69,9 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 
 
     //[UserPreSize]
-	//generatorSlider->setSelectionType(NumberSelector::SelectionType::List);
 	periodSlider->showNameLabel();
 	generatorSlider->showNameLabel();
+	generatorSlider->setSelectionType(NumberSelector::SelectionType::List);
     //[/UserPreSize]
 
     setSize (800, 800);
@@ -145,17 +145,14 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		scaleStructure.resetToPeriod(periodSelected);
 		circle->updatePeriod(periodSelected);
 
-		generatorSlider->setRange(1, periodSelected, false, false);
-		generatorSlider->setValue(scaleStructure.getSuggestedGenerator());
-
-		//generatorSlider->setList(getCoprimes(periodSlider->getValue()));
-		//generatorSlider->setIndex(generatorSlider->getList().size() / 2);
+		generatorSlider->setList(scaleStructure.getValidGenerators());
+		generatorSlider->setIndex(scaleStructure.getSuggestedGeneratorIndex());
 	}
 
 	else if (selectorThatHasChanged == generatorSlider.get())
 	{
-		generatorSelected = generatorSlider->getValue();
-		scaleStructure.setGenerator(generatorSelected);
+		generatorSelected = generatorSlider->getIndex();
+		scaleStructure.setGeneratorIndex(generatorSelected);
 		circle->updateGenerator();
 		DBG("SSC: Generator changed to : " + String(generatorSelected));
 
