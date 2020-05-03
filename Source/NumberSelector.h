@@ -32,6 +32,24 @@ public:
 		List
 	};
 
+	enum SelectorStyle
+	{
+		TickBox = 0,
+		Belt
+	};
+
+	enum Orientation
+	{
+		Horizontal = 0,
+		Vertical
+	};
+
+	enum NamePlacement
+	{
+		AboveValue = 0,
+		BelowValue
+	};
+
 	enum ColourIds
 	{
 		valueTextBackgroundColourId = 0x1001200,
@@ -46,20 +64,27 @@ public:
 		buttonTextColourId = 0x1001600,
 		buttonTextMouseOverColourId = 0x1001610,
 		buttonTextMouseDownColourId = 0x1001620,
-		buttonOutlineColourId = 0x1001700
+		buttonOutlineColourId = 0x1001700,
+
+		beltBackgroundColorId = 0x1001800,
+		beltBuckleColourId = 0x1001810
 	};
 
-	enum NamePlacement
-	{
-		AboveValue = 0,
-		BelowValue
-	};
+
 
 public:
-	NumberSelector(String componentName = "");
+	NumberSelector(
+		String componentName = "",
+		SelectionType typeIn = SelectionType::Range, 
+		SelectorStyle styleIn = TickBox, 
+		Orientation orientationIn = Horizontal
+	);
 	~NumberSelector();
 
-	int getSelectionType() const;
+	SelectionType getSelectionType() const;
+	SelectorStyle getSelectorStyle() const;
+
+	Orientation getOrientation() const;
 
 	NamePlacement getNamePlacement() const;
 	bool isShowingName() const;
@@ -81,7 +106,10 @@ public:
 	void decrement();
 
 	void setSelectionType(SelectionType typeIn);
+	void setSelectorStyle(SelectorStyle styleIn);
 
+	void setOrientation(Orientation orientationIn);
+	
 	void setNamePlacement(NamePlacement placementIn);
 	void showNameLabel(bool toShow = true);
 
@@ -130,7 +158,10 @@ private:
 
 	int valueSelected = 0;
 	int indexSelected = 0;
-	SelectionType selectionType = SelectionType::Range;
+
+	SelectionType selectionType;
+	SelectorStyle selectorStyle;
+	Orientation orientation;
 	NamePlacement namePlacementSelected = AboveValue;
 
 	IntRange selectionRange;

@@ -12,18 +12,21 @@
 #include "NumberSelector.h"
 
 //==============================================================================
-NumberSelector::NumberSelector(String componentName)
+NumberSelector::NumberSelector(String componentName, SelectionType typeIn, SelectorStyle styleIn, Orientation orientationIn)
+	: selectionType(typeIn), selectorStyle(styleIn), orientation(orientationIn)
 {
 	setName(componentName);
 
 	valueLabel.reset(new Label());
 	addAndMakeVisible(valueLabel.get());
 
-	incrementButton.reset(new ArrowButton("incrementButton", 0.0f, Colours::white));
+	float arrowDirection = (orientation == Horizontal) ? 0.0 : 0.25f;
+
+	incrementButton.reset(new ArrowButton("incrementButton", arrowDirection, Colours::white));
 	addAndMakeVisible(incrementButton.get());
 	incrementButton->addListener(this);
 
-	decrementButton.reset(new ArrowButton("decrementButton", 0.5f, Colours::white));
+	decrementButton.reset(new ArrowButton("decrementButton", arrowDirection + 0.5f, Colours::white));
 	addAndMakeVisible(decrementButton.get());
 	decrementButton->addListener(this);
 
@@ -38,9 +41,19 @@ NumberSelector::~NumberSelector()
 	listeners.clear();
 }
 
-int NumberSelector::getSelectionType() const
+NumberSelector::SelectionType NumberSelector::getSelectionType() const
 {
 	return selectionType;
+}
+
+NumberSelector::SelectorStyle NumberSelector::getSelectorStyle() const
+{
+	return selectorStyle;
+}
+
+NumberSelector::Orientation NumberSelector::getOrientation() const
+{
+	return orientation;
 }
 
 NumberSelector::NamePlacement NumberSelector::getNamePlacement() const
@@ -104,6 +117,24 @@ void NumberSelector::setSelectionType(SelectionType typeIn)
 	selectionType = typeIn;
 	updateValueFromIndex();
 	setValue(valueSelected);
+}
+
+void NumberSelector::setSelectorStyle(NumberSelector::SelectorStyle styleIn)
+{
+	selectorStyle = styleIn;
+	
+	if (selectorStyle == SelectorStyle::TickBox)
+		setColour(valueTextColourId, Colours::white);
+	else if (selectorStyle == SelectorStyle::Belt)
+		setColour(valueTextColourId, Colours::black);
+
+	resized();
+}
+
+void NumberSelector::setOrientation(Orientation orientationIn)
+{
+	orientation = orientationIn;
+	resized();
 }
 
 void NumberSelector::setNamePlacement(NamePlacement placementIn)
@@ -177,24 +208,33 @@ void NumberSelector::removeListener(Listener* listenerIn)
 void NumberSelector::paint (Graphics& g)
 {
 	g.fillAll(Colour());
+
+	if (selectorStyle == SelectorStyle::Belt)
+	{
+		g.setColour(findColour(ColourIds::beltBackgroundColorId));
+		g.fillRect(getBounds());
+	}
 }
 
 void NumberSelector::resized()
 {
-    // This method is where you should set the bounds of any child
-    // components that your component contains..
+	if (selectorStyle == TickBox)
+	{
+		valueLabel->setBounds(proportionOfWidth(0.2f), 0, proportionOfWidth(0.6f), proportionOfHeight(1.0f));
+		decrementButton->setBounds(0, proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
+		incrementButton->setBounds(proportionOfWidth(0.8f), proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
+	}
 
-	valueLabel->setBounds(proportionOfWidth(0.2f), 0, proportionOfWidth(0.6f), proportionOfHeight(1.0f));
-	decrementButton->setBounds(0, proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
-	incrementButton->setBounds(proportionOfWidth(0.8f), proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
-	
-	nameLabel->setFont(Font().withHeight(proportionOfHeight(0.2f)));
-	int nameStringWidth = nameLabel->getFont().getStringWidth(getName()) * 1.05f;
-	int nameStringHeight = nameLabel->getFont().getHeight();
-	float nameHeight = (namePlacementSelected == NamePlacement::AboveValue)
-		? valueLabel->getPosition().y - proportionOfHeight(0.01f)
-		: valueLabel->getPosition().y + valueLabel->getFont().getHeight() + proportionOfHeight(0.01f);
-	nameLabel->setBounds(proportionOfWidth(0.5f) - nameStringWidth / 2.0f, nameHeight, nameStringWidth, nameStringHeight);
+	if (showNameLabel)
+	{
+		nameLabel->setFont(Font().withHeight(proportionOfHeight(0.2f)));
+		int nameStringWidth = nameLabel->getFont().getStringWidth(getName()) * 1.05f;
+		int nameStringHeight = nameLabel->getFont().getHeight();
+		float nameHeight = (namePlacementSelected == NamePlacement::AboveValue)
+			? valueLabel->getPosition().y - proportionOfHeight(0.01f)
+			: valueLabel->getPosition().y + valueLabel->getFont().getHeight() + proportionOfHeight(0.01f);
+		nameLabel->setBounds(proportionOfWidth(0.5f) - nameStringWidth / 2.0f, nameHeight, nameStringWidth, nameStringHeight);
+	}
 
 	valueFont.setHeight(proportionOfHeight(0.9f));
 	valueLabel->setFont(valueFont);
@@ -233,7 +273,12 @@ void NumberSelector::setupDefaultColours()
 {
 	setColour(valueTextBackgroundColourId, Colour());
 	setColour(valueTextBackgroundMouseOverColourId, Colours::white.withAlpha(0.1f));
-	setColour(valueTextColourId, Colours::white);
+	
+	if (selectorStyle == SelectorStyle::TickBox)
+		setColour(valueTextColourId, Colours::white);
+	else if (selectorStyle == SelectorStyle::Belt)
+		setColour(valueTextColourId, Colours::black);
+	
 	setColour(valueTextColourMouseOverColourId, Colours::white.withAlpha(0.1f));
 	setColour(valueOutlineColourId, Colour());
 
@@ -244,6 +289,9 @@ void NumberSelector::setupDefaultColours()
 	setColour(buttonTextMouseOverColourId, Colours::white.withAlpha(0.1f));
 	setColour(buttonTextMouseDownColourId, Colours::lightgrey);
 	setColour(buttonOutlineColourId, Colour());
+
+	setColour(beltBackgroundColorId, Colours::white);
+	setColour(beltBuckleColourId, Colours::darkgrey);
 
 	valueLabel->setColour(Label::ColourIds::backgroundColourId, findColour(valueTextBackgroundColourId));
 	valueLabel->setColour(Label::ColourIds::textColourId, findColour(valueTextColourId));
