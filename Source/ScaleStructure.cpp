@@ -822,3 +822,62 @@ bool ScaleStructure::isValid() const
 
 	return true;
 }
+
+String ScaleStructure::getIntervalSteps(Point<int>& stepSizesOut)
+{
+	Array<int> sizes;
+	for (int i = 0; i < getScaleSize(); i++)
+	{
+		for (int p = 0; p < periodFactorSelected; p++)
+			sizes.add(generatorChain[i + fPeriod * p]);
+	}
+
+	sizes.add(period);
+	sizes.sort();
+
+	String steps = "";
+	for (int i = 1; i <= getScaleSize(); i++)
+	{
+		sizes.set(i - 1, sizes[i] - sizes[i - 1]);
+		steps += String(sizes[i - 1]) + " ";
+	}
+
+	// Extract step sizes
+	stepSizesOut.x = sizes[0];
+	for (auto step : sizes)
+	{
+		if (step != stepSizesOut.x)
+		{
+			stepSizesOut.y = step;
+			break;
+		}
+	}
+
+	DBG("ScaleStructure: MOS scale step sizes are: " + stepSizesOut.toString());
+
+	return steps.substring(0, steps.length() - 1);
+}
+
+String ScaleStructure::getIntervalSteps()
+{
+	Point<int> dummySteps;
+	return getIntervalSteps(dummySteps);
+}
+
+String ScaleStructure::getLsSteps()
+{
+	Point<int> sizes;
+	String steps = getIntervalSteps(sizes);
+	
+	String L = String(jmax(sizes.x, sizes.y));
+	String s = String(jmin(sizes.x, sizes.y));
+
+	// TODO: make more efficent
+	while (steps.containsWholeWord(L))
+		steps = steps.replaceFirstOccurrenceOf(L, "L");
+
+	while (steps.containsWholeWord(s))
+		steps = steps.replaceFirstOccurrenceOf(s, "s");
+
+	return steps;
+}

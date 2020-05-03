@@ -98,7 +98,7 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	periodSlider->setRange(5, 400, true, false);
 	periodSlider->setValue(scaleStructure.getPeriod());
 
-	offsetSlider->setValue(-1);
+	offsetSlider->setValue(1);
     //[/Constructor]
 }
 
@@ -189,6 +189,7 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		scaleStructure.setGeneratorOffset(offsetSlider->getValue());
 		circle->updateGenerator();
 		DBG("SSC: Generator Offset changed to: " + String(offsetSlider->getValue()));
+		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
 	}
 
 	else if (selectorThatHasChanged == scaleSizeSelector.get())
@@ -196,10 +197,9 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		scaleStructure.setSizeIndex(scaleSizeSelector->getIndex() + 1);
 		DBG("SSC: Size changed to: " + String(scaleSizeSelector->getValue()));
 
-		// TODO: improve value changing
 		offsetSlider->setRange(0, scaleSizeSelector->getValue() - 1, 0);
 
-		// TODO: update MOS label
+		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
 	}
 }
 //[/MiscUserCode]

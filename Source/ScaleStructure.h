@@ -138,4 +138,14 @@ public:
 	Array<int> getNestedSizeGrouping();
 	Array<int> getComplimentarySizeGrouping();
 	void useSuggestedSizeGrouping();
+
+
+	// Returns the scale as a string of step sizes and puts integer values into passed in point reference
+	String getIntervalSteps(Point<int>& stepSizesOut);
+
+	// Returns the scale as a string of step sizes
+	String getIntervalSteps();
+
+	// Returns the scale as a string of L and s step sizes
+	String getLsSteps();
 };
