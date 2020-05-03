@@ -69,11 +69,13 @@ private:
 
     //==============================================================================
     std::unique_ptr<GroupingCircle> circleComponent;
-    std::unique_ptr<Component> offsetSlider;
+    std::unique_ptr<NumberSelector> offsetSlider;
     std::unique_ptr<NumberSelector> generatorSlider;
     std::unique_ptr<NumberSelector> periodSlider;
     std::unique_ptr<Label> generatorValueLbl;
     std::unique_ptr<Label> stepSizePatternLbl;
+    std::unique_ptr<NumberSelector> periodFactorSelector;
+    std::unique_ptr<NumberSelector> scaleSizeSelector;
 
 
     //==============================================================================
