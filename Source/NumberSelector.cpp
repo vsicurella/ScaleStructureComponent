@@ -257,14 +257,14 @@ void NumberSelector::resized()
 void NumberSelector::updateValueFromIndex()
 {
 	valueSelected = (selectionType == SelectionType::Range)
-		? indexSelected
+		? indexSelected + selectionRange.getStart()
 		: selectionList[indexSelected];
 }
 
 void NumberSelector::updateIndexFromValue()
 {
 	indexSelected = (selectionType == SelectionType::Range)
-		? valueSelected
+		? valueSelected - selectionRange.getStart()
 		: selectionList.indexOf(valueSelected);
 }
 
