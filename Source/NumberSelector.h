@@ -47,7 +47,9 @@ public:
 	enum NamePlacement
 	{
 		AboveValue = 0,
-		BelowValue
+		BelowValue,
+		LeftOfValue,
+		RightOfValue
 	};
 
 	enum ColourIds

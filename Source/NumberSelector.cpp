@@ -221,18 +221,31 @@ void NumberSelector::resized()
 	if (selectorStyle == TickBox)
 	{
 		valueLabel->setBounds(proportionOfWidth(0.2f), 0, proportionOfWidth(0.6f), proportionOfHeight(1.0f));
-		decrementButton->setBounds(0, proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
-		incrementButton->setBounds(proportionOfWidth(0.8f), proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
+
+		if (orientation == Horizontal)
+		{
+			decrementButton->setBounds(0, proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
+			incrementButton->setBounds(proportionOfWidth(0.8f), proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
+		}
+		else
+		{
+			decrementButton->setBounds(0, proportionOfHeight(1.2f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
+			incrementButton->setBounds(0, -proportionOfHeight(1.0f / 3.0f), proportionOfWidth(3.0f / 8.0f), proportionOfHeight(1.0f / 3.0f));
+		}
 	}
 
-	if (showNameLabel)
+	if (isShowingName())
 	{
 		nameLabel->setFont(Font().withHeight(proportionOfHeight(0.2f)));
 		int nameStringWidth = nameLabel->getFont().getStringWidth(getName()) * 1.05f;
 		int nameStringHeight = nameLabel->getFont().getHeight();
+
+		// TODO: handle vertical orientation
+
 		float nameHeight = (namePlacementSelected == NamePlacement::AboveValue)
 			? valueLabel->getPosition().y - proportionOfHeight(0.01f)
-			: valueLabel->getPosition().y + valueLabel->getFont().getHeight() + proportionOfHeight(0.01f);
+			: valueLabel->getPosition().y + valueLabel->getFont().getHeight() + proportionOfHeight(0.01f);		
+		
 		nameLabel->setBounds(proportionOfWidth(0.5f) - nameStringWidth / 2.0f, nameHeight, nameStringWidth, nameStringHeight);
 	}
 
