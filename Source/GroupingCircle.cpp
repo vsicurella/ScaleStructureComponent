@@ -40,8 +40,6 @@ void GroupingCircle::paint (Graphics& g)
 
 	// Draw outline
 	g.setColour(Colours::black);
-	/*g.drawEllipse(getBounds().toFloat(), 4.0f);
-	g.drawEllipse(degreeInnerCircleBounds, 4.0f);*/
 
 	strokeType.setStrokeThickness(2.0f);
 
@@ -52,22 +50,39 @@ void GroupingCircle::paint (Graphics& g)
 	{
 	}
 
-	//g.strokePath(arcGroupSections, strokeType);
-	//g.strokePath(arcDegreeSections, strokeType);
-
-	for (auto p : groupArcPaths)
+	Colour c;
+	int degIndex = 0;
+	for (int i = 0; i < groupArcPaths.size(); i++)
 	{
-		g.strokePath(p, strokeType);
-	}
+		// Draw groups
+		Path& groupPath = groupArcPaths.getReference(i);
+		c = groupColours[i];
 
-	Colour c = Colours::red;
-	for (auto p : degreeArcPaths)
-	{	
+		if (c.isTransparent())
+			c = Colours::lightgrey;
+
 		g.setColour(c);
-		g.strokePath(p, strokeType);
-		c = c.withRotatedHue(1.0f / degreeArcPaths.size());
-	}
+		g.fillPath(groupPath);
 
+		g.setColour(Colours::black);
+		g.strokePath(groupPath, strokeType);
+
+		groupSizeLabels[i]->setColour(Label::ColourIds::textColourId, c.contrasting(2.0f / 3.0f));
+
+		// Draw degrees
+		for (int d = 0; d < degreeGroupSizes[i]; d++)
+		{
+			Path& degreePath = degreeArcPaths.getReference(degIndex);
+			g.setColour(c.brighter());
+			g.fillPath(degreePath);
+
+			g.setColour(c.darker());
+			g.strokePath(degreePath, strokeType);
+
+			degreeLabels[degIndex]->setColour(Label::ColourIds::textColourId, c.contrasting(2.0f / 3.0f));
+			degIndex++;
+		}
+	}
 
 	if (controlModeSelected == ControlMode::Layout)
 	{
@@ -115,7 +130,7 @@ void GroupingCircle::resized()
 
 	groupArcPaths.clear();
 	degreeArcPaths.clear();
-	for (int i = 0; i < generatorChainLabels.size(); i++)
+	for (int i = 0; i < degreeLabels.size(); i++)
 	{
 		angle = angleIncrement * i - circleOffset;
 		angleTo = angle + angleIncrement;
@@ -128,7 +143,7 @@ void GroupingCircle::resized()
 		degreeArcPaths.add(degreePath);
 
 		// place labels
-		degreeLabel = generatorChainLabels[i];
+		degreeLabel = degreeLabels[i];
 		degreeLabel->setFont(Font().withHeight(degreeLabelSize));
 		degreeLabelWidth = degreeLabel->getFont().getStringWidthFloat(degreeLabel->getText());
 		degreeLabel->setSize(jmax(degreeLabelWidth, degreeLabelSize), degreeLabelSize);
@@ -151,7 +166,7 @@ void GroupingCircle::resized()
 
 			groupLabelAngle = (groupAngleFrom + angleTo) / 2.0f - float_Pi / 2.0f;
 
-			groupLabel = degreeGroupLabels[groupIndex];
+			groupLabel = groupSizeLabels[groupIndex];
 			groupLabel->setFont(Font().withHeight(groupLabelSize));
 			groupLabelWidth = groupLabel->getFont().getStringWidthFloat(groupLabel->getText());
 			groupLabel->setSize(jmax(groupLabelWidth, groupLabelSize), groupLabelSize);
@@ -180,10 +195,10 @@ void GroupingCircle::updatePeriod(int periodIn)
 
 	removeAllChildren();
 
-	generatorChainLabels.clear();
+	degreeLabels.clear();
 	for (int i = 0; i < periodIn; i++)
 	{
-		Label* l = generatorChainLabels.add(new Label());
+		Label* l = degreeLabels.add(new Label());
 		l->setJustificationType(Justification::centred);
 		addAndMakeVisible(l);
 	}
@@ -192,16 +207,16 @@ void GroupingCircle::updatePeriod(int periodIn)
 void GroupingCircle::updateGenerator()
 {
 	DBG("Circle: Generator changed, updating labels");
-	for (int i = 0; i < generatorChainLabels.size(); i++)
+	for (int i = 0; i < degreeLabels.size(); i++)
 	{
-		generatorChainLabels[i]->setText(String(generatorChain[i]), dontSendNotification);
-		//generatorChainLabels[i]->setColour(Label::ColourIds::outlineColourId, Colours::white);
+		degreeLabels[i]->setText(String(generatorChain[i]), dontSendNotification);
+		//degreeLabels[i]->setColour(Label::ColourIds::outlineColourId, Colours::white);
 	}
 
-	degreeGroupLabels.clear();
+	groupSizeLabels.clear();
 	for (auto groupSize : degreeGroupSizes)
 	{
-		Label* l = degreeGroupLabels.add(new Label());
+		Label* l = groupSizeLabels.add(new Label());
 		l->setJustificationType(Justification::centred);
 		l->setText(String(groupSize), dontSendNotification);
 		//l->setColour(Label::ColourIds::outlineColourId, Colours::white);

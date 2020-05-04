@@ -51,8 +51,8 @@ protected:
 	ListenerList<Listener> listeners;
 
 private:
-	OwnedArray<Label> generatorChainLabels;
-	OwnedArray<Label> degreeGroupLabels;
+	OwnedArray<Label> degreeLabels;
+	OwnedArray<Label> groupSizeLabels;
 
 	// The chain of scale degrees by stacking the chosen generator
 	const Array<int>& generatorChain;
