@@ -24,7 +24,7 @@ ScaleStructure::ScaleStructure(int periodIn, int genIndexIn, int sizeIndexIn, Ar
 	
 	if (degreeGroupsIn.size() > 0)
 	{
-		degreeGroupSizes = degreeGroupsIn;
+		degreeGroupIndexedSizes = degreeGroupsIn;
 		// TODO: check and fill
 	}
 	else
@@ -151,14 +151,14 @@ const Array<int>& ScaleStructure::getGeneratorChainReference()
 	return generatorChain;
 }
 
-Array<int> ScaleStructure::getGroupingSizes() const
+Array<int> ScaleStructure::getGroupingIndexedSizes() const
 {
-	return degreeGroupSizes;
+	return degreeGroupIndexedSizes;
 }
 
 const Array<int>& ScaleStructure::getGroupingSizesReference()
 {
-	return degreeGroupSizes;
+	return degreeGroupScaleSizes;
 }
 
 Array<Array<int>> ScaleStructure::getDegreeGroupings() const
@@ -173,7 +173,7 @@ const Array<Array<int>>& ScaleStructure::getDegreeGroupingsReference() const
 
 int ScaleStructure::getGroupOfDegree(int scaleDegreeIn) const
 {
-	for (int g = 0; g < degreeGroupSizes.size(); g++)
+	for (int g = 0; g < degreeGroupIndexedSizes.size(); g++)
 	{
 		if (degreeGroupings.getReference(g).contains(scaleDegreeIn))
 			return g;
@@ -413,7 +413,7 @@ void ScaleStructure::fillGroupingSymmetrically()
 
 	for (int i = 0; i < periodFactorSelected; i++)
 	{
-		grouping.addArray(degreeGroupSizes);
+		grouping.addArray(degreeGroupIndexedSizes);
 	}
 
 	degreeGroupings.resize(grouping.size());
@@ -471,14 +471,14 @@ void ScaleStructure::fillGroupingSymmetrically()
 void ScaleStructure::fillSymmetricGrouping()
 {
 	degreeGroupings.clear();
-	degreeGroupings.resize(degreeGroupSizes.size());
+	degreeGroupings.resize(degreeGroupIndexedSizes.size());
 
 	// Fill degree groups symmetrically
 
 	int ind = 0;
-	for (int t = 0; t < degreeGroupSizes.size(); t++)
+	for (int t = 0; t < degreeGroupIndexedSizes.size(); t++)
 	{
-		for (int n = 0; n < scaleSizes[degreeGroupSizes[t]]; n++)
+		for (int n = 0; n < scaleSizes[degreeGroupIndexedSizes[t]]; n++)
 		{
 			for (int f = 0; f < periodFactorSelected; f++)
 			{
@@ -494,8 +494,8 @@ void ScaleStructure::fillSymmetricGrouping()
 
 	String dbgstr = "";
 	int size, sum = 0;
-	for (int i = 0; i < degreeGroupSizes.size(); i++) {
-		size = scaleSizes[degreeGroupSizes[i]];
+	for (int i = 0; i < degreeGroupIndexedSizes.size(); i++) {
+		size = scaleSizes[degreeGroupIndexedSizes[i]];
 		dbgstr += String(size) + ", ";
 		sum += size;
 	}
@@ -503,7 +503,7 @@ void ScaleStructure::fillSymmetricGrouping()
 	DBG("Using this size grouping: " + dbgstr);
 
 	dbgstr = "";
-	for (int group = 0; group < degreeGroupSizes.size(); group++)
+	for (int group = 0; group < degreeGroupIndexedSizes.size(); group++)
 	{
 		Array<int> degreeGroup = degreeGroupings[group];
 		dbgstr += "Tier " + String(group) + ": ";
@@ -783,12 +783,19 @@ void ScaleStructure::useSuggestedSizeGrouping()
 	}
 
 	// make symmetric and fill degree groupings
-	degreeGroupSizes = arrangeSymmetrically(groupings[index]);
+	degreeGroupIndexedSizes = arrangeSymmetrically(groupings[index]);
+
+	// fill scale size group
+	degreeGroupScaleSizes.clear();
+	for (auto i : degreeGroupIndexedSizes)
+	{
+		degreeGroupScaleSizes.add(scaleSizes[i]);
+	}
 
 	DBG("Symmetric group:");
 	String dbgstr = "";
-	for (int i = 0; i < degreeGroupSizes.size(); i++)
-		dbgstr += String(scaleSizes[degreeGroupSizes[i]]) + ", ";
+	for (int i = 0; i < degreeGroupIndexedSizes.size(); i++)
+		dbgstr += String(scaleSizes[degreeGroupIndexedSizes[i]]) + ", ";
 	DBG(dbgstr);
 
 	fillSymmetricGrouping();
@@ -809,9 +816,9 @@ bool ScaleStructure::isValid() const
 	}
 
 	int sum = 0;
-	for (int s = 0; s < degreeGroupSizes.size(); s++)
+	for (int s = 0; s < degreeGroupIndexedSizes.size(); s++)
 	{
-		sum += scaleSizes[degreeGroupSizes[s]] * periodFactorSelected;
+		sum += scaleSizes[degreeGroupIndexedSizes[s]] * periodFactorSelected;
 	}
 
 	if (sum != period)

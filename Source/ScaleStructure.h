@@ -32,7 +32,8 @@ class ScaleStructure
 	Array<Point<int>> stepSizes; // Hex step sizes
 
 	Array<int> generatorChain;
-	Array<int> degreeGroupSizes;
+	Array<int> degreeGroupIndexedSizes;
+	Array<int> degreeGroupScaleSizes;
 	Array<Array<int>> degreeGroupings;
 
 	Array<Point<int>> modmosProperties;
@@ -46,7 +47,7 @@ class ScaleStructure
 	// Enumerates the scale as a chain of generators
 	void calculateGeneratorChain();
 
-	// Fills arrays of degrees based on degreeGroupSizes. Use this if group sizes haven't been arranged symmetrically
+	// Fills arrays of degrees based on degreeGroupIndexedSizes. Use this if group sizes haven't been arranged symmetrically
 	// Starts at beginning of generatorChain and puts the succeeding degrees in the second group, but wraps to degrees
 	// preceding the generatorChain beginning into the third group, and alternates to fill all degrees
 	void fillGroupingSymmetrically();
@@ -102,7 +103,10 @@ public:
 	Array<int> getGeneratorChain() const;
 	const Array<int>& getGeneratorChainReference();
 
-	Array<int> getGroupingSizes() const;
+	// Returns an array of indicies reffering to scale sizes of degree groups
+	Array<int> getGroupingIndexedSizes() const;
+
+	// Returns an array of actual group sizes, for visualization use
 	const Array<int>& getGroupingSizesReference();
 
 	Array<Array<int>> getDegreeGroupings() const;

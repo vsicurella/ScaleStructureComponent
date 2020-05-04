@@ -26,7 +26,7 @@ public:
 	};
 
 public:
-    GroupingCircle(const Array<int>& generatorChainIn, const Array<int> degreeGroupSizesIn, Array<Colour>& groupColoursIn);
+    GroupingCircle(const Array<int>& generatorChainIn, const Array<int>& degreeGroupSizesIn, Array<Colour>& groupColoursIn);
     ~GroupingCircle();
 
 	ControlMode getControlMode();
@@ -68,14 +68,26 @@ private:
 	bool showDegreesInLayoutMode = true;
 
 	// Drawing related members
-	float innerToOuterRadius = 3.0f / 4.0f;
-	float circleRadiusOuter;
-	float circleRadiusInner;
-	float circleRadiusMiddle;
-	Point<float> center;
+	float borderRatio = 127.0f / 128.0f;
+	float degreeToGroupRatio = 4.0f / 5.0f;
+	float degreeOuterToInnerRatio = 5.0f / 6.0f;
 
-	float ringWidth;
-	Rectangle<float> innerCircleBounds;
+	float groupOuterRadius;
+	float groupMiddleRadius;
+
+	float degreeOuterRadius;
+	float degreeInnerRadius;
+	float degreeMiddleRadius;
+
+	Point<float> center;
+	float circleOffset = float_Pi / 2.0f;
+
+	float groupRingWidth;
+	float degreeRingWidth;
+
+	Rectangle<float> groupOuterCircleBounds;
+	Rectangle<float> groupInnerCircleBounds;
+	Rectangle<float> degreeInnerCircleBounds;
 
 	double angleIncrement;
 	double angleHalf;
