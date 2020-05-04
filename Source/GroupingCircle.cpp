@@ -109,7 +109,7 @@ void GroupingCircle::resized()
 	degreeInnerCircleBounds = groupInnerCircleBounds.reduced(degreeRingWidth);
 	
 	angleIncrement = 2 * double_Pi / generatorChain.size();
-	angleHalf = angleIncrement / 2.0f; // Middle of top section should be at 12 o'clock
+	angleHalf = angleIncrement / 2.0f;
 
 	// determine circle offset, based off of middle angle of first degree group
 	circleOffset = degreeGroupSizes[0] * angleIncrement / 2.0f;
@@ -176,8 +176,6 @@ void GroupingCircle::resized()
 				round(center.y + sinf(groupLabelAngle) * groupMiddleRadius)
 			));
 
-			// TODO: place group degree labels
-			DBG("Circle: Ended group " + String(groupIndex) + " size " + String(groupSize));
 			groupDegreesPassed += groupSize;
 			groupIndex++;
 			groupSize = degreeGroupSizes[groupIndex];
