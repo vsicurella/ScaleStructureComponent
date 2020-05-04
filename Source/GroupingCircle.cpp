@@ -52,8 +52,22 @@ void GroupingCircle::paint (Graphics& g)
 	{
 	}
 
-	g.strokePath(arcGroupSections, strokeType);
-	g.strokePath(arcDegreeSections, strokeType);
+	//g.strokePath(arcGroupSections, strokeType);
+	//g.strokePath(arcDegreeSections, strokeType);
+
+	for (auto p : groupArcPaths)
+	{
+		g.strokePath(p, strokeType);
+	}
+
+	Colour c = Colours::red;
+	for (auto p : degreeArcPaths)
+	{	
+		g.setColour(c);
+		g.strokePath(p, strokeType);
+		c = c.withRotatedHue(1.0f / degreeArcPaths.size());
+	}
+
 
 	if (controlModeSelected == ControlMode::Layout)
 	{
@@ -83,60 +97,68 @@ void GroupingCircle::resized()
 	angleHalf = angleIncrement / 2.0f; // Middle of top section should be at 12 o'clock
 
 	// determine circle offset, based off of middle angle of first degree group
-	//circleOffset = (float_Pi * 1.5f) - (degreeGroupSizes[0] * angleIncrement / 2.0f);
+	circleOffset = degreeGroupSizes[0] * angleIncrement / 2.0f;
 
-	arcGroupSections.clear();
 	int groupIndex = 0;
 	int groupDegreesPassed = 0;
-	float groupArcFrom = -angleHalf;// -circleOffset;
-
+	
 	float sizeAdj = 0.75f;
 	float degreeLabelSize = degreeRingWidth * sizeAdj;
 	float groupLabelSize = groupRingWidth * sizeAdj;
 
-	Label* degreeLabel, *groupLabel;
+	float angle, angleTo, groupAngleFrom = -circleOffset; 
+	float degLabelAngle, groupLabelAngle;
 
-	arcDegreeSections.clear();
+	Path degreePath, groupPath;
+	Label* degreeLabel, *groupLabel;
+	float degreeLabelWidth, groupLabelWidth;
+
+	groupArcPaths.clear();
+	degreeArcPaths.clear();
 	for (int i = 0; i < generatorChainLabels.size(); i++)
 	{
-		float ang = angleIncrement * i;
-		float arcFrom = ang - angleHalf;
-		float arcTo = ang + angleIncrement - angleHalf;
+		angle = angleIncrement * i - circleOffset;
+		angleTo = angle + angleIncrement;
 	
 		// draw arc sections
-		addArcToPath(arcDegreeSections, degreeInnerCircleBounds, arcFrom, arcTo, true);
-		addArcToPath(arcDegreeSections, groupInnerCircleBounds, arcTo, arcFrom);
-		arcDegreeSections.closeSubPath();
+		degreePath = Path();
+		addArcToPath(degreePath, degreeInnerCircleBounds, angle, angleTo, true);
+		addArcToPath(degreePath, groupInnerCircleBounds, angleTo, angle);
+		degreePath.closeSubPath();
+		degreeArcPaths.add(degreePath);
 
 		// place labels
-		// TODO: get section offset
 		degreeLabel = generatorChainLabels[i];
 		degreeLabel->setFont(Font().withHeight(degreeLabelSize));
-		float degreeLabelWidth = degreeLabel->getFont().getStringWidthFloat(degreeLabel->getText());
+		degreeLabelWidth = degreeLabel->getFont().getStringWidthFloat(degreeLabel->getText());
 		degreeLabel->setSize(jmax(degreeLabelWidth, degreeLabelSize), degreeLabelSize);
 
+		degLabelAngle =  angleTo - angleHalf - float_Pi / 2.0f;
+
 		degreeLabel->setCentrePosition(Point<int>(
-			round(center.x + cosf(ang - circleOffset) * degreeMiddleRadius),
-			round(center.y + sinf(ang - circleOffset) * degreeMiddleRadius)
+			round(center.x + cosf(degLabelAngle) * degreeMiddleRadius),
+			round(center.y + sinf(degLabelAngle) * degreeMiddleRadius)
 		));
 
 		int groupSize = degreeGroupSizes[groupIndex];
 		if ((i + 1) - groupDegreesPassed >= groupSize && groupSize > 0)
 		{
-			addArcToPath(arcGroupSections, groupInnerCircleBounds, groupArcFrom, arcTo, true);
-			addArcToPath(arcGroupSections, groupOuterCircleBounds, arcTo, groupArcFrom);
-			arcGroupSections.closeSubPath();
+			groupPath = Path();
+			addArcToPath(groupPath, groupInnerCircleBounds, groupAngleFrom, angleTo, true);
+			addArcToPath(groupPath, groupOuterCircleBounds, angleTo, groupAngleFrom);
+			groupPath.closeSubPath();
+			groupArcPaths.add(groupPath);
 
-			float groupCenterAngle = (groupArcFrom + arcTo) / 2.0f - angleHalf;
+			groupLabelAngle = (groupAngleFrom + angleTo) / 2.0f - float_Pi / 2.0f;
 
 			groupLabel = degreeGroupLabels[groupIndex];
 			groupLabel->setFont(Font().withHeight(groupLabelSize));
-			float groupLabelWidth = groupLabel->getFont().getStringWidthFloat(groupLabel->getText());
+			groupLabelWidth = groupLabel->getFont().getStringWidthFloat(groupLabel->getText());
 			groupLabel->setSize(jmax(groupLabelWidth, groupLabelSize), groupLabelSize);
 
 			groupLabel->setCentrePosition(Point<int>(
-				round(center.x + cosf(groupCenterAngle - circleOffset ) * groupMiddleRadius),
-				round(center.y + sinf(groupCenterAngle - circleOffset ) * groupMiddleRadius)
+				round(center.x + cosf(groupLabelAngle) * groupMiddleRadius),
+				round(center.y + sinf(groupLabelAngle) * groupMiddleRadius)
 			));
 
 			// TODO: place group degree labels
@@ -145,7 +167,7 @@ void GroupingCircle::resized()
 			groupIndex++;
 			groupSize = degreeGroupSizes[groupIndex];
 
-			groupArcFrom = arcTo;
+			groupAngleFrom = angleTo;
 		}
 	}
 
