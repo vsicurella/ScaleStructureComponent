@@ -117,8 +117,8 @@ void GroupingCircle::resized()
 	int groupIndex = 0;
 	int groupDegreesPassed = 0;
 	
-	float sizeAdj = 0.75f;
-	float degreeLabelSize = degreeRingWidth * sizeAdj;
+	float sizeAdj = 0.875f;
+	float degreeLabelSize = jmin(degreeRingWidth, 2 * float_Pi * degreeMiddleRadius / degreeLabels.size() ) * sizeAdj;
 	float groupLabelSize = groupRingWidth * sizeAdj;
 
 	float angle, angleTo, groupAngleFrom = -circleOffset; 
@@ -145,7 +145,7 @@ void GroupingCircle::resized()
 		// place labels
 		degreeLabel = degreeLabels[i];
 		degreeLabel->setFont(Font().withHeight(degreeLabelSize));
-		degreeLabelWidth = degreeLabel->getFont().getStringWidthFloat(degreeLabel->getText());
+		degreeLabelWidth = degreeLabel->getFont().getStringWidthFloat(" " + degreeLabel->getText() + " ");
 		degreeLabel->setSize(jmax(degreeLabelWidth, degreeLabelSize), degreeLabelSize);
 
 		degLabelAngle =  angleTo - angleHalf - float_Pi / 2.0f;
