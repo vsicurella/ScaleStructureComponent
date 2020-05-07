@@ -64,7 +64,7 @@ void GroupingCircle::paint (Graphics& g)
 			groupColour = Colours::lightgrey;
 
 		if (groupSectorMouseOver[i])
-			groupColour = groupColour.brighter();
+			groupColour = groupColour.contrasting(highlightContrastRatio);
 
 		g.setColour(groupColour);
 		g.fillPath(groupPath);
@@ -72,7 +72,7 @@ void GroupingCircle::paint (Graphics& g)
 		g.setColour(Colours::black);
 		g.strokePath(groupPath, strokeType);
 
-		groupSizeLabels[i]->setColour(Label::ColourIds::textColourId, groupColour.contrasting(2.0f / 3.0f));
+		groupSizeLabels[i]->setColour(Label::ColourIds::textColourId, groupColour.contrasting(labelContrastRatio));
 
 		// Draw degrees
 		for (int d = 0; d < degreeGroupSizes[i]; d++)
@@ -80,7 +80,7 @@ void GroupingCircle::paint (Graphics& g)
 			degreeColour = groupColour;
 
 			if (degreeSectorMouseOver[degIndex])
-				degreeColour = groupColour.brighter();
+				degreeColour = groupColour.contrasting(highlightContrastRatio);
 
 			Path& degreePath = degreeArcPaths.getReference(degIndex);
 			
@@ -90,7 +90,7 @@ void GroupingCircle::paint (Graphics& g)
 			g.setColour(degreeColour.darker());
 			g.strokePath(degreePath, strokeType);
 
-			degreeLabels[degIndex]->setColour(Label::ColourIds::textColourId, degreeColour.contrasting(2.0f / 3.0f));
+			degreeLabels[degIndex]->setColour(Label::ColourIds::textColourId, degreeColour.contrasting(labelContrastRatio));
 			degIndex++;
 		}
 	}
@@ -128,9 +128,8 @@ void GroupingCircle::resized()
 	int groupIndex = 0;
 	int groupDegreesPassed = 0;
 	
-	float sizeAdj = 0.875f;
-	float degreeLabelSize = jmin(degreeRingWidth, 2 * float_Pi * degreeMiddleRadius / degreeLabels.size() ) * sizeAdj;
-	float groupLabelSize = groupRingWidth * sizeAdj;
+	float degreeLabelSize = jmin(degreeRingWidth, 2 * float_Pi * degreeMiddleRadius / degreeLabels.size() ) * sectorLabelSizeRatio;
+	float groupLabelSize = groupRingWidth * sectorLabelSizeRatio;
 
 	float angle, angleTo, groupAngleFrom = -circleOffset; 
 	float degLabelAngle, groupLabelAngle;
@@ -159,7 +158,7 @@ void GroupingCircle::resized()
 		degreeLabelWidth = degreeLabel->getFont().getStringWidthFloat(" " + degreeLabel->getText() + " ");
 		degreeLabel->setSize(jmax(degreeLabelWidth, degreeLabelSize), degreeLabelSize);
 
-		degLabelAngle =  angleTo - angleHalf - float_Pi / 2.0f;
+		degLabelAngle =  angleTo - angleHalf - float_HalfPi;
 
 		degreeLabel->setCentrePosition(Point<int>(
 			round(center.x + cosf(degLabelAngle) * degreeMiddleRadius),
@@ -175,7 +174,7 @@ void GroupingCircle::resized()
 			groupPath.closeSubPath();
 			groupArcPaths.add(groupPath);
 
-			groupLabelAngle = (groupAngleFrom + angleTo) / 2.0f - float_Pi / 2.0f;
+			groupLabelAngle = (groupAngleFrom + angleTo) / 2.0f - float_HalfPi;
 
 			groupLabel = groupSizeLabels[groupIndex];
 			groupLabel->setFont(Font().withHeight(groupLabelSize));
@@ -301,6 +300,7 @@ void GroupingCircle::updateGenerator()
 		Label* l = groupSizeLabels.add(new Label());
 		l->setJustificationType(Justification::centred);
 		l->setText(String(groupSize), dontSendNotification);
+		l->setInterceptsMouseClicks(false, false);
 		//l->setColour(Label::ColourIds::outlineColourId, Colours::white);
 		addAndMakeVisible(l);
 	}

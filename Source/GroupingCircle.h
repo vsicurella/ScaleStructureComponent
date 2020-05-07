@@ -93,16 +93,20 @@ private:
 
 	double angleIncrement;
 	double angleHalf;
+	const float float_HalfPi = float_Pi / 2;
 
 	Array<Line<float>> radiLines;
-	//Path arcDegreeSections;
-	//Path arcGroupSections;
 	Array<Path> degreeArcPaths;
 	Array<Path> groupArcPaths;
 	PathStrokeType strokeType = PathStrokeType(2.0f);
 
+	float sectorLabelSizeRatio = 0.875f;
+
 	Array<bool> degreeSectorMouseOver;
 	Array<bool> groupSectorMouseOver;
+
+	float highlightContrastRatio = 1.0f / 6.0f;
+	float labelContrastRatio = 2.0f / 3.0f;
 
 private:
 
