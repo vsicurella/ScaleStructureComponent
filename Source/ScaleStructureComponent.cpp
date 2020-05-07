@@ -141,7 +141,7 @@ void ScaleStructureComponent::resized()
     circleComponent->setBounds (0, 0, proportionOfWidth (1.0000f), proportionOfHeight (1.0000f));
     offsetSlider->setBounds (proportionOfWidth (0.5015f) - (proportionOfWidth (0.1802f) / 2), proportionOfHeight (0.1913f), proportionOfWidth (0.1802f), proportionOfHeight (0.1105f));
     generatorSlider->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1802f) / 2), proportionOfHeight (0.4613f), proportionOfWidth (0.1802f), proportionOfHeight (0.1105f));
-    periodSlider->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1800f) / 2), proportionOfHeight (0.3155f), proportionOfWidth (0.1800f), proportionOfHeight (0.1100f));
+    periodSlider->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1802f) / 2), proportionOfHeight (0.3155f), proportionOfWidth (0.1802f), proportionOfHeight (0.1105f));
     generatorValueLbl->setBounds (proportionOfWidth (0.3600f) - (103 / 2), proportionOfHeight (0.7050f), 103, 24);
     stepSizePatternLbl->setBounds (proportionOfWidth (0.6396f) - (96 / 2), proportionOfHeight (0.7050f), 96, 24);
     periodFactorSelector->setBounds (proportionOfWidth (0.6306f), proportionOfHeight (0.1913f), proportionOfWidth (0.1441f), proportionOfHeight (0.3645f));
@@ -224,29 +224,29 @@ BEGIN_JUCER_METADATA
                     virtualName="" explicitFocusOrder="0" pos="0 0 100% 100%" class="GroupingCircle"
                     params="scaleStructure.getGeneratorChainReference(), scaleStructure.getGroupingSizesReference(), degreeGroupColours"/>
   <GENERICCOMPONENT name="Offset" id="1bfdf4c1ccc67e63" memberName="offsetSlider"
-                    virtualName="" explicitFocusOrder="0" pos="50.15%c 19.134% 18.018% 11.048%"
+                    virtualName="" explicitFocusOrder="0" pos="50.135%c 19.126% 17.997% 11.111%"
                     class="NumberSelector" params="&quot;Offset&quot;"/>
   <GENERICCOMPONENT name="Generator" id="efbe5586805bc62b" memberName="generatorSlider"
-                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50%c 46.128% 18.018% 11.048%"
+                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50%c 46.084% 17.997% 11.111%"
                     class="Component" params="&quot;Generator&quot;, NumberSelector::SelectionType::List"/>
   <GENERICCOMPONENT name="Period" id="39f9599ebb9952a" memberName="periodSlider"
-                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50%c 31.549% 18.018% 11.048%"
+                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50%c 31.512% 17.997% 11.111%"
                     class="Component" params="&quot;Period&quot;"/>
   <LABEL name="generatorValueLbl" id="7250d3d0fa11afcf" memberName="generatorValueLbl"
-         virtualName="" explicitFocusOrder="0" pos="35.998%c 70.501% 103 24"
+         virtualName="" explicitFocusOrder="0" pos="36.062%c 70.492% 103 24"
          edTextCol="ff000000" edBkgCol="0" labelText="700 cents" editableSingleClick="0"
          editableDoubleClick="0" focusDiscardsChanges="0" fontname="Default font"
          fontsize="15.0" kerning="0.0" bold="0" italic="0" justification="36"/>
   <LABEL name="stepSizePatternLbl" id="b4e52c793121b24" memberName="stepSizePatternLbl"
-         virtualName="" explicitFocusOrder="0" pos="63.964%c 70.501% 96 24"
+         virtualName="" explicitFocusOrder="0" pos="64.005%c 70.492% 96 24"
          edTextCol="ff000000" edBkgCol="0" labelText="LLsLLLs&#10;" editableSingleClick="0"
          editableDoubleClick="0" focusDiscardsChanges="0" fontname="Default font"
          fontsize="15.0" kerning="0.0" bold="0" italic="0" justification="36"/>
   <GENERICCOMPONENT name="Period Factor" id="a3462f3523b591da" memberName="periodFactorSelector"
-                    virtualName="" explicitFocusOrder="0" pos="63.063% 19.134% 14.414% 36.446%"
+                    virtualName="" explicitFocusOrder="0" pos="63.058% 19.126% 14.479% 36.43%"
                     class="NumberSelector" params="&quot;Period\nFactor&quot;, NumberSelector::SelectionType::List, NumberSelector::SelectorStyle::TickBox, NumberSelector::Orientation::Vertical"/>
   <GENERICCOMPONENT name="Scale Size" id="caf76440221c94" memberName="scaleSizeSelector"
-                    virtualName="" explicitFocusOrder="0" pos="50%c 60.478% 18.018% 11.048%"
+                    virtualName="" explicitFocusOrder="0" pos="50%c 60.474% 17.997% 11.111%"
                     class="NumberSelector" params="&quot;Scale Size&quot;, NumberSelector::SelectionType::List"/>
 </JUCER_COMPONENT>
 

@@ -39,6 +39,8 @@ public:
     void paint (Graphics&) override;
     void resized() override;
 
+	void mouseMove(const MouseEvent& event) override;
+
 	class Listener
 	{
 	public:
@@ -93,11 +95,14 @@ private:
 	double angleHalf;
 
 	Array<Line<float>> radiLines;
-	Path arcDegreeSections;
-	Path arcGroupSections;
+	//Path arcDegreeSections;
+	//Path arcGroupSections;
 	Array<Path> degreeArcPaths;
 	Array<Path> groupArcPaths;
 	PathStrokeType strokeType = PathStrokeType(2.0f);
+
+	Array<bool> degreeSectorMouseOver;
+	Array<bool> groupSectorMouseOver;
 
 private:
 

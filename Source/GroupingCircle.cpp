@@ -18,6 +18,7 @@ GroupingCircle::GroupingCircle(const Array<int>& generatorChainIn, const Array<i
 		groupColours(groupColoursIn)
 {
 	//jassert(degreeGroupSize.size() == groupColours.size())
+	//addMouseListener(this, true);
 }
 
 GroupingCircle::~GroupingCircle()
@@ -50,36 +51,46 @@ void GroupingCircle::paint (Graphics& g)
 	{
 	}
 
-	Colour c;
+	Colour groupColour;
+	Colour degreeColour;
 	int degIndex = 0;
 	for (int i = 0; i < groupArcPaths.size(); i++)
 	{
 		// Draw groups
 		Path& groupPath = groupArcPaths.getReference(i);
-		c = groupColours[i];
+		groupColour = groupColours[i];
 
-		if (c.isTransparent())
-			c = Colours::lightgrey;
+		if (groupColour.isTransparent())
+			groupColour = Colours::lightgrey;
 
-		g.setColour(c);
+		if (groupSectorMouseOver[i])
+			groupColour = groupColour.brighter();
+
+		g.setColour(groupColour);
 		g.fillPath(groupPath);
 
 		g.setColour(Colours::black);
 		g.strokePath(groupPath, strokeType);
 
-		groupSizeLabels[i]->setColour(Label::ColourIds::textColourId, c.contrasting(2.0f / 3.0f));
+		groupSizeLabels[i]->setColour(Label::ColourIds::textColourId, groupColour.contrasting(2.0f / 3.0f));
 
 		// Draw degrees
 		for (int d = 0; d < degreeGroupSizes[i]; d++)
 		{
+			degreeColour = groupColour;
+
+			if (degreeSectorMouseOver[degIndex])
+				degreeColour = groupColour.brighter();
+
 			Path& degreePath = degreeArcPaths.getReference(degIndex);
-			g.setColour(c.brighter());
+			
+			g.setColour(degreeColour.brighter());
 			g.fillPath(degreePath);
 
-			g.setColour(c.darker());
+			g.setColour(degreeColour.darker());
 			g.strokePath(degreePath, strokeType);
 
-			degreeLabels[degIndex]->setColour(Label::ColourIds::textColourId, c.contrasting(2.0f / 3.0f));
+			degreeLabels[degIndex]->setColour(Label::ColourIds::textColourId, degreeColour.contrasting(2.0f / 3.0f));
 			degIndex++;
 		}
 	}
@@ -187,6 +198,74 @@ void GroupingCircle::resized()
 	DBG("Circle: Resized");
 }
 
+void GroupingCircle::mouseMove(const MouseEvent& event)
+{
+	// TODO: more efficent
+	//float angle = event.position.getAngleToPoint(center);// -circleOffset;
+	//DBG("Degree-based Angle: " + String(angle));
+	//int degreeSector = (int) abs(angle / angleIncrement);
+	//DBG("Sector #" + String(degreeSector) + ", Degree #" + degreeLabels[degreeSector % degreeLabels.size()]->getText());
+
+	// Brute Force
+	bool dirty = false;
+
+	// Check Degree Sectors
+
+	// Check if the mouse is still in a certain sector
+	for (int deg = 0; deg < degreeSectorMouseOver.size(); deg++)
+	{
+		if (degreeSectorMouseOver[deg])
+			if (!degreeArcPaths.getReference(deg).contains(event.position))
+			{
+				degreeSectorMouseOver.set(deg, false);
+				dirty = true;
+			}
+			
+	}
+
+	// Check degree sectors and see if mouse is in one
+	for (int deg = 0; deg < degreeArcPaths.size(); deg++)
+	{
+		Path& p = degreeArcPaths.getReference(deg);
+		if (p.contains(event.position))
+		{
+			// turn on current sector
+			degreeSectorMouseOver.set(deg, true);
+			dirty = true;
+		}
+	}
+
+
+	// Check Group Sectors
+
+	// Check if the mouse is still in a certain sector
+	for (int group = 0; group < groupSectorMouseOver.size(); group++)
+	{
+		if (groupSectorMouseOver[group])
+			if (!groupArcPaths.getReference(group).contains(event.position))
+			{
+				groupSectorMouseOver.set(group, false);
+				dirty = true;
+			}
+
+	}
+
+	// Check degree sectors and see if mouse is in one
+	for (int group = 0; group < groupArcPaths.size(); group++)
+	{
+		Path& p = groupArcPaths.getReference(group);
+		if (p.contains(event.position))
+		{
+			// turn on current sector
+			groupSectorMouseOver.set(group, true);
+			dirty = true;
+		}
+	}
+
+	if (dirty)
+		repaint();
+}
+
 void GroupingCircle::updatePeriod(int periodIn)
 {
 	DBG("Circle: Updating");
@@ -194,12 +273,17 @@ void GroupingCircle::updatePeriod(int periodIn)
 	removeAllChildren();
 
 	degreeLabels.clear();
+
 	for (int i = 0; i < periodIn; i++)
 	{
 		Label* l = degreeLabels.add(new Label());
 		l->setJustificationType(Justification::centred);
+		l->setInterceptsMouseClicks(false, false);
 		addAndMakeVisible(l);
 	}
+
+	degreeSectorMouseOver.resize(periodIn);
+	degreeSectorMouseOver.fill(false);
 }
 
 void GroupingCircle::updateGenerator()
@@ -220,6 +304,9 @@ void GroupingCircle::updateGenerator()
 		//l->setColour(Label::ColourIds::outlineColourId, Colours::white);
 		addAndMakeVisible(l);
 	}
+
+	groupSectorMouseOver.resize(groupSizeLabels.size());
+	groupSectorMouseOver.fill(false);
 
 	resized();
 	repaint();
