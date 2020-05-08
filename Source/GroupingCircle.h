@@ -26,7 +26,7 @@ public:
 	};
 
 public:
-    GroupingCircle(const Array<int>& generatorChainIn, const Array<int>& degreeGroupSizesIn, Array<Colour>& groupColoursIn);
+    GroupingCircle(const Array<int>& generatorChainIn, const Array<int>& degreeGroupSizesIn, Array<Colour>& colourTableIn);
     ~GroupingCircle();
 
 	ControlMode getControlMode();
@@ -68,7 +68,7 @@ private:
 	const Array<int>& degreeGroupSizes;
 
 	// Starting from the top going clockwise
-	const Array<Colour>& groupColours;
+	const Array<Colour>& colourTable;
 
 	// TODO: decide whether or not to have control modes
 	ControlMode controlModeSelected = ControlMode::Layout;

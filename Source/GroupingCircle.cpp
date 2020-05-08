@@ -15,9 +15,9 @@
 GroupingCircle::GroupingCircle(const Array<int>& generatorChainIn, const Array<int>& degreeGroupSizesIn, Array<Colour>& groupColoursIn)
 	:	generatorChain(generatorChainIn),
 		degreeGroupSizes(degreeGroupSizesIn),
-		groupColours(groupColoursIn)
+		colourTable(groupColoursIn)
 {
-	//jassert(degreeGroupSize.size() == groupColours.size())
+	//jassert(degreeGroupSize.size() == colourTable.size())
 	//addMouseListener(this, true);
 }
 
@@ -76,7 +76,7 @@ void GroupingCircle::paint (Graphics& g)
 	{
 		// Draw groups
 		Path& groupPath = groupArcPaths.getReference(i);
-		groupColour = groupColours[i];
+		groupColour = colourTable[i];
 
 		if (groupColour.isTransparent())
 			groupColour = Colours::lightgrey;

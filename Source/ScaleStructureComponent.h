@@ -39,11 +39,12 @@
 */
 class ScaleStructureComponent  : public Component,
                                  public NumberSelector::Listener,
-                                 public Value::Listener
+                                 public Value::Listener,
+                                 public ChangeBroadcaster
 {
 public:
     //==============================================================================
-    ScaleStructureComponent (ScaleStructure& scaleStructureIn);
+    ScaleStructureComponent (ScaleStructure& scaleStructureIn, Array<Colour>& colourTableIn);
     ~ScaleStructureComponent() override;
 
     //==============================================================================
@@ -60,7 +61,7 @@ public:
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
 	ScaleStructure& scaleStructure;
-	Array<Colour> degreeGroupColours;
+	Array<Colour>& colourTable;
 
 	GroupingCircle* circle;
 	Value* circleOffset;

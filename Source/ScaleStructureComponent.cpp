@@ -27,13 +27,13 @@
 //[/MiscUserDefs]
 
 //==============================================================================
-ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructureIn)
-    : scaleStructure(scaleStructureIn)
+ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructureIn, Array<Colour>& colourTableIn)
+    : scaleStructure(scaleStructureIn), colourTable(colourTableIn)
 {
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
 
-    circleComponent.reset (new GroupingCircle (scaleStructure.getGeneratorChainReference(), scaleStructure.getGroupingSizesReference(), degreeGroupColours));
+    circleComponent.reset (new GroupingCircle (scaleStructure.getGeneratorChainReference(), scaleStructure.getGroupingSizesReference(), colourTable));
     addAndMakeVisible (circleComponent.get());
     circleComponent->setName ("circleComponent");
 
@@ -144,7 +144,7 @@ void ScaleStructureComponent::resized()
 
     circleComponent->setBounds (0, 0, proportionOfWidth (1.0000f), proportionOfHeight (1.0000f));
     offsetSlider->setBounds (proportionOfWidth (0.9093f) - (proportionOfWidth (0.1299f) / 2), proportionOfHeight (0.9326f), proportionOfWidth (0.1299f), proportionOfHeight (0.0291f));
-    generatorSlider->setBounds (proportionOfWidth (0.5013f) - (proportionOfWidth (0.2500f) / 2), proportionOfHeight (0.4372f), proportionOfWidth (0.2500f), proportionOfHeight (0.1500f));
+    generatorSlider->setBounds (proportionOfWidth (0.5013f) - (proportionOfWidth (0.2503f) / 2), proportionOfHeight (0.4372f), proportionOfWidth (0.2503f), proportionOfHeight (0.1494f));
     periodSlider->setBounds (proportionOfWidth (0.5041f) - (proportionOfWidth (0.2503f) / 2), proportionOfHeight (0.2769f), proportionOfWidth (0.2503f), proportionOfHeight (0.1494f));
     generatorValueLbl->setBounds (proportionOfWidth (0.3606f) - (103 / 2), proportionOfHeight (0.7049f), 103, 24);
     stepSizePatternLbl->setBounds (proportionOfWidth (0.6401f) - (96 / 2), proportionOfHeight (0.7049f), 96, 24);
@@ -207,6 +207,9 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 
 		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
 	}
+
+	// TODO: Figure out a way to only call this once per change
+	sendChangeMessage();
 }
 
 void ScaleStructureComponent::valueChanged(Value& valueThatHasChanged)
@@ -230,14 +233,15 @@ void ScaleStructureComponent::valueChanged(Value& valueThatHasChanged)
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="ScaleStructureComponent"
-                 componentName="" parentClasses="public Component, public NumberSelector::Listener, public Value::Listener"
-                 constructorParams="ScaleStructure&amp; scaleStructureIn" variableInitialisers="scaleStructure(scaleStructureIn)"
+                 componentName="" parentClasses="public Component, public NumberSelector::Listener, public Value::Listener, public ChangeBroadcaster"
+                 constructorParams="ScaleStructure&amp; scaleStructureIn, Array&lt;Colour&gt;&amp; colourTableIn"
+                 variableInitialisers="scaleStructure(scaleStructureIn), colourTable(colourTableIn)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
                  fixedSize="0" initialWidth="800" initialHeight="800">
   <BACKGROUND backgroundColour="ff323e44"/>
   <GENERICCOMPONENT name="circleComponent" id="ec9c5dc09c2f91cf" memberName="circleComponent"
                     virtualName="" explicitFocusOrder="0" pos="0 0 100% 100%" class="GroupingCircle"
-                    params="scaleStructure.getGeneratorChainReference(), scaleStructure.getGroupingSizesReference(), degreeGroupColours"/>
+                    params="scaleStructure.getGeneratorChainReference(), scaleStructure.getGroupingSizesReference(), colourTable"/>
   <GENERICCOMPONENT name="Offset" id="1bfdf4c1ccc67e63" memberName="offsetSlider"
                     virtualName="" explicitFocusOrder="0" pos="90.934%c 93.26% 12.991% 2.914%"
                     class="NumberSelector" params="&quot;Offset&quot;"/>

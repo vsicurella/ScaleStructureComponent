@@ -13,7 +13,7 @@ MainComponent::MainComponent()
 {
 	scaleStructure.reset(new ScaleStructure(12));
 
-    scaleController.reset(new ScaleStructureComponent(*scaleStructure.get()));
+    scaleController.reset(new ScaleStructureComponent(*scaleStructure.get(), colourTable));
     scaleController->setName("ScaleStructureComponent");
 
 	addAndMakeVisible(scaleController.get());

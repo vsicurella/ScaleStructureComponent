@@ -34,6 +34,8 @@ private:
 	std::unique_ptr<ScaleStructure> scaleStructure;
     std::unique_ptr<ScaleStructureComponent> scaleController;
 
+	Array<Colour> colourTable;
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
