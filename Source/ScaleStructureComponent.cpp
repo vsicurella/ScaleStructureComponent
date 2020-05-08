@@ -80,8 +80,9 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	periodSlider->showNameLabel();
 	//periodFactorSelector->showNameLabel();
 	generatorSlider->showNameLabel();
-	offsetSlider->showNameLabel();
 	scaleSizeSelector->showNameLabel();
+
+	offsetSlider->setVisible(false);
     //[/UserPreSize]
 
     setSize (800, 800);
@@ -142,13 +143,13 @@ void ScaleStructureComponent::resized()
     //[/UserPreResize]
 
     circleComponent->setBounds (0, 0, proportionOfWidth (1.0000f), proportionOfHeight (1.0000f));
-    offsetSlider->setBounds (proportionOfWidth (0.5013f) - (proportionOfWidth (0.1800f) / 2), proportionOfHeight (0.1913f), proportionOfWidth (0.1800f), proportionOfHeight (0.1111f));
-    generatorSlider->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1800f) / 2), proportionOfHeight (0.4608f), proportionOfWidth (0.1800f), proportionOfHeight (0.1111f));
-    periodSlider->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1800f) / 2), proportionOfHeight (0.3151f), proportionOfWidth (0.1800f), proportionOfHeight (0.1111f));
+    offsetSlider->setBounds (proportionOfWidth (0.9093f) - (proportionOfWidth (0.1299f) / 2), proportionOfHeight (0.9326f), proportionOfWidth (0.1299f), proportionOfHeight (0.0291f));
+    generatorSlider->setBounds (proportionOfWidth (0.5013f) - (proportionOfWidth (0.2500f) / 2), proportionOfHeight (0.4372f), proportionOfWidth (0.2500f), proportionOfHeight (0.1500f));
+    periodSlider->setBounds (proportionOfWidth (0.5041f) - (proportionOfWidth (0.2503f) / 2), proportionOfHeight (0.2769f), proportionOfWidth (0.2503f), proportionOfHeight (0.1494f));
     generatorValueLbl->setBounds (proportionOfWidth (0.3606f) - (103 / 2), proportionOfHeight (0.7049f), 103, 24);
     stepSizePatternLbl->setBounds (proportionOfWidth (0.6401f) - (96 / 2), proportionOfHeight (0.7049f), 96, 24);
-    periodFactorSelector->setBounds (proportionOfWidth (0.6306f), proportionOfHeight (0.1913f), proportionOfWidth (0.1448f), proportionOfHeight (0.3643f));
-    scaleSizeSelector->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1800f) / 2), proportionOfHeight (0.6047f), proportionOfWidth (0.1800f), proportionOfHeight (0.1111f));
+    periodFactorSelector->setBounds (proportionOfWidth (0.7470f), proportionOfHeight (0.2769f), proportionOfWidth (0.1448f), proportionOfHeight (0.3643f));
+    scaleSizeSelector->setBounds (proportionOfWidth (0.5013f) - (proportionOfWidth (0.1800f) / 2), proportionOfHeight (0.6266f), proportionOfWidth (0.1800f), proportionOfHeight (0.1111f));
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
@@ -238,13 +239,13 @@ BEGIN_JUCER_METADATA
                     virtualName="" explicitFocusOrder="0" pos="0 0 100% 100%" class="GroupingCircle"
                     params="scaleStructure.getGeneratorChainReference(), scaleStructure.getGroupingSizesReference(), degreeGroupColours"/>
   <GENERICCOMPONENT name="Offset" id="1bfdf4c1ccc67e63" memberName="offsetSlider"
-                    virtualName="" explicitFocusOrder="0" pos="50.135%c 19.126% 17.997% 11.111%"
+                    virtualName="" explicitFocusOrder="0" pos="90.934%c 93.26% 12.991% 2.914%"
                     class="NumberSelector" params="&quot;Offset&quot;"/>
   <GENERICCOMPONENT name="Generator" id="efbe5586805bc62b" memberName="generatorSlider"
-                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50%c 46.084% 17.997% 11.111%"
+                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50.135%c 43.716% 25.034% 14.936%"
                     class="Component" params="&quot;Generator&quot;, NumberSelector::SelectionType::List"/>
   <GENERICCOMPONENT name="Period" id="39f9599ebb9952a" memberName="periodSlider"
-                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50%c 31.512% 17.997% 11.111%"
+                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50.406%c 27.687% 25.034% 14.936%"
                     class="Component" params="&quot;Period&quot;"/>
   <LABEL name="generatorValueLbl" id="7250d3d0fa11afcf" memberName="generatorValueLbl"
          virtualName="" explicitFocusOrder="0" pos="36.062%c 70.492% 103 24"
@@ -257,10 +258,10 @@ BEGIN_JUCER_METADATA
          editableDoubleClick="0" focusDiscardsChanges="0" fontname="Default font"
          fontsize="15.0" kerning="0.0" bold="0" italic="0" justification="36"/>
   <GENERICCOMPONENT name="Period Factor" id="a3462f3523b591da" memberName="periodFactorSelector"
-                    virtualName="" explicitFocusOrder="0" pos="63.058% 19.126% 14.479% 36.43%"
+                    virtualName="" explicitFocusOrder="0" pos="74.696% 27.687% 14.479% 36.43%"
                     class="NumberSelector" params="&quot;Period\nFactor&quot;, NumberSelector::SelectionType::List, NumberSelector::SelectorStyle::TickBox, NumberSelector::Orientation::Vertical"/>
   <GENERICCOMPONENT name="Scale Size" id="caf76440221c94" memberName="scaleSizeSelector"
-                    virtualName="" explicitFocusOrder="0" pos="50%c 60.474% 17.997% 11.111%"
+                    virtualName="" explicitFocusOrder="0" pos="50.135%c 62.659% 17.997% 11.111%"
                     class="NumberSelector" params="&quot;Scale Size&quot;, NumberSelector::SelectionType::List"/>
 </JUCER_COMPONENT>
 
