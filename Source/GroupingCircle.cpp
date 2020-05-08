@@ -153,7 +153,7 @@ void GroupingCircle::resized()
 		degreeArcPaths.add(degreePath);
 
 		// place labels
-		degreeLabel = degreeLabels[i];
+		degreeLabel = degreeLabels[(i + testOffset) % degreeLabels.size()];
 		degreeLabel->setFont(Font().withHeight(degreeLabelSize));
 		degreeLabelWidth = degreeLabel->getFont().getStringWidthFloat(" " + degreeLabel->getText() + " ");
 		degreeLabel->setSize(jmax(degreeLabelWidth, degreeLabelSize), degreeLabelSize);
@@ -199,71 +199,123 @@ void GroupingCircle::resized()
 
 void GroupingCircle::mouseMove(const MouseEvent& event)
 {
-	// TODO: more efficent
-	//float angle = event.position.getAngleToPoint(center);// -circleOffset;
-	//DBG("Degree-based Angle: " + String(angle));
-	//int degreeSector = (int) abs(angle / angleIncrement);
-	//DBG("Sector #" + String(degreeSector) + ", Degree #" + degreeLabels[degreeSector % degreeLabels.size()]->getText());
+	// TODO: find more efficent method
 
 	// Brute Force
 	bool dirty = false;
+	float mouseRadius = event.position.getDistanceFrom(center);
 
-	// Check Degree Sectors
-
-	// Check if the mouse is still in a certain sector
-	for (int deg = 0; deg < degreeSectorMouseOver.size(); deg++)
+	// If mouse is not in rings, remove highlights
+	if (mouseRadius < degreeInnerRadius || mouseRadius > groupOuterRadius)
 	{
-		if (degreeSectorMouseOver[deg])
-			if (!degreeArcPaths.getReference(deg).contains(event.position))
-			{
-				degreeSectorMouseOver.set(deg, false);
-				dirty = true;
-			}
-			
+		degreeSectorMouseOver.fill(false);
+		groupSectorMouseOver.fill(false);
+		dirty = true;
 	}
 
-	// Check degree sectors and see if mouse is in one
-	for (int deg = 0; deg < degreeArcPaths.size(); deg++)
+	else
 	{
-		Path& p = degreeArcPaths.getReference(deg);
-		if (p.contains(event.position))
+		int degreeIndex = mouseInDegreeSector(event);
+		int groupIndex = mouseInGroupSector(event);
+
+		// Turn off sectors if not in appropriate ring
+		if (degreeIndex < 0)
 		{
-			// turn on current sector
-			degreeSectorMouseOver.set(deg, true);
+			degreeSectorMouseOver.fill(false);
 			dirty = true;
 		}
-	}
 
+		if (groupIndex < 0)
+		{
+			groupSectorMouseOver.fill(false);
+			dirty = true;
+		}
 
-	// Check Group Sectors
-
-	// Check if the mouse is still in a certain sector
-	for (int group = 0; group < groupSectorMouseOver.size(); group++)
-	{
-		if (groupSectorMouseOver[group])
-			if (!groupArcPaths.getReference(group).contains(event.position))
+		// Check Degree Sectors
+		if (mouseRadius < degreeOuterRadius)
+		{
+			int lastDegreeSector = degreeSectorMouseOver.indexOf(true);
+			if (lastDegreeSector != degreeIndex)
 			{
-				groupSectorMouseOver.set(group, false);
+				if (lastDegreeSector > -1)
+				{
+					degreeSectorMouseOver.set(lastDegreeSector, false);
+				}
+
+				degreeSectorMouseOver.set(degreeIndex, true);
 				dirty = true;
 			}
+		}
 
-	}
-
-	// Check degree sectors and see if mouse is in one
-	for (int group = 0; group < groupArcPaths.size(); group++)
-	{
-		Path& p = groupArcPaths.getReference(group);
-		if (p.contains(event.position))
+		// Check Group Sectors
+		else if (mouseRadius < groupOuterRadius)
 		{
-			// turn on current sector
-			groupSectorMouseOver.set(group, true);
-			dirty = true;
+			int lastGroupSector = groupSectorMouseOver.indexOf(true);
+			if (lastGroupSector != groupIndex)
+			{
+				if (lastGroupSector > -1)
+				{
+					groupSectorMouseOver.set(lastGroupSector, false);
+				}
+
+				groupSectorMouseOver.set(groupIndex, true);
+				dirty = true;
+			}
 		}
 	}
 
 	if (dirty)
 		repaint();
 }
+
+void GroupingCircle::mouseDrag(const MouseEvent& event)
+{
+	// TODO: search for more efficient method
+
+	float mouseRadius = event.position.getDistanceFrom(center);
+	
+	// Only check if the mouse is in the circle rings
+	if (mouseRadius < degreeInnerRadius || mouseRadius >= degreeOuterRadius)
+		return;
+
+	else
+	{
+		// Brute Force
+		bool dirty = false;
+		for (int deg = 0; deg < degreeLabels.size(); deg++)
+		{
+			// If the mouse was over a sector when drag started, but not anymore
+
+			if (degreeSectorMouseOver[deg] && !degreeArcPaths.getReference(deg).contains(event.position))
+			{
+				// Search for the current sector it's over and find index offset
+				for (int degTo = 0; degTo < degreeLabels.size(); degTo++)
+				{
+					if (degreeArcPaths.getReference(degTo).contains(event.position))
+					{
+						int offset = degTo - deg;
+						testOffset = modulo(testOffset - offset, degreeLabels.size());
+
+						degreeSectorMouseOver.set(deg, false);
+						degreeSectorMouseOver.set(modulo(deg + offset, degreeLabels.size()), true);
+
+						DBG("Moved by " + String(offset) + "\tNew offset: " + String(testOffset));
+
+						dirty = true;
+						break;
+					}
+				}
+			}
+		}
+
+		if (dirty)
+		{
+			resized();
+			repaint();
+		}
+	}
+}
+
 
 void GroupingCircle::updatePeriod(int periodIn)
 {
@@ -312,6 +364,28 @@ void GroupingCircle::updateGenerator()
 	repaint();
 }
 
+int GroupingCircle::mouseInDegreeSector(const MouseEvent& event)
+{
+	for (int deg = 0; deg < degreeArcPaths.size(); deg++)
+	{
+		if (degreeArcPaths.getReference(deg).contains(event.position))
+			return deg;
+	}
+
+	return -1;
+}
+
+int GroupingCircle::mouseInGroupSector(const MouseEvent& event)
+{
+	for (int group = 0; group < groupArcPaths.size(); group++)
+	{
+		if (groupArcPaths.getReference(group).contains(event.position))
+			return group;
+	}
+
+	return -1;
+}
+
 void GroupingCircle::addArcToPath(Path& pathIn, Rectangle<float>& ellipseBounds, float fromRadians, float toRadians, bool startAsNewSubPath)
 {
 	pathIn.addArc(
@@ -323,4 +397,9 @@ void GroupingCircle::addArcToPath(Path& pathIn, Rectangle<float>& ellipseBounds,
 		toRadians,
 		startAsNewSubPath
 	);
+}
+
+int GroupingCircle::modulo(int num, int mod)
+{
+	return ((num % mod) + mod) % mod;
 }

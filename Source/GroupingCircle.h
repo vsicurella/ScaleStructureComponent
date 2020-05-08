@@ -40,6 +40,7 @@ public:
     void resized() override;
 
 	void mouseMove(const MouseEvent& event) override;
+	void mouseDrag(const MouseEvent& event) override;
 
 	class Listener
 	{
@@ -108,10 +109,26 @@ private:
 	float highlightContrastRatio = 1.0f / 6.0f;
 	float labelContrastRatio = 2.0f / 3.0f;
 
+	int testOffset = 0;
+
 private:
+
+	/*
+		Returns the degree sector index that the mouse is in. Uses Path data.
+		Returns -1 if not found.
+	*/
+	int mouseInDegreeSector(const MouseEvent& event);
+
+	/*
+		Returns the group sector index that the mouse is in. Uses Path data.
+		Returns -1 if not found.
+	*/
+	int mouseInGroupSector(const MouseEvent& event);
 
 	// Arc path helper
 	static void addArcToPath(Path& pathIn, Rectangle<float>& ellipseBounds, float fromRadians, float toRadians, bool startAsNewSubPath = false);
+
+	static int modulo(int num, int mod);
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GroupingCircle)
