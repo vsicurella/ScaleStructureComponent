@@ -99,6 +99,9 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	periodSlider->setValue(scaleStructure.getPeriod());
 
 	offsetSlider->setValue(1);
+	circleOffset = &circle->getOffsetValue();
+	*circleOffset = offsetSlider->getValue();
+	circleOffset->addListener(this);
     //[/Constructor]
 }
 
@@ -139,13 +142,13 @@ void ScaleStructureComponent::resized()
     //[/UserPreResize]
 
     circleComponent->setBounds (0, 0, proportionOfWidth (1.0000f), proportionOfHeight (1.0000f));
-    offsetSlider->setBounds (proportionOfWidth (0.5015f) - (proportionOfWidth (0.1802f) / 2), proportionOfHeight (0.1913f), proportionOfWidth (0.1802f), proportionOfHeight (0.1105f));
-    generatorSlider->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1802f) / 2), proportionOfHeight (0.4613f), proportionOfWidth (0.1802f), proportionOfHeight (0.1105f));
-    periodSlider->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1802f) / 2), proportionOfHeight (0.3155f), proportionOfWidth (0.1802f), proportionOfHeight (0.1105f));
-    generatorValueLbl->setBounds (proportionOfWidth (0.3600f) - (103 / 2), proportionOfHeight (0.7050f), 103, 24);
-    stepSizePatternLbl->setBounds (proportionOfWidth (0.6396f) - (96 / 2), proportionOfHeight (0.7050f), 96, 24);
-    periodFactorSelector->setBounds (proportionOfWidth (0.6306f), proportionOfHeight (0.1913f), proportionOfWidth (0.1441f), proportionOfHeight (0.3645f));
-    scaleSizeSelector->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1802f) / 2), proportionOfHeight (0.6048f), proportionOfWidth (0.1802f), proportionOfHeight (0.1105f));
+    offsetSlider->setBounds (proportionOfWidth (0.5013f) - (proportionOfWidth (0.1800f) / 2), proportionOfHeight (0.1913f), proportionOfWidth (0.1800f), proportionOfHeight (0.1111f));
+    generatorSlider->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1800f) / 2), proportionOfHeight (0.4608f), proportionOfWidth (0.1800f), proportionOfHeight (0.1111f));
+    periodSlider->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1800f) / 2), proportionOfHeight (0.3151f), proportionOfWidth (0.1800f), proportionOfHeight (0.1111f));
+    generatorValueLbl->setBounds (proportionOfWidth (0.3606f) - (103 / 2), proportionOfHeight (0.7049f), 103, 24);
+    stepSizePatternLbl->setBounds (proportionOfWidth (0.6401f) - (96 / 2), proportionOfHeight (0.7049f), 96, 24);
+    periodFactorSelector->setBounds (proportionOfWidth (0.6306f), proportionOfHeight (0.1913f), proportionOfWidth (0.1448f), proportionOfHeight (0.3643f));
+    scaleSizeSelector->setBounds (proportionOfWidth (0.5000f) - (proportionOfWidth (0.1800f) / 2), proportionOfHeight (0.6047f), proportionOfWidth (0.1800f), proportionOfHeight (0.1111f));
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
@@ -187,7 +190,8 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 	else if (selectorThatHasChanged == offsetSlider.get())
 	{
 		scaleStructure.setGeneratorOffset(offsetSlider->getValue());
-		circle->updateGenerator();
+		circle->setGeneratorOffset(offsetSlider->getValue());
+
 		DBG("SSC: Generator Offset changed to: " + String(offsetSlider->getValue()));
 		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
 	}
@@ -198,10 +202,20 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		DBG("SSC: Size changed to: " + String(scaleSizeSelector->getValue()));
 
 		offsetSlider->setRange(0, scaleSizeSelector->getValue());
+		circle->setOffsetLimit(scaleSizeSelector->getValue() - 1);
 
 		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
 	}
 }
+
+void ScaleStructureComponent::valueChanged(Value& valueThatHasChanged)
+{
+	if (valueThatHasChanged.refersToSameSourceAs(*circleOffset))
+	{
+		offsetSlider->setValue(circleOffset->getValue());
+	}
+}
+
 //[/MiscUserCode]
 
 
@@ -215,7 +229,7 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="ScaleStructureComponent"
-                 componentName="" parentClasses="public Component, public NumberSelector::Listener"
+                 componentName="" parentClasses="public Component, public NumberSelector::Listener, public Value::Listener"
                  constructorParams="ScaleStructure&amp; scaleStructureIn" variableInitialisers="scaleStructure(scaleStructureIn)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
                  fixedSize="0" initialWidth="800" initialHeight="800">

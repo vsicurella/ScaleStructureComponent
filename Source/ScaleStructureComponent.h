@@ -38,7 +38,8 @@
                                                                     //[/Comments]
 */
 class ScaleStructureComponent  : public Component,
-                                 public NumberSelector::Listener
+                                 public NumberSelector::Listener,
+                                 public Value::Listener
 {
 public:
     //==============================================================================
@@ -48,7 +49,7 @@ public:
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
 	void selectorValueChanged(NumberSelector* selectorThatHasChanged) override;
-
+	void valueChanged(Value& valueThatHasChanged) override;
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -62,6 +63,7 @@ private:
 	Array<Colour> degreeGroupColours;
 
 	GroupingCircle* circle;
+	Value* circleOffset;
 
 	int periodSelected;
 	int generatorSelected;

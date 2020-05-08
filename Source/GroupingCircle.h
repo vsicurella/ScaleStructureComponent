@@ -30,8 +30,12 @@ public:
     ~GroupingCircle();
 
 	ControlMode getControlMode();
+	Value& getOffsetValue();
 
 	void setControlMode(ControlMode controlModeIn);
+
+	void setGeneratorOffset(int offsetIn, bool updateDegreeLabels = true);
+	void setOffsetLimit(int offsetLimitIn);
 
 	void updatePeriod(int periodIn);
 	void updateGenerator();
@@ -66,9 +70,11 @@ private:
 	// Starting from the top going clockwise
 	const Array<Colour>& groupColours;
 
+	// TODO: decide whether or not to have control modes
 	ControlMode controlModeSelected = ControlMode::Layout;
 	
-	bool showDegreesInLayoutMode = true;
+	Value generatorOffset;
+	int offsetLimit = 7;
 
 	// Drawing related members
 	float borderRatio = 127.0f / 128.0f;
@@ -108,8 +114,6 @@ private:
 
 	float highlightContrastRatio = 1.0f / 6.0f;
 	float labelContrastRatio = 2.0f / 3.0f;
-
-	int testOffset = 0;
 
 private:
 

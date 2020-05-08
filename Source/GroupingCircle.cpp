@@ -30,9 +30,27 @@ GroupingCircle::ControlMode GroupingCircle::getControlMode()
 	return controlModeSelected;
 }
 
+Value& GroupingCircle::getOffsetValue()
+{
+	return generatorOffset;
+}
+
 void GroupingCircle::setControlMode(ControlMode controlModeIn)
 {
 	controlModeSelected = controlModeIn;
+}
+
+void GroupingCircle::setGeneratorOffset(int offsetIn, bool upgradeDegreeLabels)
+{
+	generatorOffset.setValue(offsetIn);
+
+	if (upgradeDegreeLabels)
+		updateGenerator();
+}
+
+void GroupingCircle::setOffsetLimit(int offsetLimitIn)
+{
+	offsetLimit = offsetLimitIn;
 }
 
 void GroupingCircle::paint (Graphics& g)
@@ -153,7 +171,7 @@ void GroupingCircle::resized()
 		degreeArcPaths.add(degreePath);
 
 		// place labels
-		degreeLabel = degreeLabels[(i + testOffset) % degreeLabels.size()];
+		degreeLabel = degreeLabels[i];
 		degreeLabel->setFont(Font().withHeight(degreeLabelSize));
 		degreeLabelWidth = degreeLabel->getFont().getStringWidthFloat(" " + degreeLabel->getText() + " ");
 		degreeLabel->setSize(jmax(degreeLabelWidth, degreeLabelSize), degreeLabelSize);
@@ -293,15 +311,18 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 				{
 					if (degreeArcPaths.getReference(degTo).contains(event.position))
 					{
-						int offset = degTo - deg;
-						testOffset = modulo(testOffset - offset, degreeLabels.size());
+						int offset = degTo - deg + (int) generatorOffset.getValue();
 
-						degreeSectorMouseOver.set(deg, false);
-						degreeSectorMouseOver.set(modulo(deg + offset, degreeLabels.size()), true);
+						if (offset > -1 && offset <= offsetLimit)
+						{
+							//degreeSectorMouseOver.set(deg, false);
+							//degreeSectorMouseOver.set(modulo(deg + offset, degreeLabels.size()), true);
 
-						DBG("Moved by " + String(offset) + "\tNew offset: " + String(testOffset));
+							generatorOffset.setValue(offset);
+							DBG("Moved by " + String(degTo - deg) + "\tNew offset: " + generatorOffset.getValue().toString());
+							dirty = true;
+						}
 
-						dirty = true;
 						break;
 					}
 				}
@@ -311,7 +332,8 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 		if (dirty)
 		{
 			resized();
-			repaint();
+			/*repaint();*/
+			mouseMove(event);
 		}
 	}
 }
