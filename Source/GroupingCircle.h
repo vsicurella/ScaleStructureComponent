@@ -32,6 +32,13 @@ public:
 	ControlMode getControlMode();
 	Value& getOffsetValue();
 
+	float getInnerRadius() const;
+	float getMiddleRadius() const;
+	float getOuterRadius() const;
+
+	Point<float> getCenter() const;
+	Point<int> getPositionFromCenter(float radius, float angle) const;
+
 	void setControlMode(ControlMode controlModeIn);
 
 	void setGeneratorOffset(int offsetIn, bool updateDegreeLabels = true);
