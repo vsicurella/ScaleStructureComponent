@@ -77,6 +77,8 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 
 
     //[UserPreSize]
+	circle = dynamic_cast<GroupingCircle*>(circleComponent.get());
+
 	periodSlider->showNameLabel();
 	//periodFactorSelector->showNameLabel();
 	generatorSlider->showNameLabel();
@@ -89,20 +91,30 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 
 
     //[Constructor] You can add your own custom stuff here..
-	circle = dynamic_cast<GroupingCircle*>(circleComponent.get());
+
+	// Set up default values, then set up listening
+	periodSlider->setRange(5, 400, true, false);
+	periodSlider->setValue(scaleStructure.getPeriod());
+	generatorSlider->setIndex(4);
+	scaleSizeSelector->setIndex(4);
+
+	offsetSlider->setValue(1);
+	circleOffset = &circle->getOffsetValue();
+	*circleOffset = offsetSlider->getValue();
+
+	scaleStructure.resetToPeriod(12);
+	scaleStructure.setGeneratorIndex(scaleStructure.getSuggestedGeneratorIndex());
+	scaleStructure.setSizeIndex(scaleStructure.getSuggestedSizeIndex());
+	scaleStructure.setGeneratorOffset(1);
 
 	periodSlider->addListener(this);
 	generatorSlider->addListener(this);
 	offsetSlider->addListener(this);
 	scaleSizeSelector->addListener(this);
-
-	periodSlider->setRange(5, 400, true, false);
-	periodSlider->setValue(scaleStructure.getPeriod());
-
-	offsetSlider->setValue(1);
-	circleOffset = &circle->getOffsetValue();
-	*circleOffset = offsetSlider->getValue();
 	circleOffset->addListener(this);
+
+	circle->updatePeriod(scaleStructure.getPeriod());
+	circle->updateGenerator();
     //[/Constructor]
 }
 
@@ -151,6 +163,15 @@ void ScaleStructureComponent::resized()
     periodFactorSelector->setBounds (proportionOfWidth (0.7470f), proportionOfHeight (0.2769f), proportionOfWidth (0.1448f), proportionOfHeight (0.3643f));
     scaleSizeSelector->setBounds (proportionOfWidth (0.5013f) - (proportionOfWidth (0.1800f) / 2), proportionOfHeight (0.6266f), proportionOfWidth (0.1800f), proportionOfHeight (0.1111f));
     //[UserResized] Add your own custom resize handling here..
+
+	// TODO: implement (probably ex-projucer) this so that the bounds don't have to be set twice
+	DBG("SSC: Circle inner radius: " + String(circle->getInnerRadius()));
+	periodSlider->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 0.45f, 0));
+	generatorSlider->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 0.05f, float_Pi));
+	scaleSizeSelector->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() *  7.0f / 10.0f, float_Pi));
+
+	generatorValueLbl->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 0.75f, float_Pi * 11.0f / 8.0f));
+	stepSizePatternLbl->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 0.75f, float_Pi * 5.0f / 8.0f));
     //[/UserResized]
 }
 
