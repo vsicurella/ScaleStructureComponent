@@ -95,17 +95,22 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	// Set up default values, then set up listening
 	periodSlider->setRange(5, 400, true, false);
 	periodSlider->setValue(scaleStructure.getPeriod());
-	generatorSlider->setIndex(4);
-	scaleSizeSelector->setIndex(4);
-
-	offsetSlider->setValue(1);
-	circleOffset = &circle->getOffsetValue();
-	*circleOffset = offsetSlider->getValue();
 
 	scaleStructure.resetToPeriod(12);
 	scaleStructure.setGeneratorIndex(scaleStructure.getSuggestedGeneratorIndex());
 	scaleStructure.setSizeIndex(scaleStructure.getSuggestedSizeIndex());
 	scaleStructure.setGeneratorOffset(1);
+
+	generatorSlider->setList(scaleStructure.getValidGenerators());
+	generatorSlider->setIndex(scaleStructure.getGeneratorIndex());
+	scaleSizeSelector->setList(scaleStructure.getScaleSizes());
+	scaleSizeSelector->setIndex(scaleStructure.getScaleSizeIndex());
+	offsetSlider->setValue(1);
+
+	offsetSlider->setValue(1);
+	circleOffset = &circle->getOffsetValue();
+	*circleOffset = offsetSlider->getValue();
+	circle->setOffsetLimit(scaleStructure.getScaleSize() - 1);
 
 	periodSlider->addListener(this);
 	generatorSlider->addListener(this);
@@ -165,13 +170,12 @@ void ScaleStructureComponent::resized()
     //[UserResized] Add your own custom resize handling here..
 
 	// TODO: implement (probably ex-projucer) this so that the bounds don't have to be set twice
-	DBG("SSC: Circle inner radius: " + String(circle->getInnerRadius()));
 	periodSlider->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 0.45f, 0));
 	generatorSlider->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 0.05f, float_Pi));
 	scaleSizeSelector->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() *  7.0f / 10.0f, float_Pi));
 
-	generatorValueLbl->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 0.75f, float_Pi * 11.0f / 8.0f));
-	stepSizePatternLbl->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 0.75f, float_Pi * 5.0f / 8.0f));
+	generatorValueLbl->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 11.0f / 8.0f));
+	stepSizePatternLbl->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 5.0f / 8.0f));
     //[/UserResized]
 }
 
