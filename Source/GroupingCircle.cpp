@@ -40,14 +40,35 @@ float GroupingCircle::getOuterRadius() const
 	return groupOuterRadius;
 }
 
+Rectangle<float> GroupingCircle::getInnerCircleBounds() const
+{
+	return degreeInnerCircleBounds;
+}
+
+Rectangle<float> GroupingCircle::getMiddleCircleBounds() const
+{
+	return groupInnerCircleBounds;
+}
+
+Rectangle<float> GroupingCircle::getOuterCircleBounds() const
+{
+	return groupOuterCircleBounds;
+}
+
 Point<float> GroupingCircle::getCenter() const
 {
 	return center;
 }
 
-Point<int> GroupingCircle::getPositionFromCenter(float radius, float angle) const
+Point<float> GroupingCircle::getFloatPointFromCenter(float radius, float angle) const
 {
-	return center.getPointOnCircumference(radius, angle).toInt();
+	return center.getPointOnCircumference(radius, angle);
+
+}
+
+Point<int> GroupingCircle::getIntPointFromCenter(float radius, float angle) const
+{
+	return getFloatPointFromCenter(radius, angle).toInt();
 }
 
 GroupingCircle::ControlMode GroupingCircle::getControlMode()

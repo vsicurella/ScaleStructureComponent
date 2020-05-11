@@ -36,8 +36,13 @@ public:
 	float getMiddleRadius() const;
 	float getOuterRadius() const;
 
+	Rectangle<float> getInnerCircleBounds() const;
+	Rectangle<float> getMiddleCircleBounds() const;
+	Rectangle<float> getOuterCircleBounds() const;
+
 	Point<float> getCenter() const;
-	Point<int> getPositionFromCenter(float radius, float angle) const;
+	Point<float> getFloatPointFromCenter(float radius, float angle) const;
+	Point<int> getIntPointFromCenter(float radius, float angle) const;
 
 	void setControlMode(ControlMode controlModeIn);
 
@@ -60,6 +65,9 @@ public:
 
 		
 	};
+
+	// Arc path helper
+	static void addArcToPath(Path& pathIn, Rectangle<float>& ellipseBounds, float fromRadians, float toRadians, bool startAsNewSubPath = false);
 
 protected:
 	ListenerList<Listener> listeners;
@@ -136,11 +144,7 @@ private:
 	*/
 	int mouseInGroupSector(const MouseEvent& event);
 
-	// Arc path helper
-	static void addArcToPath(Path& pathIn, Rectangle<float>& ellipseBounds, float fromRadians, float toRadians, bool startAsNewSubPath = false);
-
 	static int modulo(int num, int mod);
-
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GroupingCircle)
 };
