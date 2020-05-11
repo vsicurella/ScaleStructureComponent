@@ -67,6 +67,7 @@ private:
 	Value* circleOffset;
 
 	std::unique_ptr<Label> offsetLabel;
+	Path offsetArrows;
 
 	int periodSelected;
 	int generatorSelected;

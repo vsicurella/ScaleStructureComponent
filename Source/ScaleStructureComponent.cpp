@@ -73,6 +73,11 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 
 
     //[UserPreSize]
+	offsetLabel.reset(new Label("offsetLabel", "Offset\n0"));
+	offsetLabel->setJustificationType(Justification::centred);
+	offsetLabel->setColour(Label::ColourIds::textColourId, Colours::white);
+	addAndMakeVisible(offsetLabel.get());
+	
 	circle = dynamic_cast<GroupingCircle*>(circleComponent.get());
 
 	periodSlider->showNameLabel();
@@ -101,14 +106,13 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	scaleSizeSelector->setList(scaleStructure.getScaleSizes());
 	scaleSizeSelector->setIndex(scaleStructure.getScaleSizeIndex());
 
-	//offsetSlider->setValue(1);
 	circleOffset = &circle->getOffsetValue();
 	*circleOffset = 1;
 	circle->setOffsetLimit(scaleStructure.getScaleSize() - 1);
+	offsetLabel->setText("Offset\n" + String((int)circleOffset->getValue()), dontSendNotification);
 
 	periodSlider->addListener(this);
 	generatorSlider->addListener(this);
-	//offsetSlider->addListener(this);
 	scaleSizeSelector->addListener(this);
 	circleOffset->addListener(this);
 
@@ -144,6 +148,12 @@ void ScaleStructureComponent::paint (Graphics& g)
     g.fillAll (Colour (0xff323e44));
 
     //[UserPaint] Add your own custom painting code here..
+
+	// Offset Label arrows
+	g.setColour(Colours::white);
+	PathStrokeType strokeType(1.0f);
+	g.strokePath(offsetArrows, strokeType);
+
     //[/UserPaint]
 }
 
@@ -162,12 +172,23 @@ void ScaleStructureComponent::resized()
     //[UserResized] Add your own custom resize handling here..
 
 	// TODO: implement (probably ex-projucer) this so that the bounds don't have to be set twice
-	periodSlider->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 0.45f, 0));
-	generatorSlider->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 0.05f, float_Pi));
-	scaleSizeSelector->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() *  7.0f / 10.0f, float_Pi));
+	periodSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.45f, 0));
+	generatorSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.05f, float_Pi));
+	scaleSizeSelector->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() *  7.0f / 10.0f, float_Pi));
 
-	generatorValueLbl->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 11.0f / 8.0f));
-	stepSizePatternLbl->setCentrePosition(circle->getPositionFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 5.0f / 8.0f));
+	generatorValueLbl->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 11.0f / 8.0f));
+	stepSizePatternLbl->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 5.0f / 8.0f));
+	
+	offsetLabel->setFont(Font().withHeight(getHeight() / 48.0f));
+	offsetLabel->setSize(offsetLabel->getFont().getStringWidth("Offset") * 2, offsetLabel->getFont().getHeight() * 3);
+	offsetLabel->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 7.0f / 8.0f, 0));
+
+	offsetArrows.clear();
+	GroupingCircle::addArcToPath(offsetArrows, circle->getInnerCircleBounds().reduced(circle->getInnerRadius() / 13.0f), float_Pi / 24, float_Pi / 12, true);
+	offsetArrows.lineTo(circle->getFloatPointFromCenter(circle->getInnerRadius() * 13.0f / 14.0f, float_Pi / 14));
+	GroupingCircle::addArcToPath(offsetArrows, circle->getInnerCircleBounds().reduced(circle->getInnerRadius() / 13.0f), -float_Pi / 24, -float_Pi / 12, true);
+	offsetArrows.lineTo(circle->getFloatPointFromCenter(circle->getInnerRadius() * 13.0f / 14.0f, -float_Pi / 14));
+
     //[/UserResized]
 }
 
@@ -230,6 +251,7 @@ void ScaleStructureComponent::valueChanged(Value& valueThatHasChanged)
 
 		DBG("SSC: Generator Offset changed to: " + String((int) circleOffset->getValue()));
 		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
+		offsetLabel->setText("Offset\n" + String((int)circleOffset->getValue()), dontSendNotification);
 
 		sendChangeMessage();
 	}
