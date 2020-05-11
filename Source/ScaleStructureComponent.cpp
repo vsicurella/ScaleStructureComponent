@@ -37,10 +37,6 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
     addAndMakeVisible (circleComponent.get());
     circleComponent->setName ("circleComponent");
 
-    offsetSlider.reset (new NumberSelector ("Offset"));
-    addAndMakeVisible (offsetSlider.get());
-    offsetSlider->setName ("Offset");
-
     generatorSlider.reset (new NumberSelector ("Generator", NumberSelector::SelectionType::List));
     addAndMakeVisible (generatorSlider.get());
     generatorSlider->setName ("Generator");
@@ -84,7 +80,6 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	generatorSlider->showNameLabel();
 	scaleSizeSelector->showNameLabel();
 
-	offsetSlider->setVisible(false);
     //[/UserPreSize]
 
     setSize (800, 800);
@@ -105,16 +100,15 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	generatorSlider->setIndex(scaleStructure.getGeneratorIndex());
 	scaleSizeSelector->setList(scaleStructure.getScaleSizes());
 	scaleSizeSelector->setIndex(scaleStructure.getScaleSizeIndex());
-	offsetSlider->setValue(1);
 
-	offsetSlider->setValue(1);
+	//offsetSlider->setValue(1);
 	circleOffset = &circle->getOffsetValue();
-	*circleOffset = offsetSlider->getValue();
+	*circleOffset = 1;
 	circle->setOffsetLimit(scaleStructure.getScaleSize() - 1);
 
 	periodSlider->addListener(this);
 	generatorSlider->addListener(this);
-	offsetSlider->addListener(this);
+	//offsetSlider->addListener(this);
 	scaleSizeSelector->addListener(this);
 	circleOffset->addListener(this);
 
@@ -129,7 +123,6 @@ ScaleStructureComponent::~ScaleStructureComponent()
     //[/Destructor_pre]
 
     circleComponent = nullptr;
-    offsetSlider = nullptr;
     generatorSlider = nullptr;
     periodSlider = nullptr;
     generatorValueLbl = nullptr;
@@ -160,7 +153,6 @@ void ScaleStructureComponent::resized()
     //[/UserPreResize]
 
     circleComponent->setBounds (0, 0, proportionOfWidth (1.0000f), proportionOfHeight (1.0000f));
-    offsetSlider->setBounds (proportionOfWidth (0.9093f) - (proportionOfWidth (0.1299f) / 2), proportionOfHeight (0.9326f), proportionOfWidth (0.1299f), proportionOfHeight (0.0291f));
     generatorSlider->setBounds (proportionOfWidth (0.5013f) - (proportionOfWidth (0.2503f) / 2), proportionOfHeight (0.4372f), proportionOfWidth (0.2503f), proportionOfHeight (0.1494f));
     periodSlider->setBounds (proportionOfWidth (0.5041f) - (proportionOfWidth (0.2503f) / 2), proportionOfHeight (0.2769f), proportionOfWidth (0.2503f), proportionOfHeight (0.1494f));
     generatorValueLbl->setBounds (proportionOfWidth (0.3606f) - (103 / 2), proportionOfHeight (0.7049f), 103, 24);
@@ -213,21 +205,12 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		scaleSizeSelector->setIndex(scaleStructure.getSuggestedSizeIndex() - 1);
 	}
 
-	else if (selectorThatHasChanged == offsetSlider.get())
-	{
-		scaleStructure.setGeneratorOffset(offsetSlider->getValue());
-		circle->setGeneratorOffset(offsetSlider->getValue());
-
-		DBG("SSC: Generator Offset changed to: " + String(offsetSlider->getValue()));
-		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
-	}
-
 	else if (selectorThatHasChanged == scaleSizeSelector.get())
 	{
 		scaleStructure.setSizeIndex(scaleSizeSelector->getIndex() + 1);
 		DBG("SSC: Size changed to: " + String(scaleSizeSelector->getValue()));
 
-		offsetSlider->setRange(0, scaleSizeSelector->getValue());
+		//offsetSlider->setRange(0, scaleSizeSelector->getValue());
 		circle->setOffsetLimit(scaleSizeSelector->getValue() - 1);
 
 		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
@@ -241,7 +224,14 @@ void ScaleStructureComponent::valueChanged(Value& valueThatHasChanged)
 {
 	if (valueThatHasChanged.refersToSameSourceAs(*circleOffset))
 	{
-		offsetSlider->setValue(circleOffset->getValue());
+		//offsetSlider->setValue(circleOffset->getValue());
+		scaleStructure.setGeneratorOffset((int) circleOffset->getValue());
+		circle->updateGenerator();
+
+		DBG("SSC: Generator Offset changed to: " + String((int) circleOffset->getValue()));
+		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
+
+		sendChangeMessage();
 	}
 }
 
@@ -267,9 +257,6 @@ BEGIN_JUCER_METADATA
   <GENERICCOMPONENT name="circleComponent" id="ec9c5dc09c2f91cf" memberName="circleComponent"
                     virtualName="" explicitFocusOrder="0" pos="0 0 100% 100%" class="GroupingCircle"
                     params="scaleStructure.getGeneratorChainReference(), scaleStructure.getGroupingSizesReference(), colourTable"/>
-  <GENERICCOMPONENT name="Offset" id="1bfdf4c1ccc67e63" memberName="offsetSlider"
-                    virtualName="" explicitFocusOrder="0" pos="90.934%c 93.26% 12.991% 2.914%"
-                    class="NumberSelector" params="&quot;Offset&quot;"/>
   <GENERICCOMPONENT name="Generator" id="efbe5586805bc62b" memberName="generatorSlider"
                     virtualName="NumberSelector" explicitFocusOrder="0" pos="50.135%c 43.716% 25.034% 14.936%"
                     class="Component" params="&quot;Generator&quot;, NumberSelector::SelectionType::List"/>
