@@ -105,8 +105,11 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 
 	generatorSlider->setList(scaleStructure.getValidGenerators());
 	generatorSlider->setIndex(scaleStructure.getGeneratorIndex());
-	scaleSizeSelector->setList(scaleStructure.getScaleSizes());
-	scaleSizeSelector->setIndex(scaleStructure.getScaleSizeIndex());
+
+	Array<int> sizes = scaleStructure.getScaleSizes();
+	sizes.remove(0);
+	scaleSizeSelector->setList(sizes);
+	scaleSizeSelector->setIndex(scaleStructure.getScaleSizeIndex() - 1);
 
 	circleOffset = &circle->getOffsetValue();
 	*circleOffset = 1;
