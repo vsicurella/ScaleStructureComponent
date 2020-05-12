@@ -81,9 +81,11 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	circle = dynamic_cast<GroupingCircle*>(circleComponent.get());
 
 	periodSlider->showNameLabel();
-	//periodFactorSelector->showNameLabel();
 	generatorSlider->showNameLabel();
 	scaleSizeSelector->showNameLabel();
+
+	// TODO: implement period factors properly, and get rid of below
+	periodFactorSelector->setInterceptsMouseClicks(false, false);
 
     //[/UserPreSize]
 
@@ -213,7 +215,7 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 	{
 		generatorSelected = generatorSlider->getIndex();
 		scaleStructure.setGeneratorIndex(generatorSelected);
-		//circle->updateGenerator();
+		circle->updateGenerator();
 		DBG("SSC: Generator changed to: " + String(generatorSlider->getValue()));
 
 		float cents = roundf(log2(pow(2, (double)generatorSlider->getValue() / periodSelected)) * 1200000) / 1000.0f;
@@ -231,8 +233,8 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		scaleStructure.setSizeIndex(scaleSizeSelector->getIndex() + 1);
 		DBG("SSC: Size changed to: " + String(scaleSizeSelector->getValue()));
 
-		//offsetSlider->setRange(0, scaleSizeSelector->getValue());
 		circle->setOffsetLimit(scaleSizeSelector->getValue() - 1);
+		circle->updateGenerator();
 
 		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
 	}
