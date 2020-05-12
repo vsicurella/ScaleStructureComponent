@@ -335,56 +335,37 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 
 void GroupingCircle::mouseDrag(const MouseEvent& event)
 {
-	// TODO: search for more efficient method
+	float mouseDownRadius = event.mouseDownPosition.getDistanceFrom(center);
+	bool dirty = false;
 
-	float mouseRadius = event.position.getDistanceFrom(center);
-	
-	// Only check if the mouse is in the circle rings
-	if (mouseRadius < degreeInnerRadius || mouseRadius >= degreeOuterRadius)
-		return;
-
-	else
+	if (mouseDownRadius >= degreeInnerRadius || mouseDownRadius < degreeOuterRadius)
 	{
-		// Brute Force
-		bool dirty = false;
-		for (int deg = 0; deg < degreeLabels.size(); deg++)
-		{
-			// If the mouse was over a sector when drag started, but not anymore
+		float mouseRadius = event.position.getDistanceFrom(center);
+		float angle = getNormalizedMouseAngle(event);
+		int degreeIndex = mouseInDegreeSector(event, angle);
 
-			if (degreeSectorMouseOver[deg] && !degreeArcPaths.getReference(deg).contains(event.position))
+		if (lastDegreeSectorMouseIn != degreeIndex)
+		{
+			int offset = degreeIndex - lastDegreeSectorMouseIn + (int)generatorOffset.getValue();
+
+			if (offset > -1 && offset <= offsetLimit)
 			{
-				// Search for the current sector it's over and find index offset
-				for (int degTo = 0; degTo < degreeLabels.size(); degTo++)
-				{
-					if (degreeArcPaths.getReference(degTo).contains(event.position))
-					{
-						int offset = degTo - deg + (int) generatorOffset.getValue();
-
-						if (offset > -1 && offset <= offsetLimit)
-						{
-							//degreeSectorMouseOver.set(deg, false);
-							//degreeSectorMouseOver.set(modulo(deg + offset, degreeLabels.size()), true);
-
-							generatorOffset.setValue(offset);
-							DBG("Moved by " + String(degTo - deg) + "\tNew offset: " + generatorOffset.getValue().toString());
-							dirty = true;
-						}
-
-						break;
-					}
-				}
+				generatorOffset.setValue(offset);
+				DBG("Moved by " + String(degreeIndex - lastDegreeSectorMouseIn) + "\tNew offset: " + generatorOffset.getValue().toString());
+				dirty = true;
 			}
-		}
 
-		if (dirty)
-		{
-			resized();
-			/*repaint();*/
-			mouseMove(event);
+			degreeSectorMouseOver.set(lastDegreeSectorMouseIn, false);
+			degreeSectorMouseOver.set(degreeIndex, true);
+			lastDegreeSectorMouseIn = degreeIndex;
 		}
 	}
-}
 
+	if (dirty)
+	{
+		resized();
+	}
+}
 
 void GroupingCircle::updatePeriod(int periodIn)
 {
