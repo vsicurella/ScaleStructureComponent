@@ -116,6 +116,7 @@ private:
 	double angleIncrement;
 	double angleHalf;
 	const float float_HalfPi = float_Pi / 2;
+	const float float_Tau = float_Pi * 2;
 
 	Array<Line<float>> radiLines;
 	Array<Path> degreeArcPaths;
@@ -126,6 +127,8 @@ private:
 
 	Array<bool> degreeSectorMouseOver;
 	Array<bool> groupSectorMouseOver;
+	int lastDegreeSectorMouseIn = -1;
+	int lastGroupSectorMouseIn = -1;
 
 	float highlightContrastRatio = 1.0f / 6.0f;
 	float labelContrastRatio = 2.0f / 3.0f;
@@ -133,16 +136,33 @@ private:
 private:
 
 	/*
-		Returns the degree sector index that the mouse is in. Uses Path data.
-		Returns -1 if not found.
+		Returns the angle of the mouse based on the circle's center, with 0 starting at the counter-clockwise edge 
+		of the first degree group's degree, and moving clockwise.
 	*/
-	int mouseInDegreeSector(const MouseEvent& event);
+	float getNormalizedMouseAngle(const MouseEvent& event);
 
 	/*
-		Returns the group sector index that the mouse is in. Uses Path data.
-		Returns -1 if not found.
+		Returns the degree index of the degree's corresponding sector that the mouse is in.
 	*/
-	int mouseInGroupSector(const MouseEvent& event);
+	int mouseInDegreeSector(const MouseEvent& event, float angle);
+
+	/*
+		Returns the degree index that the mouse is in if in the area of a degree ring sector.
+		Returns -1 if outside of ring sector.
+	*/
+	int mouseInDegreeRingSector(const MouseEvent& event, float radiusFromCenter, float angle);
+
+	/*
+		Returns the group size index of the group's corresponding sector that the mouse is in
+	*/
+	int mouseInGroupSector(int degreeIndex);
+
+	/*
+		Returns the group size index that the mouse is in if in the area of a group size ring sector.
+		Returns -1 if outside of ring sector.
+	*/
+	int mouseInGroupRingSector(const MouseEvent& event, float radiusFromCenter, float angle);
+	int mouseInGroupRingSector(const MouseEvent& event, float radiusFromCenter, int degreeIndex);
 
 	static int modulo(int num, int mod);
 

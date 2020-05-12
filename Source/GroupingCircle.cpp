@@ -263,11 +263,8 @@ void GroupingCircle::resized()
 
 void GroupingCircle::mouseMove(const MouseEvent& event)
 {
-	// TODO: find more efficent method
-
-	// Brute Force
-	bool dirty = false;
 	float mouseRadius = event.position.getDistanceFrom(center);
+	bool dirty = false;
 
 	// If mouse is not in rings, remove highlights
 	if (mouseRadius < degreeInnerRadius || mouseRadius > groupOuterRadius)
@@ -279,34 +276,28 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 
 	else
 	{
-		int degreeIndex = mouseInDegreeSector(event);
-		int groupIndex = mouseInGroupSector(event);
-
-		// Turn off sectors if not in appropriate ring
-		if (degreeIndex < 0)
-		{
-			degreeSectorMouseOver.fill(false);
-			dirty = true;
-		}
-
-		if (groupIndex < 0)
-		{
-			groupSectorMouseOver.fill(false);
-			dirty = true;
-		}
+		float angle = getNormalizedMouseAngle(event);
+		int degreeIndex = mouseInDegreeSector(event, angle);
 
 		// Check Degree Sectors
 		if (mouseRadius < degreeOuterRadius)
 		{
-			int lastDegreeSector = degreeSectorMouseOver.indexOf(true);
-			if (lastDegreeSector != degreeIndex)
+			if (lastDegreeSectorMouseIn != degreeIndex)
 			{
-				if (lastDegreeSector > -1)
+				if (lastDegreeSectorMouseIn > -1)
 				{
-					degreeSectorMouseOver.set(lastDegreeSector, false);
+					degreeSectorMouseOver.set(lastDegreeSectorMouseIn, false);
 				}
 
 				degreeSectorMouseOver.set(degreeIndex, true);
+				lastDegreeSectorMouseIn = degreeIndex;
+				dirty = true;
+			}
+
+			if (lastGroupSectorMouseIn > -1)
+			{
+				groupSectorMouseOver.set(lastGroupSectorMouseIn, false);
+				lastGroupSectorMouseIn = -1;
 				dirty = true;
 			}
 		}
@@ -314,15 +305,25 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 		// Check Group Sectors
 		else if (mouseRadius < groupOuterRadius)
 		{
-			int lastGroupSector = groupSectorMouseOver.indexOf(true);
-			if (lastGroupSector != groupIndex)
+			int groupIndex = mouseInGroupSector(degreeIndex);
+
+			lastGroupSectorMouseIn = groupSectorMouseOver.indexOf(true);
+			if (lastGroupSectorMouseIn != groupIndex)
 			{
-				if (lastGroupSector > -1)
+				if (lastGroupSectorMouseIn > -1)
 				{
-					groupSectorMouseOver.set(lastGroupSector, false);
+					groupSectorMouseOver.set(lastGroupSectorMouseIn, false);
 				}
 
 				groupSectorMouseOver.set(groupIndex, true);
+				lastGroupSectorMouseIn = groupIndex;
+				dirty = true;
+			}
+
+			if (lastDegreeSectorMouseIn > -1)
+			{
+				degreeSectorMouseOver.set(lastDegreeSectorMouseIn, false);
+				lastDegreeSectorMouseIn = -1;
 				dirty = true;
 			}
 		}
@@ -432,24 +433,53 @@ void GroupingCircle::updateGenerator()
 	repaint();
 }
 
-int GroupingCircle::mouseInDegreeSector(const MouseEvent& event)
+float GroupingCircle::getNormalizedMouseAngle(const MouseEvent& event)
 {
-	for (int deg = 0; deg < degreeArcPaths.size(); deg++)
-	{
-		if (degreeArcPaths.getReference(deg).contains(event.position))
-			return deg;
-	}
+	float angle = atan2f(event.position.x - center.x, center.y - event.position.y) + (degreeGroupSizes[0] / 2.0f * angleIncrement);
+	if (angle < 0) angle += float_Tau;
+	if (angle >= float_Tau) angle -= float_Tau;
+
+	return angle;
+}
+
+int GroupingCircle::mouseInDegreeSector(const MouseEvent& event, float angle)
+{
+	return (int)(angle / angleIncrement) % generatorChain.size();
+}
+
+int GroupingCircle::mouseInDegreeRingSector(const MouseEvent& event, float radiusFromCenter, float angle)
+{
+	if (radiusFromCenter >= degreeInnerRadius && radiusFromCenter < degreeOuterRadius)
+		return mouseInDegreeSector(event, angle);
 
 	return -1;
 }
 
-int GroupingCircle::mouseInGroupSector(const MouseEvent& event)
+int GroupingCircle::mouseInGroupSector(int degreeIndex)
 {
-	for (int group = 0; group < groupArcPaths.size(); group++)
+	int groupIndex = 0;
+	int groupSize = degreeGroupSizes[groupIndex];
+	while (degreeIndex >= groupSize)
 	{
-		if (groupArcPaths.getReference(group).contains(event.position))
-			return group;
+		degreeIndex -= groupSize;
+		groupSize = degreeGroupSizes[++groupIndex];
 	}
+	
+	return groupIndex;
+}
+
+int GroupingCircle::mouseInGroupRingSector(const MouseEvent& event, float radiusFromCenter, float angle)
+{
+	if (radiusFromCenter >= degreeOuterRadius && radiusFromCenter < groupOuterRadius)
+		mouseInGroupSector(mouseInDegreeSector(event, angle));
+
+	return -1;
+}
+
+int GroupingCircle::mouseInGroupRingSector(const MouseEvent& event, float radiusFromCenter, int degreeIndex)
+{
+	if (radiusFromCenter >= degreeOuterRadius && radiusFromCenter < groupOuterRadius)
+		mouseInGroupSector(degreeIndex);
 
 	return -1;
 }
