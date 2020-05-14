@@ -77,15 +77,30 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	offsetLabel->setJustificationType(Justification::centred);
 	offsetLabel->setColour(Label::ColourIds::textColourId, Colours::white);
 	addAndMakeVisible(offsetLabel.get());
-	
+
+	sizeBox.reset(new ComboBox("SizeBox"));
+	sizeBox->setColour(ComboBox::ColourIds::textColourId, Colours::black);
+	//sizeBox->setColour(ComboBox::ColourIds::outlineColourId, Colours::red);
+	//sizeBox->setColour(ComboBox::ColourIds::backgroundColourId, Colour());
+
+	cblf.reset(new ComboBoxLookAndFeel());
+	sizeBox->setLookAndFeel(cblf.get());
+
+	addAndMakeVisible(sizeBox.get());
+
 	circle = dynamic_cast<GroupingCircle*>(circleComponent.get());
 
 	periodSlider->showNameLabel();
 	generatorSlider->showNameLabel();
+
 	scaleSizeSelector->showNameLabel();
+	scaleSizeSelector->setColour(NumberSelector::ColourIds::valueTextColourId, Colours::black);
+	scaleSizeSelector->setVisible(false);
+	scaleSizeSelector->setInterceptsMouseClicks(false, false);
 
 	// TODO: implement period factors properly, and get rid of below
 	periodFactorSelector->setInterceptsMouseClicks(false, false);
+
 
     //[/UserPreSize]
 
@@ -106,10 +121,11 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	generatorSlider->setList(scaleStructure.getValidGenerators());
 	generatorSlider->setIndex(scaleStructure.getGeneratorIndex());
 
-	Array<int> sizes = scaleStructure.getScaleSizes();
-	sizes.remove(0);
-	scaleSizeSelector->setList(sizes);
-	scaleSizeSelector->setIndex(scaleStructure.getScaleSizeIndex() - 1);
+	//Array<int> sizes = scaleStructure.getScaleSizes();
+	//sizes.remove(0);
+	//scaleSizeSelector->setList(sizes);
+	//scaleSizeSelector->setIndex(scaleStructure.getScaleSizeIndex() - 1);
+	updateScaleSizeBox();
 
 	circleOffset = &circle->getOffsetValue();
 	*circleOffset = 1;
@@ -120,6 +136,7 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	generatorSlider->addListener(this);
 	scaleSizeSelector->addListener(this);
 	circleOffset->addListener(this);
+	sizeBox->addListener(this);
 
 	circle->updatePeriod(scaleStructure.getPeriod());
 	circle->updateGenerator();
@@ -173,21 +190,25 @@ void ScaleStructureComponent::resized()
     generatorValueLbl->setBounds (proportionOfWidth (0.3606f) - (103 / 2), proportionOfHeight (0.7049f), 103, 24);
     stepSizePatternLbl->setBounds (proportionOfWidth (0.6401f) - (96 / 2), proportionOfHeight (0.7049f), 96, 24);
     periodFactorSelector->setBounds (proportionOfWidth (0.7470f), proportionOfHeight (0.2769f), proportionOfWidth (0.1448f), proportionOfHeight (0.3643f));
-    scaleSizeSelector->setBounds (proportionOfWidth (0.5013f) - (proportionOfWidth (0.1800f) / 2), proportionOfHeight (0.6266f), proportionOfWidth (0.1800f), proportionOfHeight (0.1111f));
+    scaleSizeSelector->setBounds (proportionOfWidth (0.5007f) - (proportionOfWidth (0.1705f) / 2), proportionOfHeight (0.6266f), proportionOfWidth (0.1705f), proportionOfHeight (0.1056f));
     //[UserResized] Add your own custom resize handling here..
 
 	// TODO: implement (probably ex-projucer) this so that the bounds don't have to be set twice
 	periodSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.45f, 0));
 	generatorSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.05f, float_Pi));
-	scaleSizeSelector->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() *  7.0f / 10.0f, float_Pi));
+	//scaleSizeSelector->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() *  7.0f / 10.0f, float_Pi));
 
 	generatorValueLbl->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 11.0f / 8.0f));
 	stepSizePatternLbl->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 5.0f / 8.0f));
-	
+
 	offsetLabel->setFont(Font().withHeight(getHeight() / 48.0f));
 	offsetLabel->setSize(offsetLabel->getFont().getStringWidth("Offset") * 2, offsetLabel->getFont().getHeight() * 3);
 	offsetLabel->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 7.0f / 8.0f, 0));
 
+	sizeBox->setSize(proportionOfWidth(0.1705f), (circle->getOuterRadius() - circle->getMiddleRadius()) * 7.0f / 8.0f);
+	sizeBox->setCentrePosition(circle->getIntPointFromCenter((circle->getOuterRadius() + circle->getMiddleRadius()) / 2.005f, 0));
+
+	// TODO: add other part of arrow / improve drawing
 	offsetArrows.clear();
 	GroupingCircle::addArcToPath(offsetArrows, circle->getInnerCircleBounds().reduced(circle->getInnerRadius() / 13.0f), float_Pi / 24, float_Pi / 12, true);
 	offsetArrows.lineTo(circle->getFloatPointFromCenter(circle->getInnerRadius() * 13.0f / 14.0f, float_Pi / 14));
@@ -200,6 +221,23 @@ void ScaleStructureComponent::resized()
 
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
+void ScaleStructureComponent::comboBoxChanged(ComboBox* comboBoxThatChanged)
+{
+	if (comboBoxThatChanged == sizeBox.get())
+	{
+		scaleStructure.setSizeIndex(sizeBox->getSelectedId());
+		DBG("SSC: Size changed to: " + String(scaleStructure.getScaleSize()));
+
+		circle->setOffsetLimit(scaleStructure.getScaleSize() - 1);
+		circle->updateGenerator();
+
+		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
+	}
+
+	sendChangeMessage();
+}
+
+
 void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatHasChanged)
 {
 	if (selectorThatHasChanged == periodSlider.get())
@@ -225,10 +263,12 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		generatorValueLbl->setText(String(cents) + " cents", dontSendNotification);
 
 		// update available sizes
-		Array<int> sizes = scaleStructure.getScaleSizes();
+		/*Array<int> sizes = scaleStructure.getScaleSizes();
 		sizes.remove(0);
 		scaleSizeSelector->setList(sizes);
-		scaleSizeSelector->setIndex(scaleStructure.getSuggestedSizeIndex() - 1);
+		scaleSizeSelector->setIndex(scaleStructure.getSuggestedSizeIndex() - 1);*/
+
+		updateScaleSizeBox();
 	}
 
 	else if (selectorThatHasChanged == scaleSizeSelector.get())
@@ -236,7 +276,7 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		scaleStructure.setSizeIndex(scaleSizeSelector->getIndex() + 1);
 		DBG("SSC: Size changed to: " + String(scaleSizeSelector->getValue()));
 
-		circle->setOffsetLimit(scaleSizeSelector->getValue() - 1);
+		circle->setOffsetLimit(scaleStructure.getScaleSize() - 1 - 1);
 		circle->updateGenerator();
 
 		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
@@ -262,6 +302,25 @@ void ScaleStructureComponent::valueChanged(Value& valueThatHasChanged)
 	}
 }
 
+void ScaleStructureComponent::updateScaleSizeBox()
+{
+	Array<int> sizes = scaleStructure.getScaleSizes();
+	sizeBox->clear();
+	for (int i = 0; i < sizes.size(); i++)
+	{
+		if (i > 0)
+			sizeBox->addItem(String(sizes[i]), i);
+	}
+
+	scaleStructure.setSizeIndex(scaleStructure.getSuggestedSizeIndex());
+	sizeBox->setSelectedId(scaleStructure.getScaleSizeIndex(), dontSendNotification);
+
+	circle->setOffsetLimit(scaleStructure.getScaleSize() - 1);
+	circle->updateGenerator();
+
+	stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
+}
+
 //[/MiscUserCode]
 
 
@@ -275,7 +334,7 @@ void ScaleStructureComponent::valueChanged(Value& valueThatHasChanged)
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="ScaleStructureComponent"
-                 componentName="" parentClasses="public Component, public NumberSelector::Listener, public Value::Listener, public ChangeBroadcaster"
+                 componentName="" parentClasses="public Component, public NumberSelector::Listener, public Value::Listener, public ChangeBroadcaster, public ComboBox::Listener"
                  constructorParams="ScaleStructure&amp; scaleStructureIn, Array&lt;Colour&gt;&amp; colourTableIn"
                  variableInitialisers="scaleStructure(scaleStructureIn), colourTable(colourTableIn)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
@@ -304,7 +363,7 @@ BEGIN_JUCER_METADATA
                     virtualName="" explicitFocusOrder="0" pos="74.696% 27.687% 14.479% 36.43%"
                     class="NumberSelector" params="&quot;Period\nFactor&quot;, NumberSelector::SelectionType::List, NumberSelector::SelectorStyle::TickBox, NumberSelector::Orientation::Vertical"/>
   <GENERICCOMPONENT name="Scale Size" id="caf76440221c94" memberName="scaleSizeSelector"
-                    virtualName="" explicitFocusOrder="0" pos="50.135%c 62.659% 17.997% 11.111%"
+                    virtualName="" explicitFocusOrder="0" pos="50.068%c 62.659% 17.05% 10.565%"
                     class="NumberSelector" params="&quot;Scale Size&quot;, NumberSelector::SelectionType::List"/>
 </JUCER_COMPONENT>
 

@@ -25,6 +25,7 @@
 #include "NumberSelector.h"
 #include "GroupingCircle.h"
 #include "ScaleStructure.h"
+#include "ComboBoxLookAndFeel.h"
 //[/Headers]
 
 
@@ -40,7 +41,8 @@
 class ScaleStructureComponent  : public Component,
                                  public NumberSelector::Listener,
                                  public Value::Listener,
-                                 public ChangeBroadcaster
+                                 public ChangeBroadcaster,
+                                 public ComboBox::Listener
 {
 public:
     //==============================================================================
@@ -49,8 +51,11 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+	void comboBoxChanged(ComboBox* comboBoxThatChanged) override;
 	void selectorValueChanged(NumberSelector* selectorThatHasChanged) override;
 	void valueChanged(Value& valueThatHasChanged) override;
+
+	void updateScaleSizeBox();
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -68,6 +73,9 @@ private:
 
 	std::unique_ptr<Label> offsetLabel;
 	Path offsetArrows;
+
+	std::unique_ptr<ComboBoxLookAndFeel> cblf;
+	std::unique_ptr<ComboBox> sizeBox;
 
 	int periodSelected;
 	int generatorSelected;

@@ -397,14 +397,17 @@ void GroupingCircle::updateGenerator()
 	}
 
 	groupSizeLabels.clear();
-	for (auto groupSize : degreeGroupSizes)
+	for (int i = 0; i < degreeGroupSizes.size(); i++)
 	{
 		Label* l = groupSizeLabels.add(new Label());
 		l->setJustificationType(Justification::centred);
-		l->setText(String(groupSize), dontSendNotification);
+		l->setText(String(degreeGroupSizes[i]), dontSendNotification);
 		l->setInterceptsMouseClicks(false, false);
 		//l->setColour(Label::ColourIds::outlineColourId, Colours::white);
-		addAndMakeVisible(l);
+
+		// First one will be replaced by scaleSizeSelector
+		if (i > 0)
+			addAndMakeVisible(l);
 	}
 
 	groupSectorMouseOver.resize(groupSizeLabels.size());
