@@ -4,8 +4,8 @@
               jucerVersion="5.4.7">
   <MAINGROUP id="beGhad" name="ScaleStructureController">
     <GROUP id="{C32CC330-DD57-B0CF-1455-158ECD9B3F8C}" name="Source">
-      <FILE id="mu4zKT" name="ComboBoxLookAndFeel.h" compile="0" resource="0"
-            file="Source/ComboBoxLookAndFeel.h"/>
+      <FILE id="mu4zKT" name="TransparentDropDown.h" compile="0" resource="0"
+            file="Source/TransparentDropDown.h"/>
       <FILE id="EdOkEq" name="NumberSelector.cpp" compile="1" resource="0"
             file="Source/NumberSelector.cpp"/>
       <FILE id="xtusXg" name="NumberSelector.h" compile="0" resource="0"

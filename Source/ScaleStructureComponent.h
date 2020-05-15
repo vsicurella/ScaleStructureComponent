@@ -25,7 +25,8 @@
 #include "NumberSelector.h"
 #include "GroupingCircle.h"
 #include "ScaleStructure.h"
-#include "ComboBoxLookAndFeel.h"
+#include "TransparentDropDown.h"
+
 //[/Headers]
 
 
@@ -74,7 +75,7 @@ private:
 	std::unique_ptr<Label> offsetLabel;
 	Path offsetArrows;
 
-	std::unique_ptr<ComboBoxLookAndFeel> cblf;
+	std::unique_ptr<TransparentDropDown> dropdownLookAndFeel;
 	std::unique_ptr<ComboBox> sizeBox;
 
 	int periodSelected;

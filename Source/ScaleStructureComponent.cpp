@@ -83,9 +83,10 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	//sizeBox->setColour(ComboBox::ColourIds::outlineColourId, Colours::red);
 	//sizeBox->setColour(ComboBox::ColourIds::backgroundColourId, Colour());
 
-	cblf.reset(new ComboBoxLookAndFeel());
-	sizeBox->setLookAndFeel(cblf.get());
-
+	dropdownLookAndFeel.reset(new TransparentDropDown());	
+	dropdownLookAndFeel->setColour(PopupMenu::ColourIds::backgroundColourId, Colour());
+	dropdownLookAndFeel->setBaseColour(colourTable[0]);
+	sizeBox->setLookAndFeel(dropdownLookAndFeel.get());
 	addAndMakeVisible(sizeBox.get());
 
 	circle = dynamic_cast<GroupingCircle*>(circleComponent.get());
@@ -93,15 +94,14 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	periodSlider->showNameLabel();
 	generatorSlider->showNameLabel();
 
-	scaleSizeSelector->showNameLabel();
-	scaleSizeSelector->setColour(NumberSelector::ColourIds::valueTextColourId, Colours::black);
+	//scaleSizeSelector->showNameLabel();
+	//scaleSizeSelector->setColour(NumberSelector::ColourIds::valueTextColourId, Colours::black);
+	//scaleSizeSelector->setInterceptsMouseClicks(false, false);
 	scaleSizeSelector->setVisible(false);
-	scaleSizeSelector->setInterceptsMouseClicks(false, false);
 
 	// TODO: implement period factors properly, and get rid of below
 	periodFactorSelector->setInterceptsMouseClicks(false, false);
-
-
+	
     //[/UserPreSize]
 
     setSize (800, 800);
