@@ -34,7 +34,16 @@ private:
 	std::unique_ptr<ScaleStructure> scaleStructure;
     std::unique_ptr<ScaleStructureComponent> scaleController;
 
-	Array<Colour> colourTable;
+	// Test colours
+	Array<Colour> colourTable = 
+	{
+		Colours::lightyellow,
+		Colours::red,
+		Colours::turquoise,
+		Colours::lightgreen,
+		Colours::mediumpurple,
+		Colours::orange
+	};
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

@@ -13,7 +13,6 @@
 
 class TransparentDropDown : public LookAndFeel_V4
 {
-
 	Colour baseColour;
 
 public:
@@ -73,7 +72,7 @@ public:
 
 	PopupMenu::Options getOptionsForComboBoxPopupMenu(ComboBox& cb, Label& lbl) override
 	{
-		int translateX = round((getPopupMenuFont().getStringWidthFloat("88") + getPopupMenuBorderSize()) / 2.0f);
+		int translateX = round(getPopupMenuFont().getStringWidthFloat("88") / 2.0f - getPopupMenuBorderSize());
 		return PopupMenu::Options()
 			.withMinimumWidth(cb.getWidth()/3)
 			.withMinimumNumColumns(3)
@@ -87,7 +86,7 @@ public:
 
 	void drawPopupMenuBackground(Graphics& g, int width, int height) override
 	{
-		g.fillAll(baseColour.brighter().withAlpha(0.95f));
+		g.fillAll(baseColour.contrasting(0.1f).withAlpha(0.975f));
 	}
 
 	void drawPopupMenuItem(
@@ -112,8 +111,9 @@ public:
 		if (textColour)
 			g.setColour(*textColour);
 		else
-			g.setColour(baseColour.darker(0.9f).withAlpha(1.0f));
-
+			g.setColour(baseColour.withAlpha(1.0f).contrasting());
+		
+		g.setFont(area.getHeight() * 2 / 3.0f);
 		g.drawFittedText(text, area, Justification::centred, 1);
 	}
 
