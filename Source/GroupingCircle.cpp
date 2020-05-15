@@ -17,8 +17,7 @@ GroupingCircle::GroupingCircle(const Array<int>& generatorChainIn, const Array<i
 		degreeGroupSizes(degreeGroupSizesIn),
 		colourTable(groupColoursIn)
 {
-	//jassert(degreeGroupSize.size() == colourTable.size())
-	//addMouseListener(this, true);
+
 }
 
 GroupingCircle::~GroupingCircle()
@@ -338,7 +337,7 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 	float mouseDownRadius = event.mouseDownPosition.getDistanceFrom(center);
 	bool dirty = false;
 
-	if (mouseDownRadius >= degreeInnerRadius || mouseDownRadius < degreeOuterRadius)
+	if (mouseDownRadius >= degreeInnerRadius && mouseDownRadius < degreeOuterRadius)
 	{
 		float mouseRadius = event.position.getDistanceFrom(center);
 		float angle = getNormalizedMouseAngle(event);
