@@ -13,16 +13,17 @@
 
 class TransparentDropDown : public LookAndFeel_V4
 {
-	Colour baseColour;
+	Colour defaultColour = Colours::darkgrey;
+	Colour& baseColour;
 
 public:
 
-	TransparentDropDown(Colour baseColourIn = Colour())
-		: baseColour(baseColourIn == Colour() ? Colours::darkgrey : baseColourIn) {}
+	TransparentDropDown()
+		: baseColour(defaultColour) {};
 
 	~TransparentDropDown() override {};
 
-	void setBaseColour(Colour baseColourIn)
+	void setBaseColour(Colour& baseColourIn)
 	{
 		baseColour = baseColourIn;
 	}
@@ -72,13 +73,15 @@ public:
 
 	PopupMenu::Options getOptionsForComboBoxPopupMenu(ComboBox& cb, Label& lbl) override
 	{
-		int translateX = round(getPopupMenuFont().getStringWidthFloat("88") / 2.0f - getPopupMenuBorderSize());
+		//int translateX = round(cb.getNumItems() * )
 		return PopupMenu::Options()
-			.withMinimumWidth(cb.getWidth()/3)
-			.withMinimumNumColumns(3)
+			.withMinimumWidth(cb.getWidth() / 2)
+			.withMinimumNumColumns(2)
+			.withMaximumNumColumns(6)
 			.withStandardItemHeight(cb.getHeight() * 2.0f / 3.0f)
 			//.withPreferredPopupDirection(PopupMenu::Options::PopupDirection::upwards)
-			.withTargetScreenArea(cb.getScreenBounds().translated(-translateX, 0));
+			//.withTargetScreenArea(cb.getScreenBounds().translated(-translateX, 0));
+			.withTargetComponent(cb);
 	}
 
 
