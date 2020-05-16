@@ -26,7 +26,7 @@ public:
 	};
 
 public:
-    GroupingCircle(const Array<int>& generatorChainIn, const Array<int>& degreeGroupSizesIn, Array<Colour>& colourTableIn);
+    GroupingCircle(const Array<Array<int>>& degreeGroupingsIn, Array<Colour>& colourTableIn);
     ~GroupingCircle();
 
 	ControlMode getControlMode();
@@ -76,11 +76,14 @@ private:
 	OwnedArray<Label> degreeLabels;
 	OwnedArray<Label> groupSizeLabels;
 
+	// The groups of scale degree arrays
+	const Array<Array<int>>& degreeGroupings;
+
 	// The chain of scale degrees by stacking the chosen generator
-	const Array<int>& generatorChain;
+	Array<int> generatorChain;
 
 	// Starting from the top (scale size selected) going clockwise
-	const Array<int>& degreeGroupSizes;
+	Array<int> groupSizes;
 
 	// Starting from the top going clockwise
 	const Array<Colour>& colourTable;

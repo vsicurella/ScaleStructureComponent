@@ -33,7 +33,7 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
 
-    circleComponent.reset (new GroupingCircle (scaleStructure.getGeneratorChainReference(), scaleStructure.getGroupingSizesReference(), colourTable));
+    circleComponent.reset (new GroupingCircle (scaleStructure.getDegreeGroupingsReference(), colourTable));
     addAndMakeVisible (circleComponent.get());
     circleComponent->setName ("circleComponent");
 
@@ -84,7 +84,7 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	periodFactorButton.reset(new ShapeButton("periodFactorButton", Colours::white, Colours::white.contrasting(0.125f), Colours::white.contrasting(0.25f)));
 	periodFactorButton->setTooltip("Number of periods.");
 	addAndMakeVisible(periodFactorButton.get());
-	
+
 	periodFactorMenu.setLookAndFeel(dropdownLookAndFeel.get());
 
 	circle = dynamic_cast<GroupingCircle*>(circleComponent.get());
@@ -216,7 +216,7 @@ void ScaleStructureComponent::paintOverChildren(Graphics& g)
 	{
 		g.setColour(Colours::black);
 		g.setFont(periodFactorButton->getHeight() * 7 / 8.0f );
-		g.drawFittedText(String(periodFactors[periodFactorSelected]), periodFactorButton->getBounds().translated(0, -1), Justification::centred, 1);
+		g.drawFittedText(String(scaleStructure.getPeriodFactor()), periodFactorButton->getBounds().translated(0, -1), Justification::centred, 1);
 	}
 }
 
@@ -224,6 +224,10 @@ void ScaleStructureComponent::comboBoxChanged(ComboBox* comboBoxThatChanged)
 {
 	if (comboBoxThatChanged == sizeBox.get())
 	{
+		// Prevent fractional periods from suggesting index 0
+		if (sizeBox->getSelectedId() == 0)
+			sizeBox->setSelectedId(1, dontSendNotification);
+
 		scaleStructure.setSizeIndex(sizeBox->getSelectedId());
 		DBG("SSC: Size changed to: " + String(scaleStructure.getScaleSize()));
 
@@ -243,14 +247,14 @@ void ScaleStructureComponent::buttonClicked(Button* buttonThatWasClicked)
 		periodFactorMenu.clear();
 		for (int i = 0; i < periodFactors.size(); i++)
 		{
-			periodFactorMenu.addItem(i + 1, String(periodFactors[i]), true, i == periodFactorSelected);
+			periodFactorMenu.addItem(i + 1, String(periodFactors[i]), true, i == scaleStructure.getPeriodFactorIndex());
 		}
 
 		PopupMenu::Options options = PopupMenu::Options()
 			.withMinimumWidth(periodSlider->getHeight() / 4)
 			.withStandardItemHeight(periodSlider->getHeight() / 4)
 			.withTargetComponent(periodFactorButton.get());
-		
+
 		periodFactorMenu.showMenuAsync(options, [=](int choice)
 		{
 			updatePeriodFactor(choice - 1);
@@ -325,16 +329,10 @@ void ScaleStructureComponent::updateScaleSizes()
 	for (int i = 0; i < sizes.size(); i++)
 	{
 		if (i > 0)
-			sizeBox->addItem(String(sizes[i]), i);
+			sizeBox->addItem(String(sizes[i] * scaleStructure.getPeriodFactor()), i);
 	}
 
-	scaleStructure.setSizeIndex(scaleStructure.getSuggestedSizeIndex());
-	sizeBox->setSelectedId(scaleStructure.getScaleSizeIndex(), dontSendNotification);
-
-	circle->setOffsetLimit(scaleStructure.getScaleSize() - 1);
-	circle->updateGenerator();
-
-	stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
+	sizeBox->setSelectedId(scaleStructure.getSuggestedSizeIndex(), sendNotificationSync);
 }
 
 void ScaleStructureComponent::updatePeriodFactor(int factorIndexIn)
@@ -373,7 +371,7 @@ BEGIN_JUCER_METADATA
   <BACKGROUND backgroundColour="ff323e44"/>
   <GENERICCOMPONENT name="circleComponent" id="ec9c5dc09c2f91cf" memberName="circleComponent"
                     virtualName="" explicitFocusOrder="0" pos="0 0 100% 100%" class="GroupingCircle"
-                    params="scaleStructure.getGeneratorChainReference(), scaleStructure.getGroupingSizesReference(), colourTable"/>
+                    params="scaleStructure.getDegreeGroupingsReference(), colourTable"/>
   <GENERICCOMPONENT name="Generator" id="efbe5586805bc62b" memberName="generatorSlider"
                     virtualName="NumberSelector" explicitFocusOrder="0" pos="50.135%c 46.63% 25.034% 14.936%"
                     class="Component" params="&quot;Generator&quot;, NumberSelector::SelectionType::List"/>

@@ -93,7 +93,7 @@ private:
 	Path periodFactorButtonShape;
 	std::unique_ptr<ShapeButton> periodFactorButton;
 	PopupMenu periodFactorMenu;
-	
+
 
 	// Helpers
 	int periodSelected;
