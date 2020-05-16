@@ -43,7 +43,8 @@ class ScaleStructureComponent  : public Component,
                                  public NumberSelector::Listener,
                                  public Value::Listener,
                                  public ChangeBroadcaster,
-                                 public ComboBox::Listener
+                                 public ComboBox::Listener,
+                                 public Button::Listener
 {
 public:
     //==============================================================================
@@ -52,11 +53,17 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+	void paintOverChildren(Graphics& g) override;
+
 	void comboBoxChanged(ComboBox* comboBoxThatChanged) override;
+	void buttonClicked(Button* buttonThatWasClicked) override;
 	void selectorValueChanged(NumberSelector* selectorThatHasChanged) override;
 	void valueChanged(Value& valueThatHasChanged) override;
 
-	void updateScaleSizeBox();
+	void updateGenerators();
+	void updateScaleSizes();
+
+	void updatePeriodFactor(int factorIndexIn);
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -66,20 +73,34 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
+
+	// Functional Elements
 	ScaleStructure& scaleStructure;
 	Array<Colour>& colourTable;
 
 	GroupingCircle* circle;
 	Value* circleOffset;
 
+	TooltipWindow tooltipWindow;
+
+	// Components
 	std::unique_ptr<Label> offsetLabel;
 	Path offsetArrows;
 
 	std::unique_ptr<TransparentDropDown> dropdownLookAndFeel;
 	std::unique_ptr<ComboBox> sizeBox;
 
+	Path periodFactorButtonShape;
+	std::unique_ptr<ShapeButton> periodFactorButton;
+	PopupMenu periodFactorMenu;
+	
+
+	// Helpers
 	int periodSelected;
 	int generatorSelected;
+
+	Array<int> periodFactors;
+	int periodFactorSelected = 0;
     //[/UserVariables]
 
     //==============================================================================
@@ -88,8 +109,6 @@ private:
     std::unique_ptr<NumberSelector> periodSlider;
     std::unique_ptr<Label> generatorValueLbl;
     std::unique_ptr<Label> stepSizePatternLbl;
-    std::unique_ptr<NumberSelector> periodFactorSelector;
-    std::unique_ptr<NumberSelector> scaleSizeSelector;
 
 
     //==============================================================================
