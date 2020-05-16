@@ -84,12 +84,16 @@ private:
 	TooltipWindow tooltipWindow;
 
 	// Components
+	TransparentDropDown generatorLookAndFeel;
+	std::unique_ptr<ComboBox> generatorBox;
+
 	std::unique_ptr<Label> offsetLabel;
 	Path offsetArrows;
 
-	std::unique_ptr<TransparentDropDown> dropdownLookAndFeel;
+	TransparentDropDown sizeLookAndFeel;
 	std::unique_ptr<ComboBox> sizeBox;
 
+	TransparentDropDown periodFactorLookAndFeel;
 	Path periodFactorButtonShape;
 	std::unique_ptr<ShapeButton> periodFactorButton;
 	PopupMenu periodFactorMenu;

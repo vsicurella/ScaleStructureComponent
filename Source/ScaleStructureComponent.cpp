@@ -65,6 +65,14 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 
 
     //[UserPreSize]
+	// TODO: add component colour ids
+	//generatorLookAndFeel.setBaseColour(findColour(ColourIds::backgroundColourId));
+	generatorBox.reset(new ComboBox("generatorSelector"));
+	generatorBox->setColour(ComboBox::ColourIds::textColourId, Colours::white);
+	generatorLookAndFeel.setColour(PopupMenu::ColourIds::backgroundColourId, Colour());
+	generatorBox->setLookAndFeel(&generatorLookAndFeel);
+	addAndMakeVisible(generatorBox.get());
+
 	offsetLabel.reset(new Label("offsetLabel", "Offset\n0"));
 	offsetLabel->setJustificationType(Justification::centred);
 	offsetLabel->setColour(Label::ColourIds::textColourId, Colours::white);
@@ -75,22 +83,23 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	//sizeBox->setColour(ComboBox::ColourIds::outlineColourId, Colours::red);
 	//sizeBox->setColour(ComboBox::ColourIds::backgroundColourId, Colour());
 
-	dropdownLookAndFeel.reset(new TransparentDropDown());
-	dropdownLookAndFeel->setColour(PopupMenu::ColourIds::backgroundColourId, Colour());
-	dropdownLookAndFeel->setBaseColour(colourTable[0]);
-	sizeBox->setLookAndFeel(dropdownLookAndFeel.get());
+	sizeLookAndFeel.setBaseColour(colourTable.getReference(0));
+	sizeLookAndFeel.setColour(PopupMenu::ColourIds::backgroundColourId, Colour());
+	sizeBox->setLookAndFeel(&sizeLookAndFeel);
 	addAndMakeVisible(sizeBox.get());
 
+	// TODO: add component colour ids
+	//periodFactorLookAndFeel.setBaseColour(findColour(ColourIds::backgroundColourId));
 	periodFactorButton.reset(new ShapeButton("periodFactorButton", Colours::white, Colours::white.contrasting(0.125f), Colours::white.contrasting(0.25f)));
 	periodFactorButton->setTooltip("Number of periods.");
 	addAndMakeVisible(periodFactorButton.get());
 
-	periodFactorMenu.setLookAndFeel(dropdownLookAndFeel.get());
+	periodFactorMenu.setLookAndFeel(&periodFactorLookAndFeel);
 
 	circle = dynamic_cast<GroupingCircle*>(circleComponent.get());
 
 	periodSlider->showNameLabel();
-	generatorSlider->showNameLabel();
+	//generatorSlider->showNameLabel();
     //[/UserPreSize]
 
     setSize (800, 800);
@@ -101,6 +110,8 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	// Set up default values, then set up listening
 	periodSlider->setRange(5, 400, true, false);
 	periodSlider->setValue(scaleStructure.getPeriod());
+
+	updateGenerators();
 
 	scaleStructure.resetToPeriod(12);
 	scaleStructure.setGeneratorIndex(scaleStructure.getSuggestedGeneratorIndex());
@@ -122,7 +133,11 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	offsetLabel->setText("Offset\n" + String((int)circleOffset->getValue()), dontSendNotification);
 
 	periodSlider->addListener(this);
-	generatorSlider->addListener(this);
+	//generatorSlider->addListener(this);
+	generatorSlider->setVisible(false);
+
+	generatorBox->addListener(this);
+
 	circleOffset->addListener(this);
 	sizeBox->addListener(this);
 	periodFactorButton->addListener(this);
@@ -178,8 +193,10 @@ void ScaleStructureComponent::resized()
     //[UserResized] Add your own custom resize handling here..
 
 	// TODO: implement (probably ex-projucer) this so that the bounds don't have to be set twice
-	periodSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.5f, 0));
-	generatorSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.1f, float_Pi));
+	periodSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.4f, 0));
+	
+	generatorBox->setSize(proportionOfWidth(0.25f), proportionOfHeight(0.15f));
+	generatorBox->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.125f, float_Pi));
 
 	generatorValueLbl->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 11.0f / 8.0f));
 	stepSizePatternLbl->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 5.0f / 8.0f));
@@ -235,6 +252,19 @@ void ScaleStructureComponent::comboBoxChanged(ComboBox* comboBoxThatChanged)
 		circle->updateGenerator();
 
 		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
+	}
+
+	else if (comboBoxThatChanged == generatorBox.get())
+	{
+		generatorSelected = generatorBox->getSelectedId() - 1;
+		scaleStructure.setGeneratorIndex(generatorSelected);
+		circle->updateGenerator();
+		DBG("SSC: Generator changed to: " + String(scaleStructure.getGenerator()));
+
+		float cents = roundf(log2(pow(2, (double)scaleStructure.getGenerator() / periodSelected)) * 1200000) / 1000.0f;
+		generatorValueLbl->setText(String(cents) + " cents", dontSendNotification);
+
+		updateScaleSizes();
 	}
 
 	sendChangeMessage();
@@ -318,8 +348,17 @@ void ScaleStructureComponent::valueChanged(Value& valueThatHasChanged)
 
 void ScaleStructureComponent::updateGenerators()
 {
-	generatorSlider->setList(scaleStructure.getValidGenerators());
-	generatorSlider->setIndex(scaleStructure.getSuggestedGeneratorIndex());
+	//generatorSlider->setList(scaleStructure.getValidGenerators());
+	//generatorSlider->setIndex(scaleStructure.getSuggestedGeneratorIndex());
+
+	generatorBox->clear();
+	for (int i = 0; i < scaleStructure.getValidGenerators().size(); i++)
+	{
+		generatorBox->addItem(String(scaleStructure.getValidGenerator(i)), i + 1);
+	}
+
+	// TODO: move elsewhere
+	generatorBox->setSelectedId(scaleStructure.getSuggestedGeneratorIndex() + 1);
 }
 
 void ScaleStructureComponent::updateScaleSizes()
