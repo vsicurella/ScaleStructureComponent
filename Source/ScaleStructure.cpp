@@ -787,10 +787,11 @@ void ScaleStructure::useSuggestedSizeGrouping()
 
 	// fill scale size group
 	degreeGroupScaleSizes.clear();
-	for (auto i : degreeGroupIndexedSizes)
-	{
-		degreeGroupScaleSizes.add(scaleSizes[i]);
-	}
+	for (int p = 0; p < periodFactorSelected; p++)
+		for (auto i : degreeGroupIndexedSizes)
+		{
+			degreeGroupScaleSizes.add(scaleSizes[i]);
+		}
 
 	DBG("Symmetric group:");
 	String dbgstr = "";
