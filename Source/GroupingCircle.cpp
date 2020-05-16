@@ -445,6 +445,10 @@ int GroupingCircle::mouseInGroupSector(int degreeIndex)
 	while (degreeIndex >= groupSize)
 	{
 		degreeIndex -= groupSize;
+
+		if (degreeIndex < 0 || groupIndex == degreeGroupSizes.size() - 1)
+			return -1;
+
 		groupSize = degreeGroupSizes[++groupIndex];
 	}
 	
