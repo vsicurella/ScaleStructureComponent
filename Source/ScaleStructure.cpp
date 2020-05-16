@@ -33,14 +33,6 @@ ScaleStructure::ScaleStructure(int periodIn, int genIndexIn, int sizeIndexIn, Ar
 	}
 }
 
-int ScaleStructure::getPeriod(bool ofFactorSelected) const
-{
-	if (ofFactorSelected && periodFactorSelected > 0)
-		return fPeriod;
-
-	return period;
-}
-
 void ScaleStructure::resetToPeriod(int periodIn)
 {
 	period = periodIn;
@@ -49,6 +41,70 @@ void ScaleStructure::resetToPeriod(int periodIn)
 
 	periodFactors = getFactors(period);
 	setPeriodFactorIndex(0);
+}
+
+void ScaleStructure::setAll(
+	int periodIn,
+	int generatorIndexIn,
+	int sizeIndexIn,
+	int generatorOffsetIn,
+	int periodFactorIndexIn,
+	Array<int> degreeGroupSizeIndiciesIn,
+	Array<Point<int>> modMosPropertiesIn)
+{
+	period = periodIn;
+	
+	periodFactors = getFactors(period);
+	periodFactorIndexSelected = jlimit(0, periodFactors.size() - 1, periodFactorIndexIn);
+	periodFactorSelected = periodFactors[periodFactorIndexSelected];
+	fPeriod = period / periodFactorSelected;
+
+	validGenerators = getCoprimes(fPeriod);
+	// if generator index is invalid, default to suggested
+	if (generatorIndexIn < 0 || generatorIndexIn >= validGenerators.size())
+		generatorIndex = getSuggestedGeneratorIndex();
+	else
+		generatorIndex = generatorIndexIn;
+
+	calculateProperties();
+
+	// if size index is invalid, default to suggested
+	if (sizeIndexIn < 0 || sizeIndexIn >= scaleSizes.size())
+		sizeIndexSelected = getSuggestedSizeIndex();
+	else
+		sizeIndexSelected = sizeIndexIn;
+
+	generatorOffset = jlimit(0, getScaleSize() - 1, generatorOffsetIn);
+
+	calculateGeneratorChain();
+
+	if (modMosPropertiesIn.size() > 0)
+	{
+		// TODO: check if valid
+		modmosProperties = modMosPropertiesIn;
+	}
+
+	if (degreeGroupSizeIndiciesIn.size() > 0)
+	{
+		// TODO: check if valid scale size
+		degreeGroupScaleSizes = degreeGroupSizeIndiciesIn;
+
+		// TODO: symmetric checks/fixes
+		arrangeSymmetrically(degreeGroupScaleSizes);
+		fillSymmetricGrouping();
+	}
+	else
+	{
+		useSuggestedSizeGrouping();
+	}
+}
+
+int ScaleStructure::getPeriod(bool ofFactorSelected) const
+{
+	if (ofFactorSelected && periodFactorSelected > 0)
+		return fPeriod;
+
+	return period;
 }
 
 Array<int> ScaleStructure::getPeriodFactors() const
@@ -254,13 +310,17 @@ void ScaleStructure::setPeriodFactorIndex(int index)
 	validGenerators = getCoprimes(fPeriod);
 
 	if (generatorIndex > -1)
+	{
 		calculateProperties();
+		calculateGeneratorChain();
+	}
 }
 
 void ScaleStructure::setGeneratorIndex(int index)
 {
 	generatorIndex = index;
 	calculateProperties();
+	calculateGeneratorChain();
 }
 
 void ScaleStructure::setSizeIndex(int index)
@@ -337,7 +397,6 @@ void ScaleStructure::calculateProperties()
 	DBG("Sizes available: " + dbgstr);
 
 	calculateStepSizes();
-	calculateGeneratorChain();
 }
 
 void ScaleStructure::calculateStepSizes()
@@ -419,7 +478,6 @@ void ScaleStructure::fillGroupingSymmetrically()
 	degreeGroupings.resize(grouping.size());
 
 	// Fill degree groups symmetrically
-
 	int indexForward = 0;
 	int indexBackwards = period - 1;
 	int ind;
@@ -474,18 +532,19 @@ void ScaleStructure::fillSymmetricGrouping()
 	degreeGroupings.resize(degreeGroupIndexedSizes.size());
 
 	// Fill degree groups symmetrically
-
-	int ind = 0;
-	for (int t = 0; t < degreeGroupIndexedSizes.size(); t++)
+	int groupSize, ind = 0;
+	for (int group = 0; group < degreeGroupIndexedSizes.size(); group++)
 	{
-		for (int n = 0; n < scaleSizes[degreeGroupIndexedSizes[t]]; n++)
+		groupSize = scaleSizes[degreeGroupIndexedSizes[group]];
+		for (int f = 0; f < periodFactorSelected; f++)
 		{
-			for (int f = 0; f < periodFactorSelected; f++)
+			for (int deg = 0; deg < groupSize; deg++)
 			{
-				degreeGroupings.getReference(t).add(generatorChain[ind + fPeriod * f]);
+				degreeGroupings.getReference(group).add(generatorChain[ind + deg + fPeriod * f]);
 			}
-			ind = modulo(ind + 1, fPeriod);
 		}
+
+		ind += groupSize;
 	}
 
 	// Rearrange degrees if MODMOS properties exist
@@ -518,15 +577,10 @@ void ScaleStructure::fillSymmetricGrouping()
 	DBG(dbgstr);
 }
 
-// TODO: Fix issues with generator offsets (modes).
-//		- This algorithm finds and uses absolute degrees, which get affected by generator offset
-//		- The proper solution would be to use relative degrees within the groups
-//		- AKA swap values of degreeGrouping indicies, rather than values of generatorChain indicies
 void ScaleStructure::applyMODMOSProperties()
 {
 	Array<int> naturalScale = degreeGroupings[0];
 	naturalScale.sort();
-	int fractionalPeriod = period / periodFactors[periodFactorIndexSelected];
 
 	for (auto alteration : modmosProperties)
 	{
@@ -537,13 +591,16 @@ void ScaleStructure::applyMODMOSProperties()
 
 		int amount = alteration.y;
 		int scaleSize = scaleSizes[sizeIndexSelected];
+		DBG("Scale size is " + String(scaleSize));
 
 		// Find the altered scale degree
 		int originalChainIndex = generatorChain.indexOf(scaleDegree);
+		int fractionalChainIndex = originalChainIndex % fPeriod;
+		int periodDegreeIsIn = originalChainIndex / fPeriod;
+
 		int shiftAmount = amount * scaleSize;
-		int shiftedIndex = generatorChain.indexOf(scaleDegree) + amount * scaleSize;
-		int newGeneratorIndex = modulo(generatorChain.indexOf(scaleDegree) + amount * scaleSize, fractionalPeriod);
-		int alteredDegree = generatorChain[newGeneratorIndex];
+		int shiftedIndex = modulo(fractionalChainIndex + shiftAmount, fPeriod) + fPeriod * periodDegreeIsIn;
+		int alteredDegree = generatorChain[shiftedIndex];
 
 		// Swap the scale degrees in degreeGroupings
 		for (int i = 0; i < degreeGroupings.size(); i++)
@@ -555,7 +612,6 @@ void ScaleStructure::applyMODMOSProperties()
 				int indexToSwap = group.indexOf(alteredDegree);
 				degreeGroupings.getReference(0).set(naturalGroupingIndex, alteredDegree);
 				group.set(indexToSwap, scaleDegree);
-				continue;
 			}
 		}
 	}
@@ -630,7 +686,7 @@ Array<int> ScaleStructure::getNestedSizeGrouping()
 
 	int notesLeft = fPeriod - scaleSize;
 	int subSizeInd = sizeIndexSelected;
-	int subSize = scaleSize;
+	int subSize = jmax(1, scaleSize);
 
 	while (notesLeft > 0)
 	{
@@ -698,7 +754,7 @@ Array<int> ScaleStructure::getComplimentarySizeGrouping()
 
 	int notesLeft = fPeriod - scaleSize;
 	int subSizeInd = sizeIndexSelected;
-	int subSize = scaleSize;
+	int subSize = jmax(1, scaleSize);
 
 	int q = notesLeft / subSize;
 	int numToAdd = notesLeft % subSize == 0 ? q : q - (q % 2);
@@ -749,7 +805,7 @@ Array<int> ScaleStructure::getComplimentarySizeGrouping()
 			num = 0;
 		}
 	}
-
+	
 	DBG("Complimentary group:");
 	String dbgstr = "";
 	for (int i = 0; i < grouping.size(); i++)
@@ -876,7 +932,7 @@ String ScaleStructure::getLsSteps()
 {
 	Point<int> sizes;
 	String steps = getIntervalSteps(sizes);
-	
+
 	String L = String(jmax(sizes.x, sizes.y));
 	String s = String(jmin(sizes.x, sizes.y));
 

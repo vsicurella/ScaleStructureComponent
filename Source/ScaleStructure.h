@@ -65,12 +65,21 @@ public:
 	ScaleStructure(const ScaleStructure& scaleToCopy);
 	ScaleStructure(ValueTree scaleStructureProperties);
 
+	void resetToPeriod(int periodIn);
+	void setAll(
+		int periodIn,
+		int generatorIndexIn,
+		int sizeIndexIn,
+		int generatorOffsetIn = 0,
+		int periodFactorIndexIn = 0,
+		Array<int> degreeGroupSizeIndiciesIn = Array<int>(),
+		Array<Point<int>> modMosPropertiesIn = Array<Point<int>>());
+
 	/*
 		Returns the chosen period. If 'true' is passed in, the period is divided by
 		the factor, if a fractional period is selected.
 	*/
 	int getPeriod(bool ofSelectedFactor = false) const;
-	void resetToPeriod(int periodIn);
 	
 	Array<int> getPeriodFactors() const;
 	int getPeriodFactorIndex() const;
@@ -142,7 +151,6 @@ public:
 	Array<int> getNestedSizeGrouping();
 	Array<int> getComplimentarySizeGrouping();
 	void useSuggestedSizeGrouping();
-
 
 	// Returns the scale as a string of step sizes and puts integer values into passed in point reference
 	String getIntervalSteps(Point<int>& stepSizesOut);
