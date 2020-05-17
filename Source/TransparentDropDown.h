@@ -44,7 +44,7 @@ public:
 		if (cb.isMouseOver())
 		{
 			g.setColour(Colours::black.withAlpha(0.125f));
-			g.fillRoundedRectangle((width / 2 - textWidth / 2) * margin, 0, textWidth * margin, textHeight, sqrt(width * height) / 8.0f);
+			g.fillRoundedRectangle(0, 0, width * margin, textHeight, sqrt(width * height) / 8.0f);
 		}
 
 		//g.setColour(Colours::red);
