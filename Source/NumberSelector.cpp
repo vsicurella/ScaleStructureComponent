@@ -12,7 +12,7 @@
 #include "NumberSelector.h"
 
 //==============================================================================
-NumberSelector::NumberSelector(String componentName, SelectionType typeIn, SelectorStyle styleIn, Orientation orientationIn)
+NumberSelector::NumberSelector(String componentName, SelectionType typeIn, SelectorStyle styleIn, Orientation orientationIn, Colour defaultTextColour)
 	: selectionType(typeIn), selectorStyle(styleIn), orientation(orientationIn)
 {
 	setName(componentName);
@@ -35,11 +35,12 @@ NumberSelector::NumberSelector(String componentName, SelectionType typeIn, Selec
 
 	float arrowDirection = (orientation == Horizontal) ? 0.0 : 0.25f;
 
-	incrementButton.reset(new ArrowButton("incrementButton", arrowDirection, Colours::white));
+	// TODO: Implement something else that can change colour
+	incrementButton.reset(new ArrowButton("incrementButton", arrowDirection, defaultTextColour));
 	addAndMakeVisible(incrementButton.get());
 	incrementButton->addListener(this);
 
-	decrementButton.reset(new ArrowButton("decrementButton", arrowDirection + 0.5f, Colours::white));
+	decrementButton.reset(new ArrowButton("decrementButton", arrowDirection + 0.5f, defaultTextColour));
 	addAndMakeVisible(decrementButton.get());
 	decrementButton->addListener(this);
 
@@ -47,7 +48,13 @@ NumberSelector::NumberSelector(String componentName, SelectionType typeIn, Selec
 	addChildComponent(titleLabel.get());
 
 	valueFont.setDefaultMinimumHorizontalScaleFactor(0.5f);
-	setupDefaultColours();
+	setupDefaultColours(defaultTextColour);
+}
+
+NumberSelector::NumberSelector(String componentName, SelectionType typeIn, Colour defaultTextColour)
+	: NumberSelector(componentName, typeIn, TickBox, Horizontal, defaultTextColour)
+{
+
 }
 
 NumberSelector::~NumberSelector()
@@ -252,6 +259,9 @@ void NumberSelector::paint (Graphics& g)
 		g.setColour(findColour(ColourIds::beltBackgroundColorId));
 		g.fillRect(getBounds());
 	}
+
+	// update colours here?
+	
 }
 
 void NumberSelector::resized()
@@ -366,25 +376,25 @@ void NumberSelector::textEditorTextChanged(TextEditor& editor)
 		editor.setText(text.replaceSection(text.length() - 1, 1, ""), false);
 }
 
-void NumberSelector::setupDefaultColours()
+void NumberSelector::setupDefaultColours(Colour defaultTextColourIn)
 {
 	setColour(valueTextBackgroundColourId, Colour());
 	setColour(valueTextBackgroundMouseOverColourId, Colours::white.withAlpha(0.1f));
 	
 	if (selectorStyle == SelectorStyle::TickBox)
-		setColour(valueTextColourId, Colours::white);
+		setColour(valueTextColourId, defaultTextColourIn);
 	else if (selectorStyle == SelectorStyle::Belt)
-		setColour(valueTextColourId, Colours::black);
+		setColour(valueTextColourId, defaultTextColourIn.contrasting(1));
 	
-	setColour(valueTextColourMouseOverColourId, Colours::white.withAlpha(0.1f));
+	setColour(valueTextColourMouseOverColourId, defaultTextColourIn.contrasting(0.1f));
 	setColour(valueOutlineColourId, Colour());
 
 	setColour(buttonBackgroundColourId, Colour());
 	setColour(buttonBackgroundMouseOverColourId, Colours::white.withAlpha(0.1f));
 	setColour(buttonBackgroundMouseDownColourId, Colours::lightgrey);
-	setColour(buttonTextColourId, Colours::white);
-	setColour(buttonTextMouseOverColourId, Colours::white.withAlpha(0.1f));
-	setColour(buttonTextMouseDownColourId, Colours::lightgrey);
+	setColour(buttonTextColourId, defaultTextColourIn);
+	setColour(buttonTextMouseOverColourId, defaultTextColourIn.contrasting(0.1f));
+	setColour(buttonTextMouseDownColourId, defaultTextColourIn.contrasting(0.25f));
 	setColour(buttonOutlineColourId, Colour());
 
 	setColour(beltBackgroundColorId, Colours::white);

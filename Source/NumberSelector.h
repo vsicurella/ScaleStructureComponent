@@ -72,7 +72,7 @@ public:
 		buttonOutlineColourId = 0x1001700,
 
 		beltBackgroundColorId = 0x1001800,
-		beltBuckleColourId = 0x1001810
+		beltBuckleColourId = 0x1001810,
 	};
 
 
@@ -82,8 +82,16 @@ public:
 		String componentName = "",
 		SelectionType typeIn = SelectionType::Range, 
 		SelectorStyle styleIn = TickBox, 
-		Orientation orientationIn = Horizontal
+		Orientation orientationIn = Horizontal,
+		Colour defaultTextColour = Colours::white
 	);
+
+	NumberSelector(
+		String componentName,
+		SelectionType typeIn,
+		Colour defaultTextColour
+	);
+
 	~NumberSelector();
 
 	SelectionType getSelectionType() const;
@@ -193,7 +201,7 @@ private:
 
 	void textEditorTextChanged(TextEditor&) override;
 
-	void setupDefaultColours();
+	void setupDefaultColours(Colour defaultTextColourIn);
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NumberSelector)
 };
