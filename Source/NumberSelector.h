@@ -20,6 +20,7 @@
 */
 class NumberSelector :	public Component,
 						private Button::Listener,
+						private ComboBox::Listener,
 						private Label::Listener,
 						private TextEditor::Listener
 {
@@ -127,6 +128,8 @@ public:
 
 	void setList(IntList listIn, bool updateValueAndIndex = true, bool sendNotification = true);
 
+	void setListLookAndFeel(LookAndFeel* newLookAndFeel);
+
 	void paint(Graphics&) override;
 
 	void resized() override;
@@ -154,11 +157,12 @@ protected:
 	ListenerList<Listener> listeners;
 
 private:
-	std::unique_ptr<Label> valueLabel;
 	std::unique_ptr<ArrowButton> incrementButton;
 	std::unique_ptr<ArrowButton> decrementButton;
+	std::unique_ptr<Label> titleLabel;
 
-	std::unique_ptr<Label> nameLabel;
+	std::unique_ptr<Label> rangeValueLabel;
+	std::unique_ptr<ComboBox> listValueLabel;
 
 	int valueSelected = 0;
 	int indexSelected = 0;
@@ -180,6 +184,8 @@ private:
 	void updateTextBox();
 
 	void buttonClicked(Button*) override;
+
+	void comboBoxChanged(ComboBox*) override;
 
 	void labelTextChanged(Label*) override;
 	void editorShown(Label*, TextEditor&) override;
