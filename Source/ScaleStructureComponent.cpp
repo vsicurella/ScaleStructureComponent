@@ -331,15 +331,6 @@ void ScaleStructureComponent::updateGenerators()
 {
 	generatorSlider->setList(scaleStructure.getValidGenerators(), false, false);
 	generatorSlider->setIndex(scaleStructure.getSuggestedGeneratorIndex());
-
-	//generatorBox->clear();
-	//for (int i = 0; i < scaleStructure.getValidGenerators().size(); i++)
-	//{
-	//	generatorBox->addItem(String(scaleStructure.getValidGenerator(i)), i + 1);
-	//}
-
-	//// TODO: move elsewhere
-	//generatorBox->setSelectedId(scaleStructure.getSuggestedGeneratorIndex() + 1);
 }
 
 void ScaleStructureComponent::updateScaleSizes()
@@ -355,7 +346,7 @@ void ScaleStructureComponent::updateScaleSizes()
 	}
 
 	sizeSelector->setList(sizes);
-	sizeSelector->setIndex(scaleStructure.getSuggestedSizeIndex() - 1, sendNotificationSync);
+	sizeSelector->setIndex(jlimit(0, sizes.size(), scaleStructure.getSuggestedSizeIndex() - 1), sendNotificationSync);
 }
 
 void ScaleStructureComponent::updatePeriodFactor(int factorIndexIn)
