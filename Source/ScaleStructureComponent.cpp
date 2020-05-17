@@ -71,7 +71,9 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	generatorBox->setColour(ComboBox::ColourIds::textColourId, Colours::white);
 	generatorLookAndFeel.setColour(PopupMenu::ColourIds::backgroundColourId, Colour());
 	generatorBox->setLookAndFeel(&generatorLookAndFeel);
-	addAndMakeVisible(generatorBox.get());
+	//addAndMakeVisible(generatorBox.get());
+
+	generatorSlider->setLookAndFeel(&generatorLookAndFeel);
 
 	offsetLabel.reset(new Label("offsetLabel", "Offset\n0"));
 	offsetLabel->setJustificationType(Justification::centred);
@@ -99,7 +101,7 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	circle = dynamic_cast<GroupingCircle*>(circleComponent.get());
 
 	periodSlider->showNameLabel();
-	//generatorSlider->showNameLabel();
+	generatorSlider->showNameLabel();
     //[/UserPreSize]
 
     setSize (800, 800);
@@ -133,8 +135,8 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	offsetLabel->setText("Offset\n" + String((int)circleOffset->getValue()), dontSendNotification);
 
 	periodSlider->addListener(this);
-	//generatorSlider->addListener(this);
-	generatorSlider->setVisible(false);
+	generatorSlider->addListener(this);
+	//generatorSlider->setVisible(false);
 
 	generatorBox->addListener(this);
 
@@ -194,7 +196,8 @@ void ScaleStructureComponent::resized()
 
 	// TODO: implement (probably ex-projucer) this so that the bounds don't have to be set twice
 	periodSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.4f, 0));
-	
+	generatorSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.125f, float_Pi));
+
 	generatorBox->setSize(proportionOfWidth(0.25f), proportionOfHeight(0.15f));
 	generatorBox->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.125f, float_Pi));
 
@@ -320,7 +323,7 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		circle->updateGenerator();
 		DBG("SSC: Generator changed to: " + String(generatorSlider->getValue()));
 
-		float cents = roundf(log2(pow(2, (double)generatorSlider->getValue() / periodSelected)) * 1200000) / 1000.0f;
+		float cents = roundf(log2(pow(2, (double)scaleStructure.getGenerator() / periodSelected)) * 1200000) / 1000.0f;
 		generatorValueLbl->setText(String(cents) + " cents", dontSendNotification);
 
 		updateScaleSizes();
@@ -348,17 +351,17 @@ void ScaleStructureComponent::valueChanged(Value& valueThatHasChanged)
 
 void ScaleStructureComponent::updateGenerators()
 {
-	//generatorSlider->setList(scaleStructure.getValidGenerators());
-	//generatorSlider->setIndex(scaleStructure.getSuggestedGeneratorIndex());
+	generatorSlider->setList(scaleStructure.getValidGenerators(), false, false);
+	generatorSlider->setIndex(scaleStructure.getSuggestedGeneratorIndex());
 
-	generatorBox->clear();
-	for (int i = 0; i < scaleStructure.getValidGenerators().size(); i++)
-	{
-		generatorBox->addItem(String(scaleStructure.getValidGenerator(i)), i + 1);
-	}
+	//generatorBox->clear();
+	//for (int i = 0; i < scaleStructure.getValidGenerators().size(); i++)
+	//{
+	//	generatorBox->addItem(String(scaleStructure.getValidGenerator(i)), i + 1);
+	//}
 
-	// TODO: move elsewhere
-	generatorBox->setSelectedId(scaleStructure.getSuggestedGeneratorIndex() + 1);
+	//// TODO: move elsewhere
+	//generatorBox->setSelectedId(scaleStructure.getSuggestedGeneratorIndex() + 1);
 }
 
 void ScaleStructureComponent::updateScaleSizes()
@@ -402,7 +405,7 @@ void ScaleStructureComponent::updatePeriodFactor(int factorIndexIn)
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="ScaleStructureComponent"
-                 componentName="" parentClasses="public Component, public NumberSelector::Listener, public Value::Listener, public ChangeBroadcaster, public ComboBox::Listener, public Button::Listener"
+                 componentName="" parentClasses="public Component, public ChangeBroadcaster, private NumberSelector::Listener, private Value::Listener, private ComboBox::Listener, private Button::Listener"
                  constructorParams="ScaleStructure&amp; scaleStructureIn, Array&lt;Colour&gt;&amp; colourTableIn"
                  variableInitialisers="scaleStructure(scaleStructureIn), colourTable(colourTableIn)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
@@ -412,18 +415,18 @@ BEGIN_JUCER_METADATA
                     virtualName="" explicitFocusOrder="0" pos="0 0 100% 100%" class="GroupingCircle"
                     params="scaleStructure.getDegreeGroupingsReference(), colourTable"/>
   <GENERICCOMPONENT name="Generator" id="efbe5586805bc62b" memberName="generatorSlider"
-                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50.135%c 46.63% 25.034% 14.936%"
+                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50.113%c 46.583% 25% 14.92%"
                     class="Component" params="&quot;Generator&quot;, NumberSelector::SelectionType::List"/>
   <GENERICCOMPONENT name="Period" id="39f9599ebb9952a" memberName="periodSlider"
-                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50.406%c 30.601% 25.034% 14.936%"
+                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50.413%c 30.638% 25% 14.92%"
                     class="Component" params="&quot;Period&quot;"/>
   <LABEL name="generatorValueLbl" id="7250d3d0fa11afcf" memberName="generatorValueLbl"
-         virtualName="" explicitFocusOrder="0" pos="36.062%c 70.492% 103 24"
+         virtualName="" explicitFocusOrder="0" pos="36.074%c 70.501% 103 24"
          edTextCol="ff000000" edBkgCol="0" labelText="700 cents" editableSingleClick="0"
          editableDoubleClick="0" focusDiscardsChanges="0" fontname="Default font"
          fontsize="15.0" kerning="0.0" bold="0" italic="0" justification="36"/>
   <LABEL name="stepSizePatternLbl" id="b4e52c793121b24" memberName="stepSizePatternLbl"
-         virtualName="" explicitFocusOrder="0" pos="64.005%c 70.492% 96 24"
+         virtualName="" explicitFocusOrder="0" pos="64.039%c 70.501% 96 24"
          edTextCol="ff000000" edBkgCol="0" labelText="LLsLLLs&#10;" editableSingleClick="0"
          editableDoubleClick="0" focusDiscardsChanges="0" fontname="Default font"
          fontsize="15.0" kerning="0.0" bold="0" italic="0" justification="36"/>

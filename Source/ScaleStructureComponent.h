@@ -40,11 +40,11 @@
                                                                     //[/Comments]
 */
 class ScaleStructureComponent  : public Component,
-                                 public NumberSelector::Listener,
-                                 public Value::Listener,
                                  public ChangeBroadcaster,
-                                 public ComboBox::Listener,
-                                 public Button::Listener
+                                 private NumberSelector::Listener,
+                                 private Value::Listener,
+                                 private ComboBox::Listener,
+                                 private Button::Listener
 {
 public:
     //==============================================================================
