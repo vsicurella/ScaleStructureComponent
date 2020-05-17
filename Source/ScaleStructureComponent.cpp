@@ -65,30 +65,28 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 
 
     //[UserPreSize]
-	// TODO: add component colour ids
+	generatorLookAndFeel.reset(new TransparentDropDown());
+	// TODO: add SSC colour ids
 	//generatorLookAndFeel.setBaseColour(findColour(ColourIds::backgroundColourId));
-	generatorBox.reset(new ComboBox("generatorSelector"));
-	generatorBox->setColour(ComboBox::ColourIds::textColourId, Colours::white);
-	generatorLookAndFeel.setColour(PopupMenu::ColourIds::backgroundColourId, Colour());
-	generatorBox->setLookAndFeel(&generatorLookAndFeel);
-	//addAndMakeVisible(generatorBox.get());
-
-	generatorSlider->setLookAndFeel(&generatorLookAndFeel);
+	generatorLookAndFeel->setColour(PopupMenu::ColourIds::backgroundColourId, Colour());
+	generatorSlider->setLookAndFeel(generatorLookAndFeel.get());
 
 	offsetLabel.reset(new Label("offsetLabel", "Offset\n0"));
 	offsetLabel->setJustificationType(Justification::centred);
 	offsetLabel->setColour(Label::ColourIds::textColourId, Colours::white);
 	addAndMakeVisible(offsetLabel.get());
 
-	sizeBox.reset(new ComboBox("sizeSelector"));
-	sizeBox->setColour(ComboBox::ColourIds::textColourId, Colours::black);
-	//sizeBox->setColour(ComboBox::ColourIds::outlineColourId, Colours::red);
-	//sizeBox->setColour(ComboBox::ColourIds::backgroundColourId, Colour());
+	sizeSelector.reset(new NumberSelector("Scale Size", NumberSelector::SelectionType::List, colourTable[0].contrasting(0.8f)));
+	//sizeSelector->setColour(NumberSelector::ColourIds::valueTextColourId, colourTable[0].contrasting(1.0));
+	/*sizeSelector->setColour(NumberSelector::ColourIds::, colourTable[0].contrasting(1.0));*/
+	addAndMakeVisible(sizeSelector.get());
 
-	sizeLookAndFeel.setBaseColour(colourTable.getReference(0));
-	sizeLookAndFeel.setColour(PopupMenu::ColourIds::backgroundColourId, Colour());
-	sizeBox->setLookAndFeel(&sizeLookAndFeel);
-	addAndMakeVisible(sizeBox.get());
+	sizeLookAndFeel.reset(new TransparentDropDown());
+	sizeLookAndFeel->setBaseColour(colourTable.getReference(0));
+	sizeLookAndFeel->setColour(PopupMenu::ColourIds::backgroundColourId, Colour());
+	sizeLookAndFeel->setColour(ComboBox::ColourIds::textColourId, sizeSelector->findColour(NumberSelector::ColourIds::valueTextColourId));
+	sizeSelector->setLookAndFeel(sizeLookAndFeel.get());
+
 
 	// TODO: add component colour ids
 	//periodFactorLookAndFeel.setBaseColour(findColour(ColourIds::backgroundColourId));
@@ -96,12 +94,14 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	periodFactorButton->setTooltip("Number of periods.");
 	addAndMakeVisible(periodFactorButton.get());
 
-	periodFactorMenu.setLookAndFeel(&periodFactorLookAndFeel);
+	periodFactorLookAndFeel.reset(new TransparentDropDown());
+	periodFactorMenu.setLookAndFeel(periodFactorLookAndFeel.get());
 
 	circle = dynamic_cast<GroupingCircle*>(circleComponent.get());
 
 	periodSlider->showNameLabel();
 	generatorSlider->showNameLabel();
+	sizeSelector->showNameLabel();
     //[/UserPreSize]
 
     setSize (800, 800);
@@ -136,12 +136,9 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 
 	periodSlider->addListener(this);
 	generatorSlider->addListener(this);
-	//generatorSlider->setVisible(false);
-
-	generatorBox->addListener(this);
 
 	circleOffset->addListener(this);
-	sizeBox->addListener(this);
+	sizeSelector->addListener(this);
 	periodFactorButton->addListener(this);
 
 	circle->updatePeriod(scaleStructure.getPeriod());
@@ -162,6 +159,8 @@ ScaleStructureComponent::~ScaleStructureComponent()
 
 
     //[Destructor]. You can add your own custom destruction code here..
+	sizeSelector = nullptr;
+	periodFactorMenu.setLookAndFeel(nullptr);
     //[/Destructor]
 }
 
@@ -188,18 +187,15 @@ void ScaleStructureComponent::resized()
     //[/UserPreResize]
 
     circleComponent->setBounds (0, 0, proportionOfWidth (1.0000f), proportionOfHeight (1.0000f));
-    generatorSlider->setBounds (proportionOfWidth (0.5013f) - (proportionOfWidth (0.2503f) / 2), proportionOfHeight (0.4663f), proportionOfWidth (0.2503f), proportionOfHeight (0.1494f));
-    periodSlider->setBounds (proportionOfWidth (0.5041f) - (proportionOfWidth (0.2503f) / 2), proportionOfHeight (0.3060f), proportionOfWidth (0.2503f), proportionOfHeight (0.1494f));
-    generatorValueLbl->setBounds (proportionOfWidth (0.3606f) - (103 / 2), proportionOfHeight (0.7049f), 103, 24);
-    stepSizePatternLbl->setBounds (proportionOfWidth (0.6401f) - (96 / 2), proportionOfHeight (0.7049f), 96, 24);
+    generatorSlider->setBounds (proportionOfWidth (0.5011f) - (proportionOfWidth (0.2500f) / 2), proportionOfHeight (0.4658f), proportionOfWidth (0.2500f), proportionOfHeight (0.1492f));
+    periodSlider->setBounds (proportionOfWidth (0.5041f) - (proportionOfWidth (0.2500f) / 2), proportionOfHeight (0.3064f), proportionOfWidth (0.2500f), proportionOfHeight (0.1492f));
+    generatorValueLbl->setBounds (proportionOfWidth (0.3607f) - (103 / 2), proportionOfHeight (0.7050f), 103, 24);
+    stepSizePatternLbl->setBounds (proportionOfWidth (0.6404f) - (96 / 2), proportionOfHeight (0.7050f), 96, 24);
     //[UserResized] Add your own custom resize handling here..
 
 	// TODO: implement (probably ex-projucer) this so that the bounds don't have to be set twice
 	periodSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.4f, 0));
 	generatorSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.125f, float_Pi));
-
-	generatorBox->setSize(proportionOfWidth(0.25f), proportionOfHeight(0.15f));
-	generatorBox->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.125f, float_Pi));
 
 	generatorValueLbl->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 11.0f / 8.0f));
 	stepSizePatternLbl->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 5.0f / 8.0f));
@@ -208,8 +204,8 @@ void ScaleStructureComponent::resized()
 	offsetLabel->setSize(offsetLabel->getFont().getStringWidth("Offset") * 2, offsetLabel->getFont().getHeight() * 3);
 	offsetLabel->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 7.0f / 8.0f, 0));
 
-	sizeBox->setSize(proportionOfWidth(0.1705f), (circle->getOuterRadius() - circle->getMiddleRadius()) * 7.0f / 8.0f);
-	sizeBox->setCentrePosition(circle->getIntPointFromCenter((circle->getOuterRadius() + circle->getMiddleRadius()) / 2.005f, 0));
+	sizeSelector->setSize(proportionOfWidth(0.175f), (circle->getOuterRadius() - circle->getMiddleRadius()) * 7.0f / 8.0f);
+	sizeSelector->setCentrePosition(circle->getIntPointFromCenter((circle->getOuterRadius() + circle->getMiddleRadius()) / 2.025f, 0));
 
 	// TODO: add other part of arrow / improve drawing
 	offsetArrows.clear();
@@ -238,39 +234,6 @@ void ScaleStructureComponent::paintOverChildren(Graphics& g)
 		g.setFont(periodFactorButton->getHeight() * 7 / 8.0f );
 		g.drawFittedText(String(scaleStructure.getPeriodFactor()), periodFactorButton->getBounds().translated(0, -1), Justification::centred, 1);
 	}
-}
-
-void ScaleStructureComponent::comboBoxChanged(ComboBox* comboBoxThatChanged)
-{
-	if (comboBoxThatChanged == sizeBox.get())
-	{
-		// Prevent fractional periods from suggesting index 0
-		if (sizeBox->getSelectedId() == 0)
-			sizeBox->setSelectedId(1, dontSendNotification);
-
-		scaleStructure.setSizeIndex(sizeBox->getSelectedId());
-		DBG("SSC: Size changed to: " + String(scaleStructure.getScaleSize()));
-
-		circle->setOffsetLimit(scaleStructure.getScaleSize() - 1);
-		circle->updateGenerator();
-
-		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
-	}
-
-	else if (comboBoxThatChanged == generatorBox.get())
-	{
-		generatorSelected = generatorBox->getSelectedId() - 1;
-		scaleStructure.setGeneratorIndex(generatorSelected);
-		circle->updateGenerator();
-		DBG("SSC: Generator changed to: " + String(scaleStructure.getGenerator()));
-
-		float cents = roundf(log2(pow(2, (double)scaleStructure.getGenerator() / periodSelected)) * 1200000) / 1000.0f;
-		generatorValueLbl->setText(String(cents) + " cents", dontSendNotification);
-
-		updateScaleSizes();
-	}
-
-	sendChangeMessage();
 }
 
 void ScaleStructureComponent::buttonClicked(Button* buttonThatWasClicked)
@@ -329,6 +292,21 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		updateScaleSizes();
 	}
 
+	else if (selectorThatHasChanged == sizeSelector.get())
+	{
+		// Prevent fractional periods from suggesting index 0
+		//if (sizeSelector->getSelectedId() == 0)
+		//	sizeSelector->setSelectedId(1, dontSendNotification);
+
+		scaleStructure.setSizeIndex(sizeSelector->getIndex() + 1);
+		DBG("SSC: Size changed to: " + String(scaleStructure.getScaleSize()));
+
+		circle->setOffsetLimit(scaleStructure.getScaleSize() - 1);
+		circle->updateGenerator();
+
+		stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
+	}
+
 	// TODO: Figure out a way to only call this once per change
 	sendChangeMessage();
 }
@@ -367,14 +345,17 @@ void ScaleStructureComponent::updateGenerators()
 void ScaleStructureComponent::updateScaleSizes()
 {
 	Array<int> sizes = scaleStructure.getScaleSizes();
-	sizeBox->clear();
-	for (int i = 0; i < sizes.size(); i++)
+	sizes.remove(0);
+	if (scaleStructure.getPeriodFactor() > 1)
 	{
-		if (i > 0)
-			sizeBox->addItem(String(sizes[i] * scaleStructure.getPeriodFactor()), i);
+		for (int i = 0; i < sizes.size(); i++)
+		{
+			sizes.set(i, sizes[i] * scaleStructure.getPeriodFactor());
+		}
 	}
 
-	sizeBox->setSelectedId(scaleStructure.getSuggestedSizeIndex(), sendNotificationSync);
+	sizeSelector->setList(sizes);
+	sizeSelector->setIndex(scaleStructure.getSuggestedSizeIndex() - 1, sendNotificationSync);
 }
 
 void ScaleStructureComponent::updatePeriodFactor(int factorIndexIn)
@@ -405,7 +386,7 @@ void ScaleStructureComponent::updatePeriodFactor(int factorIndexIn)
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="ScaleStructureComponent"
-                 componentName="" parentClasses="public Component, public ChangeBroadcaster, private NumberSelector::Listener, private Value::Listener, private ComboBox::Listener, private Button::Listener"
+                 componentName="" parentClasses="public Component, public ChangeBroadcaster, private NumberSelector::Listener, private Value::Listener, private Button::Listener"
                  constructorParams="ScaleStructure&amp; scaleStructureIn, Array&lt;Colour&gt;&amp; colourTableIn"
                  variableInitialisers="scaleStructure(scaleStructureIn), colourTable(colourTableIn)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"

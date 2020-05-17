@@ -43,7 +43,6 @@ class ScaleStructureComponent  : public Component,
                                  public ChangeBroadcaster,
                                  private NumberSelector::Listener,
                                  private Value::Listener,
-                                 private ComboBox::Listener,
                                  private Button::Listener
 {
 public:
@@ -55,7 +54,6 @@ public:
     //[UserMethods]     -- You can add your own custom methods in this section.
 	void paintOverChildren(Graphics& g) override;
 
-	void comboBoxChanged(ComboBox* comboBoxThatChanged) override;
 	void buttonClicked(Button* buttonThatWasClicked) override;
 	void selectorValueChanged(NumberSelector* selectorThatHasChanged) override;
 	void valueChanged(Value& valueThatHasChanged) override;
@@ -84,20 +82,19 @@ private:
 	TooltipWindow tooltipWindow;
 
 	// Components
-	TransparentDropDown generatorLookAndFeel;
-	std::unique_ptr<ComboBox> generatorBox;
+	std::unique_ptr<NumberSelector> sizeSelector;
 
 	std::unique_ptr<Label> offsetLabel;
 	Path offsetArrows;
 
-	TransparentDropDown sizeLookAndFeel;
-	std::unique_ptr<ComboBox> sizeBox;
-
-	TransparentDropDown periodFactorLookAndFeel;
 	Path periodFactorButtonShape;
 	std::unique_ptr<ShapeButton> periodFactorButton;
 	PopupMenu periodFactorMenu;
 
+	// Look and Feels
+	std::unique_ptr<TransparentDropDown> generatorLookAndFeel;
+	std::unique_ptr<TransparentDropDown> sizeLookAndFeel;
+	std::unique_ptr<TransparentDropDown> periodFactorLookAndFeel;
 
 	// Helpers
 	int periodSelected;
