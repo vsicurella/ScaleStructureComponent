@@ -108,7 +108,7 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
     //[Constructor] You can add your own custom stuff here..
 
 	// Set up default values, then set up listening
-	periodSlider->setRange(5, 400, true, false);
+	periodSlider->setRange(5, 275, true, false);
 	periodSlider->setValue(scaleStructure.getPeriod());
 
 	updateGenerators();

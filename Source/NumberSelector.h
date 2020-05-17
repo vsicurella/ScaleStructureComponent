@@ -19,7 +19,9 @@
 	The value text box is centered between the buttons.
 */
 class NumberSelector :	public Component,
-						private Button::Listener
+						private Button::Listener,
+						private Label::Listener,
+						private TextEditor::Listener
 {
 public:
 
@@ -177,10 +179,15 @@ private:
 	void updateIndexFromValue();
 	void updateTextBox();
 
-	void buttonClicked(Button* buttonThatHasChanged) override;
+	void buttonClicked(Button*) override;
+
+	void labelTextChanged(Label*) override;
+	void editorShown(Label*, TextEditor&) override;
+	void editorHidden(Label*, TextEditor&) override;
+
+	void textEditorTextChanged(TextEditor&) override;
 
 	void setupDefaultColours();
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NumberSelector)
 };
-

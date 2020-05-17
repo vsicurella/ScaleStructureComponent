@@ -18,7 +18,9 @@ NumberSelector::NumberSelector(String componentName, SelectionType typeIn, Selec
 	setName(componentName);
 
 	valueLabel.reset(new Label());
+	valueLabel->setEditable(false, true);
 	addAndMakeVisible(valueLabel.get());
+	valueLabel->addListener(this);
 
 	float arrowDirection = (orientation == Horizontal) ? 0.0 : 0.25f;
 
@@ -33,6 +35,7 @@ NumberSelector::NumberSelector(String componentName, SelectionType typeIn, Selec
 	nameLabel.reset(new Label(componentName + "Label", getName()));
 	addChildComponent(nameLabel.get());
 
+	valueFont.setDefaultMinimumHorizontalScaleFactor(0.5f);
 	setupDefaultColours();
 }
 
@@ -249,6 +252,7 @@ void NumberSelector::resized()
 		nameLabel->setBounds(proportionOfWidth(0.5f) - nameStringWidth / 2.0f, nameHeight, nameStringWidth, nameStringHeight);
 	}
 
+	
 	valueFont.setHeight(proportionOfHeight(0.9f));
 	valueLabel->setFont(valueFont);
 	valueLabel->setJustificationType(Justification::centred);	
@@ -280,6 +284,32 @@ void NumberSelector::buttonClicked(Button* buttonThatHasChanged)
 
 	else if (buttonThatHasChanged == decrementButton.get())
 		decrement();
+}
+
+void NumberSelector::labelTextChanged(Label* labelThatHasChanged)
+{
+	// Limit to valid range
+	int newValue = selectionRange.clipValue(labelThatHasChanged->getText().getIntValue());
+	setValue(newValue);
+	DBG("NUMBERSELECTORLABEL: Value changed to " + String(getValue()));
+}
+
+void NumberSelector::editorShown(Label* label, TextEditor& editor)
+{
+	editor.addListener(this);
+}
+
+void NumberSelector::editorHidden(Label* label, TextEditor& editor)
+{
+	editor.removeListener(this);
+}
+
+void NumberSelector::textEditorTextChanged(TextEditor& editor)
+{
+	String text = editor.getText();
+	char lastChar = text.getLastCharacter();
+	if (text.length() > 0 && (lastChar < 48 || lastChar > 57))
+		editor.setText(text.replaceSection(text.length() - 1, 1, ""), false);
 }
 
 void NumberSelector::setupDefaultColours()
