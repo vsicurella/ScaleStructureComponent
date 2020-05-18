@@ -35,12 +35,6 @@ public:
 		List
 	};
 
-	enum SelectorStyle
-	{
-		TickBox = 0,
-		Belt
-	};
-
 	enum Orientation
 	{
 		Horizontal = 0,
@@ -81,7 +75,6 @@ public:
 	NumberSelector(
 		String componentName = "",
 		SelectionType typeIn = SelectionType::Range, 
-		SelectorStyle styleIn = TickBox, 
 		Orientation orientationIn = Horizontal,
 		Colour defaultTextColour = Colours::white
 	);
@@ -95,7 +88,6 @@ public:
 	~NumberSelector();
 
 	SelectionType getSelectionType() const;
-	SelectorStyle getSelectorStyle() const;
 
 	Orientation getOrientation() const;
 
@@ -119,7 +111,6 @@ public:
 	void decrement();
 
 	void setSelectionType(SelectionType typeIn);
-	void setSelectorStyle(SelectorStyle styleIn);
 
 	void setOrientation(Orientation orientationIn);
 	
@@ -176,7 +167,6 @@ private:
 	int indexSelected = 0;
 
 	SelectionType selectionType;
-	SelectorStyle selectorStyle;
 	Orientation orientation;
 	NamePlacement namePlacementSelected = AboveValue;
 

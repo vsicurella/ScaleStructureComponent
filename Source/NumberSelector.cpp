@@ -12,8 +12,8 @@
 #include "NumberSelector.h"
 
 //==============================================================================
-NumberSelector::NumberSelector(String componentName, SelectionType typeIn, SelectorStyle styleIn, Orientation orientationIn, Colour defaultTextColour)
-	: selectionType(typeIn), selectorStyle(styleIn), orientation(orientationIn)
+NumberSelector::NumberSelector(String componentName, SelectionType typeIn, Orientation orientationIn, Colour defaultTextColour)
+	: selectionType(typeIn), orientation(orientationIn)
 {
 	setName(componentName);
 
@@ -52,7 +52,7 @@ NumberSelector::NumberSelector(String componentName, SelectionType typeIn, Selec
 }
 
 NumberSelector::NumberSelector(String componentName, SelectionType typeIn, Colour defaultTextColour)
-	: NumberSelector(componentName, typeIn, TickBox, Horizontal, defaultTextColour)
+	: NumberSelector(componentName, typeIn, Horizontal, defaultTextColour)
 {
 
 }
@@ -65,11 +65,6 @@ NumberSelector::~NumberSelector()
 NumberSelector::SelectionType NumberSelector::getSelectionType() const
 {
 	return selectionType;
-}
-
-NumberSelector::SelectorStyle NumberSelector::getSelectorStyle() const
-{
-	return selectorStyle;
 }
 
 NumberSelector::Orientation NumberSelector::getOrientation() const
@@ -144,18 +139,6 @@ void NumberSelector::setSelectionType(SelectionType typeIn)
 	selectionType = typeIn;
 	updateValueFromIndex();
 	setValue(valueSelected);
-}
-
-void NumberSelector::setSelectorStyle(NumberSelector::SelectorStyle styleIn)
-{
-	selectorStyle = styleIn;
-	
-	if (selectorStyle == SelectorStyle::TickBox)
-		setColour(valueTextColourId, Colours::white);
-	else if (selectorStyle == SelectorStyle::Belt)
-		setColour(valueTextColourId, Colours::black);
-
-	resized();
 }
 
 void NumberSelector::setOrientation(Orientation orientationIn)
@@ -254,32 +237,23 @@ void NumberSelector::paint (Graphics& g)
 {
 	g.fillAll(Colour());
 
-	if (selectorStyle == SelectorStyle::Belt)
-	{
-		g.setColour(findColour(ColourIds::beltBackgroundColorId));
-		g.fillRect(getBounds());
-	}
-
 	// update colours here?
-	
 }
 
 void NumberSelector::resized()
 {
-	if (selectorStyle == TickBox)
+	
+	if (orientation == Horizontal)
 	{
-		if (orientation == Horizontal)
-		{
-			decrementButton->setBounds(0, proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
-			incrementButton->setBounds(proportionOfWidth(0.8f), proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
-		}
-		else
-		{
-			decrementButton->setBounds(0, proportionOfHeight(1.2f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
-			incrementButton->setBounds(0, -proportionOfHeight(1.0f / 3.0f), proportionOfWidth(3.0f / 8.0f), proportionOfHeight(1.0f / 3.0f));
-		}
+		decrementButton->setBounds(0, proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
+		incrementButton->setBounds(proportionOfWidth(0.8f), proportionOfHeight(3.0f / 8.0f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
 	}
-
+	else
+	{
+		decrementButton->setBounds(0, proportionOfHeight(1.2f), proportionOfWidth(0.2f), proportionOfHeight(1.0f / 3.0f));
+		incrementButton->setBounds(0, -proportionOfHeight(1.0f / 3.0f), proportionOfWidth(3.0f / 8.0f), proportionOfHeight(1.0f / 3.0f));
+	}
+	
 	if (isShowingName())
 	{
 		titleLabel->setFont(Font().withHeight(proportionOfHeight(0.2f)));
@@ -381,11 +355,8 @@ void NumberSelector::setupDefaultColours(Colour defaultTextColourIn)
 	setColour(valueTextBackgroundColourId, Colour());
 	setColour(valueTextBackgroundMouseOverColourId, Colours::white.withAlpha(0.1f));
 	
-	if (selectorStyle == SelectorStyle::TickBox)
-		setColour(valueTextColourId, defaultTextColourIn);
-	else if (selectorStyle == SelectorStyle::Belt)
-		setColour(valueTextColourId, defaultTextColourIn.contrasting(1));
-	
+	setColour(valueTextColourId, defaultTextColourIn);
+
 	setColour(valueTextColourMouseOverColourId, defaultTextColourIn.contrasting(0.1f));
 	setColour(valueOutlineColourId, Colour());
 
