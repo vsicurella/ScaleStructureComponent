@@ -82,6 +82,10 @@ private:
 	TooltipWindow tooltipWindow;
 
 	// Components
+	std::unique_ptr<NumberSelector> generatorSlider;
+	std::unique_ptr<NumberSelector> periodSlider;
+	std::unique_ptr<Label> generatorValueLbl;
+	std::unique_ptr<Label> stepSizePatternLbl;
 	std::unique_ptr<NumberSelector> sizeSelector;
 
 	std::unique_ptr<Label> offsetLabel;
@@ -100,16 +104,15 @@ private:
 	int periodSelected;
 	int generatorSelected;
 
+	float generatorCents;
+	float periodCents;
+
 	Array<int> periodFactors;
 	int periodFactorSelected = 0;
     //[/UserVariables]
 
     //==============================================================================
     std::unique_ptr<GroupingCircle> circleComponent;
-    std::unique_ptr<NumberSelector> generatorSlider;
-    std::unique_ptr<NumberSelector> periodSlider;
-    std::unique_ptr<Label> generatorValueLbl;
-    std::unique_ptr<Label> stepSizePatternLbl;
 
 
     //==============================================================================

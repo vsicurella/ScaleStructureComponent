@@ -37,34 +37,33 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
     addAndMakeVisible (circleComponent.get());
     circleComponent->setName ("circleComponent");
 
-    generatorSlider.reset (new NumberSelector ("Generator", NumberSelector::SelectionType::List));
-    addAndMakeVisible (generatorSlider.get());
-    generatorSlider->setName ("Generator");
-
-    periodSlider.reset (new NumberSelector ("Period"));
-    addAndMakeVisible (periodSlider.get());
-    periodSlider->setName ("Period");
-
-    generatorValueLbl.reset (new Label ("generatorValueLbl",
-                                        TRANS("700 cents")));
-    addAndMakeVisible (generatorValueLbl.get());
-    generatorValueLbl->setFont (Font (15.00f, Font::plain).withTypefaceStyle ("Regular"));
-    generatorValueLbl->setJustificationType (Justification::centred);
-    generatorValueLbl->setEditable (false, false, false);
-    generatorValueLbl->setColour (TextEditor::textColourId, Colours::black);
-    generatorValueLbl->setColour (TextEditor::backgroundColourId, Colour (0x00000000));
-
-    stepSizePatternLbl.reset (new Label ("stepSizePatternLbl",
-                                         TRANS("LLsLLLs\n")));
-    addAndMakeVisible (stepSizePatternLbl.get());
-    stepSizePatternLbl->setFont (Font (15.00f, Font::plain).withTypefaceStyle ("Regular"));
-    stepSizePatternLbl->setJustificationType (Justification::centred);
-    stepSizePatternLbl->setEditable (false, false, false);
-    stepSizePatternLbl->setColour (TextEditor::textColourId, Colours::black);
-    stepSizePatternLbl->setColour (TextEditor::backgroundColourId, Colour (0x00000000));
-
 
     //[UserPreSize]
+	generatorSlider.reset(new NumberSelector("Generator", NumberSelector::SelectionType::List));
+	addAndMakeVisible(generatorSlider.get());
+	generatorSlider->setName("Generator");
+
+	periodSlider.reset(new NumberSelector("Period"));
+	addAndMakeVisible(periodSlider.get());
+	periodSlider->setName("Period");
+
+	generatorValueLbl.reset(new Label("generatorValueLbl"));
+	addAndMakeVisible(generatorValueLbl.get());
+	generatorValueLbl->setFont(Font(15.00f, Font::plain).withTypefaceStyle("Regular"));
+	generatorValueLbl->setJustificationType(Justification::centred);
+	generatorValueLbl->setEditable(false, false, false);
+	generatorValueLbl->setColour(TextEditor::textColourId, Colours::black);
+	generatorValueLbl->setColour(TextEditor::backgroundColourId, Colour(0x00000000));
+
+	stepSizePatternLbl.reset(new Label("stepSizePatternLbl",
+		TRANS("LLsLLLs\n")));
+	addAndMakeVisible(stepSizePatternLbl.get());
+	stepSizePatternLbl->setFont(Font(15.00f, Font::plain).withTypefaceStyle("Regular"));
+	stepSizePatternLbl->setJustificationType(Justification::centred);
+	stepSizePatternLbl->setEditable(false, false, false);
+	stepSizePatternLbl->setColour(TextEditor::textColourId, Colours::black);
+	stepSizePatternLbl->setColour(TextEditor::backgroundColourId, Colour(0x00000000));
+
 	generatorLookAndFeel.reset(new TransparentDropDown());
 	// TODO: add SSC colour ids
 	//generatorLookAndFeel.setBaseColour(findColour(ColourIds::backgroundColourId));
@@ -152,13 +151,12 @@ ScaleStructureComponent::~ScaleStructureComponent()
     //[/Destructor_pre]
 
     circleComponent = nullptr;
-    generatorSlider = nullptr;
-    periodSlider = nullptr;
-    generatorValueLbl = nullptr;
-    stepSizePatternLbl = nullptr;
-
 
     //[Destructor]. You can add your own custom destruction code here..
+	generatorSlider = nullptr;
+	periodSlider = nullptr;
+	generatorValueLbl = nullptr;
+	stepSizePatternLbl = nullptr;
 	sizeSelector = nullptr;
 	periodFactorMenu.setLookAndFeel(nullptr);
     //[/Destructor]
@@ -187,14 +185,13 @@ void ScaleStructureComponent::resized()
     //[/UserPreResize]
 
     circleComponent->setBounds (0, 0, proportionOfWidth (1.0000f), proportionOfHeight (1.0000f));
-    generatorSlider->setBounds (proportionOfWidth (0.5011f) - (proportionOfWidth (0.2500f) / 2), proportionOfHeight (0.4658f), proportionOfWidth (0.2500f), proportionOfHeight (0.1492f));
-    periodSlider->setBounds (proportionOfWidth (0.5041f) - (proportionOfWidth (0.2500f) / 2), proportionOfHeight (0.3064f), proportionOfWidth (0.2500f), proportionOfHeight (0.1492f));
-    generatorValueLbl->setBounds (proportionOfWidth (0.3607f) - (103 / 2), proportionOfHeight (0.7050f), 103, 24);
-    stepSizePatternLbl->setBounds (proportionOfWidth (0.6404f) - (96 / 2), proportionOfHeight (0.7050f), 96, 24);
     //[UserResized] Add your own custom resize handling here..
 
 	// TODO: implement (probably ex-projucer) this so that the bounds don't have to be set twice
+	periodSlider->setSize(proportionOfWidth(0.25f), proportionOfHeight(0.15f));
 	periodSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.4f, 0));
+
+	generatorSlider->setSize(proportionOfWidth(0.25f), proportionOfHeight(0.15f));
 	generatorSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.125f, float_Pi));
 
 	generatorValueLbl->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 11.0f / 8.0f));
@@ -219,6 +216,9 @@ void ScaleStructureComponent::resized()
 	periodFactorButtonShape.addEllipse(periodSlider->getRight(), periodSlider->getY(), periodFBtnSize, periodFBtnSize);
 	periodFactorButton->setShape(periodFactorButtonShape, true, true, true);
 	periodFactorButton->setTopLeftPosition(periodSlider->getPosition().translated(periodSlider->getWidth() * 4 / 5.0f, 0));
+
+	generatorValueLbl->setBounds(proportionOfWidth(0.3607f) - (103 / 2), proportionOfHeight(0.7050f), 103, 24);
+	stepSizePatternLbl->setBounds(proportionOfWidth(0.6404f) - (96 / 2), proportionOfHeight(0.7050f), 96, 24);
     //[/UserResized]
 }
 
@@ -386,22 +386,6 @@ BEGIN_JUCER_METADATA
   <GENERICCOMPONENT name="circleComponent" id="ec9c5dc09c2f91cf" memberName="circleComponent"
                     virtualName="" explicitFocusOrder="0" pos="0 0 100% 100%" class="GroupingCircle"
                     params="scaleStructure.getDegreeGroupingsReference(), colourTable"/>
-  <GENERICCOMPONENT name="Generator" id="efbe5586805bc62b" memberName="generatorSlider"
-                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50.113%c 46.583% 25% 14.92%"
-                    class="Component" params="&quot;Generator&quot;, NumberSelector::SelectionType::List"/>
-  <GENERICCOMPONENT name="Period" id="39f9599ebb9952a" memberName="periodSlider"
-                    virtualName="NumberSelector" explicitFocusOrder="0" pos="50.413%c 30.638% 25% 14.92%"
-                    class="Component" params="&quot;Period&quot;"/>
-  <LABEL name="generatorValueLbl" id="7250d3d0fa11afcf" memberName="generatorValueLbl"
-         virtualName="" explicitFocusOrder="0" pos="36.074%c 70.501% 103 24"
-         edTextCol="ff000000" edBkgCol="0" labelText="700 cents" editableSingleClick="0"
-         editableDoubleClick="0" focusDiscardsChanges="0" fontname="Default font"
-         fontsize="15.0" kerning="0.0" bold="0" italic="0" justification="36"/>
-  <LABEL name="stepSizePatternLbl" id="b4e52c793121b24" memberName="stepSizePatternLbl"
-         virtualName="" explicitFocusOrder="0" pos="64.039%c 70.501% 96 24"
-         edTextCol="ff000000" edBkgCol="0" labelText="LLsLLLs&#10;" editableSingleClick="0"
-         editableDoubleClick="0" focusDiscardsChanges="0" fontname="Default font"
-         fontsize="15.0" kerning="0.0" bold="0" italic="0" justification="36"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA
