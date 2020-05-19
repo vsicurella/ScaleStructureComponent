@@ -62,7 +62,9 @@ public:
 	void updateScaleSizes();
 
 	void updatePeriodFactor(int factorIndexIn);
-    //[/UserMethods]
+
+	void updatePGLabel();
+	//[/UserMethods]
 
     void paint (Graphics& g) override;
     void resized() override;
@@ -104,8 +106,10 @@ private:
 	int periodSelected;
 	int generatorSelected;
 
-	float generatorCents;
-	float periodCents;
+	float periodRatio = 2;
+	float degreeCents = 100;
+	float generatorCents = 7;
+	float periodCents = 1200;
 
 	Array<int> periodFactors;
 	int periodFactorSelected = 0;

@@ -49,20 +49,22 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 
 	generatorValueLbl.reset(new Label("generatorValueLbl"));
 	addAndMakeVisible(generatorValueLbl.get());
-	generatorValueLbl->setFont(Font(15.00f, Font::plain).withTypefaceStyle("Regular"));
+	generatorValueLbl->setFont(Font(16.0f, Font::plain).withTypefaceStyle("Regular"));
 	generatorValueLbl->setJustificationType(Justification::centred);
 	generatorValueLbl->setEditable(false, false, false);
 	generatorValueLbl->setColour(TextEditor::textColourId, Colours::black);
 	generatorValueLbl->setColour(TextEditor::backgroundColourId, Colour(0x00000000));
+	generatorValueLbl->setInterceptsMouseClicks(false, false);
 
 	stepSizePatternLbl.reset(new Label("stepSizePatternLbl",
 		TRANS("LLsLLLs\n")));
 	addAndMakeVisible(stepSizePatternLbl.get());
-	stepSizePatternLbl->setFont(Font(15.00f, Font::plain).withTypefaceStyle("Regular"));
+	stepSizePatternLbl->setFont(Font(16.0f, Font::plain).withTypefaceStyle("Regular"));
 	stepSizePatternLbl->setJustificationType(Justification::centred);
 	stepSizePatternLbl->setEditable(false, false, false);
 	stepSizePatternLbl->setColour(TextEditor::textColourId, Colours::black);
 	stepSizePatternLbl->setColour(TextEditor::backgroundColourId, Colour(0x00000000));
+	stepSizePatternLbl->setInterceptsMouseClicks(false, false);
 
 	generatorLookAndFeel.reset(new TransparentDropDown());
 	// TODO: add SSC colour ids
@@ -217,8 +219,12 @@ void ScaleStructureComponent::resized()
 	periodFactorButton->setShape(periodFactorButtonShape, true, true, true);
 	periodFactorButton->setTopLeftPosition(periodSlider->getPosition().translated(periodSlider->getWidth() * 4 / 5.0f, 0));
 
-	generatorValueLbl->setBounds(proportionOfWidth(0.3607f) - (103 / 2), proportionOfHeight(0.7050f), 103, 24);
-	stepSizePatternLbl->setBounds(proportionOfWidth(0.6404f) - (96 / 2), proportionOfHeight(0.7050f), 96, 24);
+	generatorValueLbl->setSize(getWidth(), proportionOfHeight(0.15f));
+	generatorValueLbl->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 3.0f / 7.0f, float_Pi));
+
+	stepSizePatternLbl->setSize(getWidth(), proportionOfHeight(0.15f));
+	stepSizePatternLbl->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 4.0 / 7.0f, float_Pi));
+
     //[/UserResized]
 }
 
@@ -276,6 +282,9 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		else
 			periodFactorButton->setVisible(false);
 
+		periodCents = log2f(periodRatio / scaleStructure.getPeriodFactor()) * 1200;
+		degreeCents = periodCents / scaleStructure.getPeriod();
+
 		updateGenerators();
 	}
 
@@ -286,9 +295,8 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		circle->updateGenerator();
 		DBG("SSC: Generator changed to: " + String(generatorSlider->getValue()));
 
-		float cents = roundf(log2(pow(2, (double)scaleStructure.getGenerator() / periodSelected)) * 1200000) / 1000.0f;
-		generatorValueLbl->setText(String(cents) + " cents", dontSendNotification);
-
+		generatorCents = degreeCents * scaleStructure.getGenerator();
+		updatePGLabel();
 		updateScaleSizes();
 	}
 
@@ -354,13 +362,20 @@ void ScaleStructureComponent::updatePeriodFactor(int factorIndexIn)
 	if (factorIndexIn > -1)
 	{
 		periodFactorSelected = factorIndexIn;
-
 		scaleStructure.setPeriodFactorIndex(periodFactorSelected);
-		updateGenerators();
 	}
 	else
 		periodFactorSelected = 0;
 
+	periodCents = log2f(periodRatio) * 1200 / scaleStructure.getPeriodFactor();
+
+	updateGenerators();
+	updatePGLabel();
+}
+
+void ScaleStructureComponent::updatePGLabel()
+{
+	generatorValueLbl->setText(String(roundToNDecimals(generatorCents, 3)) + "c | " + String(roundToNDecimals(periodCents, 3)) + "c", dontSendNotification);
 	repaint();
 }
 
