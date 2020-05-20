@@ -91,6 +91,7 @@ private:
 	// TODO: decide whether or not to have control modes
 	ControlMode controlModeSelected = ControlMode::Layout;
 	
+	int offsetApparent = 0;
 	Value generatorOffset;
 	int offsetLimit = 7;
 

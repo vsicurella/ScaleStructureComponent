@@ -344,7 +344,7 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 
 		if (lastDegreeSectorMouseIn != degreeIndex)
 		{
-			int offset = degreeIndex - lastDegreeSectorMouseIn + (int)generatorOffset.getValue();
+			int offset = degreeIndex - lastDegreeSectorMouseIn + offsetApparent;
 
 			if (offset > -1 && offset <= offsetLimit)
 			{
@@ -400,6 +400,9 @@ void GroupingCircle::updateGenerator()
 			generatorChain.add(degree);
 		}
 	}
+
+	// TODO: fix properly
+	offsetApparent = generatorChain.indexOf(0);
 	
 	for (int i = 0; i < degreeLabels.size(); i++)
 	{

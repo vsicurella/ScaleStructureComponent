@@ -60,10 +60,14 @@ public:
 
 	void updateGenerators();
 	void updateScaleSizes();
+	void updatePeriodFactors();
+	void updateOffsetLimit();
 
-	void updatePeriodFactor(int factorIndexIn);
+	void onPeriodFactorChange(int factorIndexIn);
 
 	void updatePGLabel();
+	void updateLsLabel();
+	void updateOffsetLabel();
 	//[/UserMethods]
 
     void paint (Graphics& g) override;
