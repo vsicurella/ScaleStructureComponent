@@ -66,6 +66,10 @@ public:
 	ScaleStructure(ValueTree scaleStructureProperties);
 
 	void resetToPeriod(int periodIn);
+
+	/*
+		Set all properties efficiently. If generator, size, or degreeGroups are invalid, the suggested index is used.
+	*/
 	void setAll(
 		int periodIn,
 		int generatorIndexIn,
@@ -99,6 +103,8 @@ public:
 	*/
 	int getScaleSize() const;
 	int getScaleSizeIndex() const;
+
+	int getGeneratorOffset() const;
 
 	Array<Point<int>> getKeyboardTypes() const;
 	Point<int> getKeyboardType(int ind) const;

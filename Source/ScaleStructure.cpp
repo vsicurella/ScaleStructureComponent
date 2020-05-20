@@ -167,6 +167,11 @@ int ScaleStructure::getScaleSizeIndex() const
 	return sizeIndexSelected;
 }
 
+int ScaleStructure::getGeneratorOffset() const
+{
+	return generatorOffset;
+}
+
 Array<Point<int>> ScaleStructure::getKeyboardTypes() const
 {
 	return keyboardTypes;
