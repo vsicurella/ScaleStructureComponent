@@ -167,15 +167,15 @@ void GroupingCircle::resized()
 {
 	center = Point<float>(getWidth() / 2.0f, getHeight() / 2.0f);
 
+	groupRingWidth = getWidth() * groupWidthRatio;
+	degreeRingWidth = getWidth() * degreeWidthRatio;
+
 	groupOuterRadius = getWidth() * borderRatio / 2.0f;
-	degreeOuterRadius = groupOuterRadius * degreeToGroupRatio;
-	degreeInnerRadius = degreeOuterRadius * degreeOuterToInnerRatio;
+	degreeOuterRadius = groupOuterRadius - groupRingWidth;
+	degreeInnerRadius = degreeOuterRadius - degreeRingWidth;
 
-	groupRingWidth = groupOuterRadius - degreeOuterRadius;
-	degreeRingWidth = degreeOuterRadius - degreeInnerRadius;
-
-	groupMiddleRadius = (degreeOuterRadius + groupOuterRadius) / 2.0f;
-	degreeMiddleRadius = (degreeInnerRadius + degreeOuterRadius) / 2.0f;
+	groupMiddleRadius = (groupOuterRadius + degreeOuterRadius) / 2.0f;
+	degreeMiddleRadius = (degreeOuterRadius + degreeInnerRadius) / 2.0f;
 
 	groupOuterCircleBounds = getBounds().toFloat().reduced(proportionOfWidth(1 - borderRatio));
 	groupInnerCircleBounds = groupOuterCircleBounds.reduced(groupRingWidth);
@@ -190,7 +190,7 @@ void GroupingCircle::resized()
 	int groupIndex = 0;
 	int groupDegreesPassed = 0;
 	
-	float degreeLabelSize = jmin(degreeRingWidth, 2 * float_Pi * degreeMiddleRadius / degreeLabels.size() ) * sectorLabelSizeRatio;
+	float degreeLabelSize = jmin(degreeRingWidth, float_Tau * degreeMiddleRadius / degreeLabels.size()) * sectorLabelSizeRatio;
 	float groupLabelSize = groupRingWidth * sectorLabelSizeRatio;
 
 	float angle, angleTo, groupAngleFrom = -circleOffset; 
@@ -385,11 +385,14 @@ void GroupingCircle::updatePeriod(int periodIn)
 	degreeSectorMouseOver.fill(false);
 }
 
-void GroupingCircle::updateGenerator()
+void GroupingCircle::updateGenerator(int numPeriods)
 {
+	periodFactor = numPeriods;
+
 	// Update generatorChain and groupSizes
 	generatorChain.clear();
 	groupSizes.clear();
+	String dbgstr = "";
 	for (int g = 0; g < degreeGroupings.size(); g++)
 	{
 		const Array<int>& group = degreeGroupings.getReference(g);
@@ -398,8 +401,11 @@ void GroupingCircle::updateGenerator()
 		for (auto degree : group)
 		{
 			generatorChain.add(degree);
+			dbgstr += String(degree) + ", ";
 		}
 	}
+
+	DBG("CIRCLE: Chain: " + dbgstr);
 
 	// TODO: fix properly
 	offsetApparent = generatorChain.indexOf(0);

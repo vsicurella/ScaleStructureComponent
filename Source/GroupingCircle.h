@@ -50,7 +50,7 @@ public:
 	void setOffsetLimit(int offsetLimitIn);
 
 	void updatePeriod(int periodIn);
-	void updateGenerator();
+	void updateGenerator(int numPeriods=1);
 
     void paint (Graphics&) override;
     void resized() override;
@@ -90,6 +90,8 @@ private:
 
 	// TODO: decide whether or not to have control modes
 	ControlMode controlModeSelected = ControlMode::Layout;
+
+	int periodFactor = 1;
 	
 	int offsetApparent = 0;
 	Value generatorOffset;
@@ -97,8 +99,8 @@ private:
 
 	// Drawing related members
 	float borderRatio = 127.0f / 128.0f;
-	float degreeToGroupRatio = 4.0f / 5.0f;
-	float degreeOuterToInnerRatio = 5.0f / 6.0f;
+	const float groupWidthRatio = 1.0f / 10.0f;
+	const float degreeWidthRatio = 1.0f / 15.0f;
 
 	float groupOuterRadius;
 	float groupMiddleRadius;
