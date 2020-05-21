@@ -250,7 +250,8 @@ void ScaleStructureComponent::buttonClicked(Button* buttonThatWasClicked)
 
 		periodFactorMenu.showMenuAsync(options, [=](int choice)
 		{
-			onPeriodFactorChange(choice - 1);
+			if (choice > 0)
+				onPeriodFactorChange(choice - 1);
 		});
 	}
 }
@@ -359,7 +360,7 @@ void ScaleStructureComponent::onPeriodFactorChange(int factorIndexIn)
 	else
 		periodFactorSelected = 0;
 	
-	scaleStructure.setAll(periodSelected, -1, -1, circleOffset->getValue(), periodFactorSelected);
+	scaleStructure.setAll(scaleStructure.getPeriod(), -1, -1, circleOffset->getValue(), periodFactorSelected);
 	DBG("SSC: Num periods changed to: " + String(scaleStructure.getPeriodFactor()));
 
 	periodCents = log2f(periodRatio) * 1200 / scaleStructure.getPeriodFactor();
