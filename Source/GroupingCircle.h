@@ -93,6 +93,10 @@ private:
 	// TODO: decide whether or not to have control modes
 	ControlMode controlModeSelected = ControlMode::Layout;
 
+	
+	int degreeChainIndexToMod = -1;
+	Array<int> degreeModCandidates;
+	Array<int> stepsToChromas;
 
 	// Drawing related members
 	float borderRatio = 127.0f / 128.0f;
@@ -137,6 +141,9 @@ private:
 	float labelContrastRatio = 2.0f / 3.0f;
 
 private:
+	
+	// TODO: move this to Scale Structure?
+	void findDegreeModCandidates();
 
 	/*
 		Returns the angle of the mouse based on the circle's center, with 0 starting at the counter-clockwise edge 

@@ -124,6 +124,13 @@ void GroupingCircle::paint (Graphics& g)
 		{
 			degreeColour = groupColour;
 
+			// TODO: improve condition
+			if (degreeChainIndexToMod > -1 && degreeModCandidates.contains(degIndex))
+			{
+				// Maybe outline instead of recolor
+				degreeColour = groupColour.contrasting(Colours::mediumvioletred, 1.0f / 3);
+			}
+
 			if (degreeSectorMouseOver[degIndex])
 				degreeColour = groupColour.contrasting(highlightContrastRatio);
 
@@ -347,7 +354,6 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 	if (dirty)
 	{
 		updateGenerator();
-		repaint();
 	}
 }
 
@@ -428,6 +434,52 @@ void GroupingCircle::updateGenerator()
 	groupSectorMouseOver.fill(false);
 
 	resized();
+	repaint();
+}
+
+// TODO: move this to Scale Structure?
+void GroupingCircle::findDegreeModCandidates()
+{
+	// update chroma steps
+	stepsToChromas.clear();
+	for (int i = scaleStructure.getScaleSizeIndex(); i < scaleStructure.getScaleSizes().size() - 1; i++)
+	{
+		// TODO: improve getter
+		stepsToChromas.add(scaleStructure.getScaleSizes()[i]);
+	}
+
+	degreeModCandidates.clear();
+	//for (int i = 0; i < stepsToChromas.size(); i++)
+	//{
+		//int step = stepsToChromas[i];
+		int step = scaleStructure.getScaleSize();
+		int deg = modulo(degreeChainIndexToMod + step, scaleStructure.getPeriod());
+
+		// forward
+		// TODO: improve condition
+		while (deg >= step)
+		{
+			// TODO: improve the "notAlreadyThere" check
+			degreeModCandidates.addIfNotAlreadyThere(deg);
+			deg = modulo(deg + step, scaleStructure.getPeriod());
+		}
+
+		deg = modulo(degreeChainIndexToMod - step, scaleStructure.getPeriod());
+		// backward
+		while (deg >= step)
+		{
+			degreeModCandidates.addIfNotAlreadyThere(deg);
+			deg = modulo(deg - step, scaleStructure.getPeriod());
+		}
+	//}
+
+	String dbgstr = "";
+	for (auto degIndex : degreeModCandidates)
+	{
+		dbgstr += String(generatorChain[degIndex]) + ", ";
+	}
+
+	DBG("DEGREE MOD CANDIDATES: " + dbgstr);
 }
 
 float GroupingCircle::getNormalizedMouseAngle(const MouseEvent& event)
