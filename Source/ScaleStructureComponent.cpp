@@ -33,7 +33,7 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
 
-    circleComponent.reset (new GroupingCircle (scaleStructure.getDegreeGroupingsReference(), colourTable));
+    circleComponent.reset (new GroupingCircle (scaleStructure, colourTable));
     addAndMakeVisible (circleComponent.get());
     circleComponent->setName ("circleComponent");
 
@@ -121,15 +121,9 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	periodFactorMenu.setLookAndFeel(periodFactorLookAndFeel.get());
 
 	circle = dynamic_cast<GroupingCircle*>(circleComponent.get());
-	circle->updatePeriod(scaleStructure.getPeriod());
+	circle->updatePeriod();
 	circle->updateGenerator();
-
-	//circleOffset = &circle->getOffsetValue();
-	//*circleOffset = scaleStructure.getGeneratorOffset();
-	circle->setOffsetLimit(scaleStructure.getScaleSize() - 1);
 	circle->addListener(this);
-	//circleOffset->addListener(this);
-
 
     //[/UserPreSize]
 
@@ -278,7 +272,7 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		updateScaleSizes();
 		updatePGLabel();
 
-		circle->updatePeriod(periodSelected);
+		circle->updatePeriod();
 	}
 
 	else if (selectorThatHasChanged == generatorSlider.get())
@@ -391,7 +385,6 @@ void ScaleStructureComponent::onPeriodFactorChange(int factorIndexIn)
 void ScaleStructureComponent::updateOffsetLimit()
 {
 	generatorOffset = jlimit(0, scaleStructure.getScaleSize() - 1, generatorOffset);
-	circle->setOffsetLimit(scaleStructure.getScaleSize() - 1);
 	scaleStructure.setGeneratorOffset(generatorOffset);
 	updateOffsetLabel();
 

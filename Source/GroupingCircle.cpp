@@ -12,8 +12,8 @@
 #include "GroupingCircle.h"
 
 //==============================================================================
-GroupingCircle::GroupingCircle(const Array<Array<int>>& degreeGroupingsIn, Array<Colour>& groupColoursIn)
-	:	degreeGroupings(degreeGroupingsIn),
+GroupingCircle::GroupingCircle(const ScaleStructure& structureIn, Array<Colour>& groupColoursIn)
+	:	scaleStructure(structureIn),
 		colourTable(groupColoursIn)
 {
 
@@ -75,27 +75,9 @@ GroupingCircle::ControlMode GroupingCircle::getControlMode()
 	return controlModeSelected;
 }
 
-Value& GroupingCircle::getOffsetValue()
-{
-	return generatorOffset;
-}
-
 void GroupingCircle::setControlMode(ControlMode controlModeIn)
 {
 	controlModeSelected = controlModeIn;
-}
-
-void GroupingCircle::setGeneratorOffset(int offsetIn, bool upgradeDegreeLabels)
-{
-	generatorOffset.setValue(offsetIn);
-
-	if (upgradeDegreeLabels)
-		updateGenerator();
-}
-
-void GroupingCircle::setOffsetLimit(int offsetLimitIn)
-{
-	offsetLimit = offsetLimitIn;
 }
 
 void GroupingCircle::paint (Graphics& g)
@@ -345,14 +327,14 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 
 		if (lastDegreeSectorMouseIn != degreeIndex)
 		{
-			int offset = degreeIndex - lastDegreeSectorMouseIn + offsetApparent;
+			int offset = degreeIndex - lastDegreeSectorMouseIn + scaleStructure.getGeneratorOffset();
 
-			if (offset > -1 && offset <= offsetLimit)
+			if (offset > -1 && offset < scaleStructure.getScaleSize())
 			{
 				//generatorOffset.setValue(offset);
 				listeners.call(&Listener::offsetChanged, offset);
 
-				DBG("Moved by " + String(degreeIndex - lastDegreeSectorMouseIn) + "\tNew offset: " + generatorOffset.getValue().toString());
+				DBG("Moved by " + String(degreeIndex - lastDegreeSectorMouseIn) + "\tNew offset: " + String(offset));
 				dirty = true;
 			}
 
@@ -364,7 +346,8 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 
 	if (dirty)
 	{
-		resized();
+		updateGenerator();
+		repaint();
 	}
 }
 
@@ -378,7 +361,7 @@ void GroupingCircle::removeListener(Listener* listenerToRemove)
 	listeners.remove(listenerToRemove);
 }
 
-void GroupingCircle::updatePeriod(int periodIn)
+void GroupingCircle::updatePeriod()
 {
 	DBG("Circle: Updating");
 
@@ -386,7 +369,7 @@ void GroupingCircle::updatePeriod(int periodIn)
 
 	degreeLabels.clear();
 
-	for (int i = 0; i < periodIn; i++)
+	for (int i = 0; i < scaleStructure.getPeriod(); i++)
 	{
 		Label* l = degreeLabels.add(new Label());
 		l->setJustificationType(Justification::centred);
@@ -394,16 +377,17 @@ void GroupingCircle::updatePeriod(int periodIn)
 		addAndMakeVisible(l);
 	}
 
-	degreeSectorMouseOver.resize(periodIn);
+	degreeSectorMouseOver.resize(scaleStructure.getPeriod());
 	degreeSectorMouseOver.fill(false);
 }
 
-void GroupingCircle::updateGenerator(int numPeriods)
+void GroupingCircle::updateGenerator()
 {
-	periodFactor = numPeriods;
+	degreeGroupings = scaleStructure.getDegreeGroupings();
 
-	// Update generatorChain and groupSizes
+	// build generatorChain based on degreeGroupings
 	generatorChain.clear();
+	
 	groupSizes.clear();
 	String dbgstr = "";
 	for (int g = 0; g < degreeGroupings.size(); g++)
@@ -419,9 +403,6 @@ void GroupingCircle::updateGenerator(int numPeriods)
 	}
 
 	DBG("CIRCLE: Chain: " + dbgstr);
-
-	// TODO: fix properly
-	offsetApparent = generatorChain.indexOf(0);
 	
 	for (int i = 0; i < degreeLabels.size(); i++)
 	{
@@ -447,7 +428,6 @@ void GroupingCircle::updateGenerator(int numPeriods)
 	groupSectorMouseOver.fill(false);
 
 	resized();
-	repaint();
 }
 
 float GroupingCircle::getNormalizedMouseAngle(const MouseEvent& event)

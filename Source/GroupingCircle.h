@@ -11,6 +11,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "ScaleStructure.h"
 
 //==============================================================================
 /*
@@ -26,11 +27,10 @@ public:
 	};
 
 public:
-    GroupingCircle(const Array<Array<int>>& degreeGroupingsIn, Array<Colour>& colourTableIn);
+    GroupingCircle(const ScaleStructure& structureIn, Array<Colour>& colourTableIn);
     ~GroupingCircle();
 
 	ControlMode getControlMode();
-	Value& getOffsetValue();
 
 	float getInnerRadius() const;
 	float getMiddleRadius() const;
@@ -46,11 +46,8 @@ public:
 
 	void setControlMode(ControlMode controlModeIn);
 
-	void setGeneratorOffset(int offsetIn, bool updateDegreeLabels = true);
-	void setOffsetLimit(int offsetLimitIn);
-
-	void updatePeriod(int periodIn);
-	void updateGenerator(int numPeriods=1);
+	void updatePeriod();
+	void updateGenerator();
 
     void paint (Graphics&) override;
     void resized() override;
@@ -79,8 +76,13 @@ private:
 	OwnedArray<Label> degreeLabels;
 	OwnedArray<Label> groupSizeLabels;
 
+	const ScaleStructure& scaleStructure;
+
+	// Starting from the first degree of the primary degree grouping going clockwise
+	const Array<Colour>& colourTable;
+
 	// The groups of scale degree arrays
-	const Array<Array<int>>& degreeGroupings;
+	Array<Array<int>> degreeGroupings;
 
 	// The chain of scale degrees by stacking the chosen generator
 	Array<int> generatorChain;
@@ -88,17 +90,9 @@ private:
 	// Starting from the top (scale size selected) going clockwise
 	Array<int> groupSizes;
 
-	// Starting from the top going clockwise
-	const Array<Colour>& colourTable;
-
 	// TODO: decide whether or not to have control modes
 	ControlMode controlModeSelected = ControlMode::Layout;
 
-	int periodFactor = 1;
-	
-	int offsetApparent = 0;
-	Value generatorOffset;
-	int offsetLimit = 7;
 
 	// Drawing related members
 	float borderRatio = 127.0f / 128.0f;
