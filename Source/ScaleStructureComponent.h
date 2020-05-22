@@ -42,6 +42,7 @@
 class ScaleStructureComponent  : public Component,
                                  public ChangeBroadcaster,
                                  private NumberSelector::Listener,
+                                 private GroupingCircle::Listener,
                                  private Value::Listener,
                                  private Button::Listener
 {
@@ -58,6 +59,8 @@ public:
 	void selectorValueChanged(NumberSelector* selectorThatHasChanged) override;
 	void valueChanged(Value& valueThatHasChanged) override;
 
+	void offsetChanged(int newOffset) override;
+
 	void updateGenerators();
 	void updateScaleSizes();
 	void updatePeriodFactors();
@@ -68,7 +71,7 @@ public:
 	void updatePGLabel();
 	void updateLsLabel();
 	void updateOffsetLabel();
-	//[/UserMethods]
+    //[/UserMethods]
 
     void paint (Graphics& g) override;
     void resized() override;
@@ -109,6 +112,7 @@ private:
 	// Helpers
 	int periodSelected;
 	int generatorSelected;
+	int generatorOffset = 0;
 
 	float periodRatio = 2;
 	float degreeCents = 100;

@@ -63,8 +63,11 @@ public:
 	public:
 		~Listener() {};
 
-		
+		virtual void offsetChanged(int newOffset) = 0;
 	};
+
+	void addListener(Listener* listenerToAdd);
+	void removeListener(Listener* listenerToRemove);
 
 	// Arc path helper
 	static void addArcToPath(Path& pathIn, Rectangle<float>& ellipseBounds, float fromRadians, float toRadians, bool startAsNewSubPath = false);

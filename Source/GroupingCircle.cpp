@@ -21,6 +21,7 @@ GroupingCircle::GroupingCircle(const Array<Array<int>>& degreeGroupingsIn, Array
 
 GroupingCircle::~GroupingCircle()
 {
+	listeners.clear();
 }
 
 float GroupingCircle::getInnerRadius() const
@@ -348,7 +349,9 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 
 			if (offset > -1 && offset <= offsetLimit)
 			{
-				generatorOffset.setValue(offset);
+				//generatorOffset.setValue(offset);
+				listeners.call(&Listener::offsetChanged, offset);
+
 				DBG("Moved by " + String(degreeIndex - lastDegreeSectorMouseIn) + "\tNew offset: " + generatorOffset.getValue().toString());
 				dirty = true;
 			}
@@ -363,6 +366,16 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 	{
 		resized();
 	}
+}
+
+void GroupingCircle::addListener(Listener* listenerToAdd)
+{
+	listeners.add(listenerToAdd);
+}
+
+void GroupingCircle::removeListener(Listener* listenerToRemove)
+{
+	listeners.remove(listenerToRemove);
 }
 
 void GroupingCircle::updatePeriod(int periodIn)

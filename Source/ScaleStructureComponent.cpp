@@ -124,10 +124,12 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 	circle->updatePeriod(scaleStructure.getPeriod());
 	circle->updateGenerator();
 
-	circleOffset = &circle->getOffsetValue();
-	*circleOffset = scaleStructure.getGeneratorOffset();
+	//circleOffset = &circle->getOffsetValue();
+	//*circleOffset = scaleStructure.getGeneratorOffset();
 	circle->setOffsetLimit(scaleStructure.getScaleSize() - 1);
-	circleOffset->addListener(this);
+	circle->addListener(this);
+	//circleOffset->addListener(this);
+
 
     //[/UserPreSize]
 
@@ -144,6 +146,7 @@ ScaleStructureComponent::~ScaleStructureComponent()
     //[/Destructor_pre]
 
     circleComponent = nullptr;
+
 
     //[Destructor]. You can add your own custom destruction code here..
 	generatorSlider = nullptr;
@@ -313,11 +316,22 @@ void ScaleStructureComponent::valueChanged(Value& valueThatHasChanged)
 		circle->updateGenerator();
 
 		DBG("SSC: Generator Offset changed to: " + String(scaleStructure.getGeneratorOffset()));
-		
+
 		updateOffsetLabel();
 		updateLsLabel();
 		sendChangeMessage();
 	}
+}
+
+void ScaleStructureComponent::offsetChanged(int newOffset)
+{
+	generatorOffset = newOffset;
+	scaleStructure.setGeneratorOffset(generatorOffset);
+	DBG("SSC: Generator Offset changed to: " + String(scaleStructure.getGeneratorOffset()));
+
+	updateOffsetLabel();
+	updateLsLabel();
+	sendChangeMessage();
 }
 
 void ScaleStructureComponent::updateGenerators()
@@ -359,7 +373,7 @@ void ScaleStructureComponent::onPeriodFactorChange(int factorIndexIn)
 		periodFactorSelected = factorIndexIn;
 	else
 		periodFactorSelected = 0;
-	
+
 	scaleStructure.setAll(scaleStructure.getPeriod(), -1, -1, circleOffset->getValue(), periodFactorSelected);
 	DBG("SSC: Num periods changed to: " + String(scaleStructure.getPeriodFactor()));
 
@@ -376,9 +390,11 @@ void ScaleStructureComponent::onPeriodFactorChange(int factorIndexIn)
 
 void ScaleStructureComponent::updateOffsetLimit()
 {
+	generatorOffset = jlimit(0, scaleStructure.getScaleSize() - 1, generatorOffset);
 	circle->setOffsetLimit(scaleStructure.getScaleSize() - 1);
-	scaleStructure.setGeneratorOffset(jlimit(0, scaleStructure.getScaleSize() - 1, (int)circleOffset->getValue()));
+	scaleStructure.setGeneratorOffset(generatorOffset);
 	updateOffsetLabel();
+
 	// TODO: remove value listener so this can be updated without notification *ergh*
 	//circleOffset->setValue(jlimit(0, scaleStructure.getScaleSize() - 1, (int) circleOffset->getValue()));
 }
@@ -411,7 +427,7 @@ void ScaleStructureComponent::updateOffsetLabel()
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="ScaleStructureComponent"
-                 componentName="" parentClasses="public Component, public ChangeBroadcaster, private NumberSelector::Listener, private Value::Listener, private Button::Listener"
+                 componentName="" parentClasses="public Component, public ChangeBroadcaster, private NumberSelector::Listener, private GroupingCircle::Listener, private Value::Listener, private Button::Listener"
                  constructorParams="ScaleStructure&amp; scaleStructureIn, Array&lt;Colour&gt;&amp; colourTableIn"
                  variableInitialisers="scaleStructure(scaleStructureIn), colourTable(colourTableIn)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
