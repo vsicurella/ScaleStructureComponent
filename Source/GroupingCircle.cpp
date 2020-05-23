@@ -108,7 +108,7 @@ void GroupingCircle::paint (Graphics& g)
 		if (groupColour.isTransparent())
 			groupColour = Colours::lightgrey;
 
-		if (groupSectorMouseOver[i])
+		if (i == groupSectorMouseOver)
 			groupColour = groupColour.contrasting(highlightContrastRatio);
 
 		g.setColour(groupColour);
@@ -131,7 +131,7 @@ void GroupingCircle::paint (Graphics& g)
 				degreeColour = groupColour.contrasting(Colours::mediumvioletred, 1.0f / 3);
 			}
 
-			if (degreeSectorMouseOver[degIndex])
+			if (degIndex == degreeSectorMouseOver)
 				degreeColour = groupColour.contrasting(highlightContrastRatio);
 
 			Path& degreePath = degreeArcPaths.getReference(degIndex);
@@ -257,8 +257,11 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 	// If mouse is not in rings, remove highlights
 	if (mouseRadius < degreeInnerRadius || mouseRadius > groupOuterRadius)
 	{
-		degreeSectorMouseOver.fill(false);
-		groupSectorMouseOver.fill(false);
+		lastDegreeSectorMouseIn = degreeSectorMouseOver;
+		degreeSectorMouseOver = -1;
+
+		lastGroupSectorMouseIn = groupSectorMouseOver;
+		groupSectorMouseOver = -1;
 		dirty = true;
 	}
 
@@ -270,22 +273,17 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 		// Check Degree Sectors
 		if (mouseRadius < degreeOuterRadius)
 		{
-			if (lastDegreeSectorMouseIn != degreeIndex)
+			if (degreeSectorMouseOver != degreeIndex)
 			{
-				if (lastDegreeSectorMouseIn > -1)
-				{
-					degreeSectorMouseOver.set(lastDegreeSectorMouseIn, false);
-				}
-
-				degreeSectorMouseOver.set(degreeIndex, true);
-				lastDegreeSectorMouseIn = degreeIndex;
+				lastDegreeSectorMouseIn = degreeSectorMouseOver;
+				degreeSectorMouseOver = degreeIndex;
 				dirty = true;
 			}
 
-			if (lastGroupSectorMouseIn > -1)
+			if (groupSectorMouseOver > -1)
 			{
-				groupSectorMouseOver.set(lastGroupSectorMouseIn, false);
-				lastGroupSectorMouseIn = -1;
+				lastGroupSectorMouseIn = groupSectorMouseOver;
+				groupSectorMouseOver = -1;
 				dirty = true;
 			}
 		}
@@ -295,23 +293,17 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 		{
 			int groupIndex = mouseInGroupSector(degreeIndex);
 
-			lastGroupSectorMouseIn = groupSectorMouseOver.indexOf(true);
-			if (lastGroupSectorMouseIn != groupIndex)
+			if (groupSectorMouseOver != groupIndex)
 			{
-				if (lastGroupSectorMouseIn > -1)
-				{
-					groupSectorMouseOver.set(lastGroupSectorMouseIn, false);
-				}
-
-				groupSectorMouseOver.set(groupIndex, true);
-				lastGroupSectorMouseIn = groupIndex;
+				lastGroupSectorMouseIn = groupSectorMouseOver;
+				groupSectorMouseOver = groupIndex;
 				dirty = true;
 			}
 
-			if (lastDegreeSectorMouseIn > -1)
+			if (degreeSectorMouseOver > -1)
 			{
-				degreeSectorMouseOver.set(lastDegreeSectorMouseIn, false);
-				lastDegreeSectorMouseIn = -1;
+				lastDegreeSectorMouseIn = degreeSectorMouseOver;
+				degreeSectorMouseOver = -1;
 				dirty = true;
 			}
 		}
@@ -332,22 +324,22 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 		float angle = getNormalizedMouseAngle(event);
 		int degreeIndex = mouseInDegreeSector(event, angle);
 
-		if (lastDegreeSectorMouseIn != degreeIndex)
+		if (degreeSectorMouseOver != degreeIndex)
 		{
-			int offset = degreeIndex - lastDegreeSectorMouseIn + scaleStructure.getGeneratorOffset();
+			int offset = degreeIndex - degreeSectorMouseOver + scaleStructure.getGeneratorOffset();
 
 			if (offset > -1 && offset < scaleStructure.getScaleSize())
 			{
 				//generatorOffset.setValue(offset);
 				listeners.call(&Listener::offsetChanged, offset);
 
-				DBG("Moved by " + String(degreeIndex - lastDegreeSectorMouseIn) + "\tNew offset: " + String(offset));
+				DBG("Moved by " + String(degreeIndex - degreeSectorMouseOver) + "\tNew offset: " + String(offset));
 				dirty = true;
 			}
 
-			degreeSectorMouseOver.set(lastDegreeSectorMouseIn, false);
-			degreeSectorMouseOver.set(degreeIndex, true);
-			lastDegreeSectorMouseIn = degreeIndex;
+			lastDegreeSectorMouseIn = degreeSectorMouseOver;
+			degreeSectorMouseOver = degreeIndex;
+			
 		}
 	}
 
@@ -383,8 +375,7 @@ void GroupingCircle::updatePeriod()
 		addAndMakeVisible(l);
 	}
 
-	degreeSectorMouseOver.resize(scaleStructure.getPeriod());
-	degreeSectorMouseOver.fill(false);
+	degreeSectorMouseOver = -1;
 }
 
 void GroupingCircle::updateGenerator()
@@ -430,8 +421,8 @@ void GroupingCircle::updateGenerator()
 			addAndMakeVisible(l);
 	}
 
-	groupSectorMouseOver.resize(groupSizeLabels.size());
-	groupSectorMouseOver.fill(false);
+
+	groupSectorMouseOver = -1;
 
 	resized();
 	repaint();

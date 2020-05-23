@@ -132,8 +132,8 @@ private:
 
 	float sectorLabelSizeRatio = 0.875f;
 
-	Array<bool> degreeSectorMouseOver;
-	Array<bool> groupSectorMouseOver;
+	int degreeSectorMouseOver = -1;
+	int groupSectorMouseOver = -1;
 	int lastDegreeSectorMouseIn = -1;
 	int lastGroupSectorMouseIn = -1;
 
