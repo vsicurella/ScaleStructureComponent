@@ -76,7 +76,7 @@ protected:
 	ListenerList<Listener> listeners;
 
 private:
-	OwnedArray<Label> degreeLabels;
+	OwnedArray<TextEditor> degreeLabels;
 	OwnedArray<Label> groupSizeLabels;
 
 	const ScaleStructure& scaleStructure;
@@ -112,7 +112,6 @@ private:
 	int groupSectorMouseOver = -1;
 	int lastDegreeSectorMouseIn = -1;
 	int lastGroupSectorMouseIn = -1;
-
 
 	// Drawing related members
 	float borderRatio = 127.0f / 128.0f;

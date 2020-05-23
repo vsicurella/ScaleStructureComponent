@@ -421,7 +421,7 @@ BEGIN_JUCER_METADATA
   <BACKGROUND backgroundColour="ff323e44"/>
   <GENERICCOMPONENT name="circleComponent" id="ec9c5dc09c2f91cf" memberName="circleComponent"
                     virtualName="" explicitFocusOrder="0" pos="0 0 100% 100%" class="GroupingCircle"
-                    params="scaleStructure.getDegreeGroupingsReference(), colourTable"/>
+                    params="scaleStructure, colourTable"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA

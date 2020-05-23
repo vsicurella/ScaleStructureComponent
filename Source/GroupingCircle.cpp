@@ -142,7 +142,7 @@ void GroupingCircle::paint (Graphics& g)
 			g.setColour(degreeColour.darker());
 			g.strokePath(degreePath, strokeType);
 
-			degreeLabels[degIndex]->setColour(Label::ColourIds::textColourId, degreeColour.contrasting(labelContrastRatio));
+			degreeLabels[degIndex]->applyColourToAllText(degreeColour.contrasting(labelContrastRatio));
 			degIndex++;
 		}
 	}
@@ -187,7 +187,11 @@ void GroupingCircle::resized()
 	float degLabelAngle, groupLabelAngle;
 
 	Path degreePath, groupPath;
-	Label* degreeLabel, *groupLabel;
+	TextEditor* degreeLabel;
+	String degreeText;
+	int degreeAlteration;
+
+	Label* groupLabel;
 	float degreeLabelWidth, groupLabelWidth;
 
 	groupArcPaths.clear();
@@ -204,10 +208,27 @@ void GroupingCircle::resized()
 		degreePath.closeSubPath();
 		degreeArcPaths.add(degreePath);
 
-		// place labels
+		// find label size
 		degreeLabel = degreeLabels[i];
+		degreeLabel->clear();
 		degreeLabel->setFont(Font().withHeight(degreeLabelSize));
-		degreeLabelWidth = degreeLabel->getFont().getStringWidthFloat(degreeLabel->getText());
+
+		// fill labels with text
+		degreeLabel->insertTextAtCaret(String(generatorChain[i]));
+
+		degreeAlteration = alterations[i];
+		if (degreeAlteration != 0)
+		{
+			degreeText = "";
+			if (degreeAlteration > 0)
+				degreeText += "+";
+		
+			degreeText += String(alterations[i]);
+			degreeLabel->setFont(Font(round(degreeLabelSize / 3.0f)));
+			degreeLabel->insertTextAtCaret(degreeText);
+		}		
+
+		degreeLabelWidth = degreeLabel->getTextWidth();
 		degreeLabel->setSize(jmax(degreeLabelWidth, degreeLabelSize), degreeLabelSize);
 
 		degLabelAngle =  angleTo - angleHalf - float_HalfPi;
@@ -419,9 +440,12 @@ void GroupingCircle::updatePeriod()
 
 	for (int i = 0; i < scaleStructure.getPeriod(); i++)
 	{
-		Label* l = degreeLabels.add(new Label());
-		l->setJustificationType(Justification::centred);
+		TextEditor* l = degreeLabels.add(new TextEditor());
+		l->setJustification(Justification::centred);
+		l->setReadOnly(true);
 		l->setInterceptsMouseClicks(false, false);
+		l->setColour(TextEditor::ColourIds::backgroundColourId, Colour());
+		l->setColour(TextEditor::ColourIds::outlineColourId, Colour());
 		addAndMakeVisible(l);
 	}
 
@@ -451,21 +475,6 @@ void GroupingCircle::updateGenerator()
 	}
 
 	DBG("CIRCLE: Chain: " + dbgstr);
-	
-	for (int i = 0; i < degreeLabels.size(); i++)
-	{
-		String degreeText = " " + String(generatorChain[i]) + " ";
-		//if (alterations[i] > 0)
-		//{
-		//	degreeText += "+";
-		//}
-		//if (alterations[i] != 0)
-		//{
-		//	degreeText += String(alterations[i]);
-		//}
-		degreeLabels[i]->setText(String(degreeText), dontSendNotification);
-		//degreeLabels[i]->setColour(Label::ColourIds::outlineColourId, Colours::white);
-	}
 
 	groupSizeLabels.clear();
 	for (int i = 0; i < groupSizes.size(); i++)
