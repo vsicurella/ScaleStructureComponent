@@ -243,6 +243,14 @@ int ScaleStructure::getGroupOfDegree(int scaleDegreeIn) const
 	return -1;
 }
 
+int ScaleStructure::getModeDegreeFromChainDegree(int chainDegreeIn) const
+{
+	// TODO: improve
+	Array<int> naturalScale = degreeGroupings[0];
+	naturalScale.sort();
+	return naturalScale.indexOf(chainDegreeIn);
+}
+
 Array<Point<int>> ScaleStructure::getMODMOSProperties() const
 {
 	return modmosProperties;

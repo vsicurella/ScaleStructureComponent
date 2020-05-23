@@ -102,6 +102,7 @@ private:
 	// MODMOS functionality
 	int degreeChainIndexToMod = -1;
 	Array<int> degreeModCandidates;
+	Array<int> candidateChromas; // TODO: better implementation (hyper-chromas)
 	Array<int> stepsToChromas;
 
 	// Mouse functionality

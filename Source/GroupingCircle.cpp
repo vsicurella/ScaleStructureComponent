@@ -345,7 +345,8 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 			}
 			else if (degreeModCandidates.contains(degreeSectorMouseOver))
 			{
-				listeners.call(&Listener::degreesSwapped, degreeChainIndexToMod, 0);
+				// TODO: improve chroma getter
+				listeners.call(&Listener::degreesSwapped, degreeChainIndexToMod, candidateChromas[degreeModCandidates.indexOf(degreeSectorMouseOver)]);
 				updateGenerator();
 			}
 		}
@@ -355,6 +356,7 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 	{
 		degreeChainIndexToMod = -1;
 		degreeModCandidates.clear();
+		candidateChromas.clear();
 		repaint();
 	}
 }
@@ -486,27 +488,34 @@ void GroupingCircle::findDegreeModCandidates()
 	}
 
 	degreeModCandidates.clear();
+	candidateChromas.clear();
 	//for (int i = 0; i < stepsToChromas.size(); i++)
 	//{
 		//int step = stepsToChromas[i];
 		int step = scaleStructure.getScaleSize();
 		int deg = modulo(degreeChainIndexToMod + step, scaleStructure.getPeriod());
+		int chromas = 1;
 
 		// forward
 		// TODO: improve condition
 		while (deg >= step)
 		{
 			// TODO: improve the "notAlreadyThere" check
-			degreeModCandidates.addIfNotAlreadyThere(deg);
+			degreeModCandidates.add(deg);
+			candidateChromas.add(chromas);
 			deg = modulo(deg + step, scaleStructure.getPeriod());
+			chromas++;
 		}
 
 		deg = modulo(degreeChainIndexToMod - step, scaleStructure.getPeriod());
+		chromas = -1;
 		// backward
 		while (deg >= step)
 		{
-			degreeModCandidates.addIfNotAlreadyThere(deg);
+			degreeModCandidates.add(deg);
+			candidateChromas.add(chromas);
 			deg = modulo(deg - step, scaleStructure.getPeriod());
+			chromas--;
 		}
 	//}
 

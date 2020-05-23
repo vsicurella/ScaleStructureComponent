@@ -127,6 +127,7 @@ public:
 	Array<Array<int>> getDegreeGroupings() const;
 	const Array<Array<int>>& getDegreeGroupingsReference() const;
 	int getGroupOfDegree(int scaleDegreeIn) const;
+	int getModeDegreeFromChainDegree(int chainDegreeIn) const;
 
 	Array<Point<int>> getMODMOSProperties() const;
 	int modeDegreeToScaleDegree(int modeDegree) const;
