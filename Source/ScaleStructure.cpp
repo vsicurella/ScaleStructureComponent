@@ -304,15 +304,6 @@ void ScaleStructure::setAlterationOfDegree(int degreeIn, int alteration)
 	{
 		// TODO: Restrict alterations if too big (degree gets swapped with another group0 degree)
 		chromaAlterations.set(degreeIn, alteration);
-
-		String dbgstr = "";
-
-		for (auto alteration : chromaAlterations)
-		{
-			dbgstr += String(alteration) + ", ";
-		}
-		DBG("MODMOS Properties:\n" + dbgstr);
-
 		fillSymmetricGrouping();
 	}
 }
@@ -646,10 +637,19 @@ void ScaleStructure::applyChromaAlterations()
 					int indexToSwap = group.indexOf(alteredDegree);
 					degreeGroupings.getReference(0).set(degIndex, alteredDegree);
 					group.set(indexToSwap, originalDegree);
+					chromaAlterations.set(shiftedIndex, amount * -1); // Record inverse alteration
 				}
 			}
 		}
 	}
+
+	String dbgstr = "";
+
+	for (auto alteration : chromaAlterations)
+	{
+		dbgstr += String(alteration) + ", ";
+	}
+	DBG("MODMOS Properties:\n" + dbgstr);
 }
 
 
