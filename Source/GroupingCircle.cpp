@@ -125,7 +125,7 @@ void GroupingCircle::paint (Graphics& g)
 			degreeColour = groupColour;
 
 			// TODO: improve condition
-			if (degreeChainIndexToMod > -1 && degreeModCandidates.contains(degIndex))
+			if (degreeIndexToMod > -1 && degreeModCandidates[degIndex] != 0)
 			{
 				// Maybe outline instead of recolor
 				degreeColour = groupColour.contrasting(Colours::mediumvioletred, 1.0f / 3);
@@ -328,25 +328,28 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 			{
 				PopupMenu::Options options = PopupMenu::Options().withMaximumNumColumns(1);
 
-				int& modDegree = degreeChainIndexToMod;
+				int& modDegree = degreeIndexToMod;
 				int degreeMouseOn = degreeSectorMouseOver;
-				auto findMods = [this]() {findDegreeModCandidates(); };
+				Array<int>& mods = degreeModCandidates;
+				const ScaleStructure& structure = scaleStructure;
+
+				std::function<Array<int>(const ScaleStructure&, int, int)> findMods = &ScaleStructure::findDegreeMods;
 				auto redraw = [this]() {repaint(); };
 
 				degreeMenu.clear();
-				degreeMenu.addItem("Show modifiable degrees", true, false, [&modDegree, degreeMouseOn, findMods, redraw](void) {
+				degreeMenu.addItem("Show modifiable degrees", true, false, [&modDegree, degreeMouseOn, &structure, &mods, findMods, redraw](void) {
 					modDegree = degreeMouseOn;
-					findMods();
+					mods = findMods(structure, modDegree, 1);
 					redraw();
 				});
 
 				degreeMenu.showMenuAsync(options);
 				cancelDegreeMods = false;
 			}
-			else if (degreeModCandidates.contains(degreeSectorMouseOver))
+
+			else if (degreeModCandidates[degreeSectorMouseOver] != 0)
 			{
-				// TODO: improve chroma getter
-				listeners.call(&Listener::degreesSwapped, degreeChainIndexToMod, candidateChromas[degreeModCandidates.indexOf(degreeSectorMouseOver)]);
+				listeners.call(&Listener::degreeAltered, degreeIndexToMod, degreeModCandidates[degreeSectorMouseOver]);
 				updateGenerator();
 			}
 		}
@@ -354,9 +357,8 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 
 	if (cancelDegreeMods)
 	{
-		degreeChainIndexToMod = -1;
+		degreeIndexToMod = -1;
 		degreeModCandidates.clear();
-		candidateChromas.clear();
 		repaint();
 	}
 }
@@ -474,58 +476,6 @@ void GroupingCircle::updateGenerator()
 
 	resized();
 	repaint();
-}
-
-// TODO: move this to Scale Structure?
-void GroupingCircle::findDegreeModCandidates()
-{
-	// update chroma steps
-	stepsToChromas.clear();
-	for (int i = scaleStructure.getScaleSizeIndex(); i < scaleStructure.getScaleSizes().size() - 1; i++)
-	{
-		// TODO: improve getter
-		stepsToChromas.add(scaleStructure.getScaleSizes()[i]);
-	}
-
-	degreeModCandidates.clear();
-	candidateChromas.clear();
-	//for (int i = 0; i < stepsToChromas.size(); i++)
-	//{
-		//int step = stepsToChromas[i];
-		int step = scaleStructure.getScaleSize();
-		int deg = modulo(degreeChainIndexToMod + step, scaleStructure.getPeriod());
-		int chromas = 1;
-
-		// forward
-		// TODO: improve condition
-		while (deg >= step)
-		{
-			// TODO: improve the "notAlreadyThere" check
-			degreeModCandidates.add(deg);
-			candidateChromas.add(chromas);
-			deg = modulo(deg + step, scaleStructure.getPeriod());
-			chromas++;
-		}
-
-		deg = modulo(degreeChainIndexToMod - step, scaleStructure.getPeriod());
-		chromas = -1;
-		// backward
-		while (deg >= step)
-		{
-			degreeModCandidates.add(deg);
-			candidateChromas.add(chromas);
-			deg = modulo(deg - step, scaleStructure.getPeriod());
-			chromas--;
-		}
-	//}
-
-	String dbgstr = "";
-	for (auto degIndex : degreeModCandidates)
-	{
-		dbgstr += String(generatorChain[degIndex]) + ", ";
-	}
-
-	DBG("DEGREE MOD CANDIDATES: " + dbgstr);
 }
 
 float GroupingCircle::getNormalizedMouseAngle(const MouseEvent& event)

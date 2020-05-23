@@ -63,7 +63,7 @@ public:
 		~Listener() {};
 
 		virtual void offsetChanged(int newOffset) = 0;
-		virtual void degreesSwapped(int originalDegreeIndex, int chromasMoved) = 0;
+		virtual void degreeAltered(int degreeIndex, int chromasMoved) = 0;
 	};
 
 	void addListener(Listener* listenerToAdd);
@@ -100,9 +100,8 @@ private:
 	PopupMenu degreeMenu;
 	
 	// MODMOS functionality
-	int degreeChainIndexToMod = -1;
+	int degreeIndexToMod = -1;
 	Array<int> degreeModCandidates;
-	Array<int> candidateChromas; // TODO: better implementation (hyper-chromas)
 	Array<int> stepsToChromas;
 
 	// Mouse functionality
@@ -152,9 +151,6 @@ private:
 	float labelContrastRatio = 2.0f / 3.0f;
 
 private:
-	
-	// TODO: move this to Scale Structure?
-	void findDegreeModCandidates();
 
 	/*
 		Returns the angle of the mouse based on the circle's center, with 0 starting at the counter-clockwise edge 
