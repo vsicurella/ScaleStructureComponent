@@ -50,7 +50,7 @@ void ScaleStructure::setAll(
 	int generatorOffsetIn,
 	int periodFactorIndexIn,
 	Array<int> degreeGroupSizeIndiciesIn,
-	Array<Point<int>> modMosPropertiesIn)
+	Array<int> chromaAlterationsIn)
 {
 	period = periodIn;
 	
@@ -78,10 +78,10 @@ void ScaleStructure::setAll(
 
 	calculateGeneratorChain();
 
-	if (modMosPropertiesIn.size() > 0)
+	if (chromaAlterationsIn.size() == period)
 	{
 		// TODO: check if valid
-		modmosProperties = modMosPropertiesIn;
+		chromaAlterations = chromaAlterationsIn;
 	}
 
 	if (degreeGroupSizeIndiciesIn.size() > 0)
@@ -243,14 +243,6 @@ int ScaleStructure::getGroupOfDegree(int scaleDegreeIn) const
 	return -1;
 }
 
-int ScaleStructure::getModeDegreeFromChainDegree(int chainDegreeIn) const
-{
-	// TODO: improve
-	Array<int> naturalScale = degreeGroupings[0];
-	naturalScale.sort();
-	return naturalScale.indexOf(chainDegreeIn);
-}
-
 Array<int> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLevels) const
 {
 	// update chroma steps
@@ -296,68 +288,50 @@ Array<int> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLevels) con
 	return degreeModCandidates;
 }
 
-Array<Point<int>> ScaleStructure::getMODMOSProperties() const
+Array<int> ScaleStructure::getChromaAlterations() const
 {
-	return modmosProperties;
+	return chromaAlterations;
 }
 
-int ScaleStructure::modeDegreeToScaleDegree(int modeDegree) const
+int ScaleStructure::getAlterationOfDegree(int degreeIn) const
 {
-	modeDegree = modulo(modeDegree, getScaleSize());
-	Array<int> naturalScale = degreeGroupings[0];
-	naturalScale.sort();
-
-	return naturalScale[modeDegree];
+	return chromaAlterations[degreeIn];
 }
 
-int ScaleStructure::getAlterationOfDegree(int modeDegree) const
+void ScaleStructure::setAlterationOfDegree(int degreeIn, int alteration)
 {
-	for (auto alteration : modmosProperties)
+	if (degreeIn < period)
 	{
-		if (alteration.x == modeDegree)
-		{
-			return alteration.y;
-		}
-	}
-
-	return 0;
-}
-
-void ScaleStructure::setAlterationofDegree(int modeDegree, int alteration)
-{
-	int currentAlteration = getAlterationOfDegree(modeDegree);
-
-	// Apply new MODMOS property
-	if (currentAlteration != alteration)
-	{
-		int index = modmosProperties.indexOf(Point<int>(modeDegree, currentAlteration));
-
-		if (alteration == 0 && index >= 0)
-		{
-			modmosProperties.removeRange(index, 1);
-		}
-		else
-		{
-			if (index < 0)
-			{
-				modmosProperties.add(Point<int>(modeDegree, alteration));
-			}
-			else
-			{
-				modmosProperties.set(index, Point<int>(modeDegree, alteration));
-			}
-		}
+		// TODO: Restrict alterations if too big (degree gets swapped with another group0 degree)
+		chromaAlterations.set(degreeIn, alteration);
 
 		String dbgstr = "";
 
-		for (auto alteration : modmosProperties)
+		for (auto alteration : chromaAlterations)
 		{
-			dbgstr += alteration.toString() + '\n';
+			dbgstr += String(alteration) + ", ";
 		}
 		DBG("MODMOS Properties:\n" + dbgstr);
-	}
 
-	fillSymmetricGrouping();
+		fillSymmetricGrouping();
+	}
+}
+
+void ScaleStructure::alterDegree(int degreeIn, int alterSize)
+{
+	if (degreeIn < period)
+	{
+		chromaAlterations.getReference(degreeIn) += alterSize;
+
+		String dbgstr = "";
+		for (auto alteration : chromaAlterations)
+		{
+			dbgstr += String(alteration) + ", ";
+		}
+		DBG("MODMOS Properties:\n" + dbgstr);
+
+		fillSymmetricGrouping();
+	}
 }
 
 void ScaleStructure::setPeriodFactorIndex(int index)
@@ -394,11 +368,16 @@ void ScaleStructure::setGeneratorOffset(int offsetIn)
 	useSuggestedSizeGrouping();
 }
 
-void ScaleStructure::setMODMOSProperties(Array<Point<int>> modmosPropertiesIn)
+bool ScaleStructure::setChromaAlterations(Array<int> chromaAlterationsIn)
 {
-	modmosProperties = modmosPropertiesIn;
-	fillSymmetricGrouping();
-	// TODO: handle non-symmetric cases
+	if (chromaAlterationsIn.size() == period)
+	{
+		chromaAlterations = chromaAlterationsIn;
+		fillSymmetricGrouping(); // TODO: handle non-symmetric cases
+		return true;
+	}
+
+	return false;
 }
 
 void ScaleStructure::calculateProperties()
@@ -407,7 +386,9 @@ void ScaleStructure::calculateProperties()
 	scaleSizes.clear();
 	keyboardTypes.clear();
 	pgCoords.clear();
-	modmosProperties.clear();
+
+	chromaAlterations.resize(period);
+	chromaAlterations.fill(0);
 
 	// Calculate properties of scale
 	Array<int> cf = getContinuedFraction((double)getGenerator() / fPeriod);
@@ -605,9 +586,7 @@ void ScaleStructure::fillSymmetricGrouping()
 		ind += groupSize;
 	}
 
-	// Rearrange degrees if MODMOS properties exist
-	if (modmosProperties.size() > 0)
-		applyMODMOSProperties();
+	applyChromaAlterations();
 
 	String dbgstr = "";
 	int size, sum = 0;
@@ -635,41 +614,39 @@ void ScaleStructure::fillSymmetricGrouping()
 	DBG(dbgstr);
 }
 
-void ScaleStructure::applyMODMOSProperties()
+void ScaleStructure::applyChromaAlterations()
 {
 	Array<int> naturalScale = degreeGroupings[0];
 	naturalScale.sort();
 
-	for (auto alteration : modmosProperties)
+	// TODO: fix fractional periods
+	for (int degIndex = 0; degIndex < getScaleSize() * periodFactorSelected; degIndex++)
 	{
-		// Get current properties
-		int naturalDegree = alteration.x;
-		int scaleDegree = naturalScale[naturalDegree];
-		int naturalGroupingIndex = degreeGroupings.getReference(0).indexOf(scaleDegree);
-
-		int amount = alteration.y;
 		int scaleSize = scaleSizes[sizeIndexSelected];
-		DBG("Scale size is " + String(scaleSize));
+		int amount = chromaAlterations[degIndex];
 
 		// Find the altered scale degree
-		int originalChainIndex = generatorChain.indexOf(scaleDegree);
-		int fractionalChainIndex = originalChainIndex % fPeriod;
-		int periodDegreeIsIn = originalChainIndex / fPeriod;
-
-		int shiftAmount = amount * scaleSize;
-		int shiftedIndex = modulo(fractionalChainIndex + shiftAmount, fPeriod) + fPeriod * periodDegreeIsIn;
-		int alteredDegree = generatorChain[shiftedIndex];
-
-		// Swap the scale degrees in degreeGroupings
-		for (int i = 0; i < degreeGroupings.size(); i++)
+		if (amount != 0)
 		{
-			Array<int>& group = degreeGroupings.getReference(i);
+			int originalDegree = generatorChain[degIndex];
+			int fractionalChainIndex = degIndex % fPeriod;
+			int periodDegreeIsIn = degIndex / fPeriod;
 
-			if (group.contains(alteredDegree))
+			int shiftAmount = amount * scaleSize;
+			int shiftedIndex = modulo(fractionalChainIndex + shiftAmount, fPeriod) + fPeriod * periodDegreeIsIn;
+			int alteredDegree = generatorChain[shiftedIndex];
+
+			// Swap the scale degrees in degreeGroupings
+			for (int i = 0; i < degreeGroupings.size(); i++)
 			{
-				int indexToSwap = group.indexOf(alteredDegree);
-				degreeGroupings.getReference(0).set(naturalGroupingIndex, alteredDegree);
-				group.set(indexToSwap, scaleDegree);
+				Array<int>& group = degreeGroupings.getReference(i);
+
+				if (group.contains(alteredDegree))
+				{
+					int indexToSwap = group.indexOf(alteredDegree);
+					degreeGroupings.getReference(0).set(degIndex, alteredDegree);
+					group.set(indexToSwap, originalDegree);
+				}
 			}
 		}
 	}

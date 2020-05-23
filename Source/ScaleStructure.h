@@ -36,7 +36,7 @@ class ScaleStructure
 	Array<int> degreeGroupScaleSizes;
 	Array<Array<int>> degreeGroupings;
 
-	Array<Point<int>> modmosProperties;
+	Array<int> chromaAlterations;
 
 	// Calculates the properties related to the Period & Generator combo
 	void calculateProperties();
@@ -56,7 +56,7 @@ class ScaleStructure
 	void fillSymmetricGrouping();
 
 	// Swaps degrees in generator chain based off of modifications
-	void applyMODMOSProperties();
+	void applyChromaAlterations();
 
 public:
 
@@ -77,7 +77,7 @@ public:
 		int generatorOffsetIn = 0,
 		int periodFactorIndexIn = 0,
 		Array<int> degreeGroupSizeIndiciesIn = Array<int>(),
-		Array<Point<int>> modMosPropertiesIn = Array<Point<int>>());
+		Array<int> chromaAlterationsIn = Array<int>());
 
 	/*
 		Returns the chosen period. If 'true' is passed in, the period is divided by
@@ -127,13 +127,12 @@ public:
 	Array<Array<int>> getDegreeGroupings() const;
 	const Array<Array<int>>& getDegreeGroupingsReference() const;
 	int getGroupOfDegree(int scaleDegreeIn) const;
-	int getModeDegreeFromChainDegree(int chainDegreeIn) const;
 
 	Array<int> findDegreeMods(int degreeIndex, int chromaLevels) const;
-	Array<Point<int>> getMODMOSProperties() const;
-	int modeDegreeToScaleDegree(int modeDegree) const;
-	int getAlterationOfDegree(int modeDegree) const;
-	void setAlterationofDegree(int modeDegree, int alteration);
+	Array<int> getChromaAlterations() const;
+	int getAlterationOfDegree(int degreeIn) const;
+	void setAlterationOfDegree(int degreeIn, int alteration);
+	void alterDegree(int degreeIn, int alterSize);
 
 	bool isValid() const;
 
@@ -144,10 +143,10 @@ public:
 
 	/*
 		Input a mapping of scale degrees and chroma alteration values.
-		x of Point is a scale degree between 0 and scaleSize, in numerical order (not chain of generators)
-		y of Point is the amount of chroma alterations, usually +/- 1
+		Index refers to generator chain degree, and value is how many chromas it's moved by
+		Must be equal to size of period
 	*/
-	void setMODMOSProperties(Array<Point<int>> modmosPropertiesIn);
+	bool setChromaAlterations(Array<int> modmosPropertiesIn);
 
 	// Returns the index whose generator is closest to a perfect fifth
 	int getSuggestedGeneratorIndex();
