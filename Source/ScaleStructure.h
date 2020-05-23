@@ -129,6 +129,7 @@ public:
 	int getGroupOfDegree(int scaleDegreeIn) const;
 	int getModeDegreeFromChainDegree(int chainDegreeIn) const;
 
+	Array<int> findDegreeMods(int degreeIndex, int chromaLevels) const;
 	Array<Point<int>> getMODMOSProperties() const;
 	int modeDegreeToScaleDegree(int modeDegree) const;
 	int getAlterationOfDegree(int modeDegree) const;

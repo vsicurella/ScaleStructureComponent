@@ -251,6 +251,51 @@ int ScaleStructure::getModeDegreeFromChainDegree(int chainDegreeIn) const
 	return naturalScale.indexOf(chainDegreeIn);
 }
 
+Array<int> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLevels) const
+{
+	// update chroma steps
+	Array<int> stepsToChroma;
+	for (int i = sizeIndexSelected; i < scaleSizes.size() - 1; i++)
+	{
+		// TODO: improve getter
+		stepsToChroma.add(scaleSizes[i]);
+	}
+
+	// TODO: Update for fractional periods
+	Array<int> degreeModCandidates;
+	degreeModCandidates.resize(period);
+
+	//for (int i = 0; i < stepsToChromas.size(); i++)
+	//{
+		//int step = stepsToChromas[i];
+	int step = stepsToChroma[0];
+	int deg = modulo(degreeIndex + step, period);
+	int chromas = 1;
+
+	// forward
+	// TODO: improve condition
+	while (deg >= step)
+	{
+		// TODO: improve the "notAlreadyThere" check
+		degreeModCandidates.set(deg, chromas);
+		deg = modulo(deg + step, period);
+		chromas++;
+	}
+
+	deg = modulo(degreeIndex - step, period);
+	chromas = -1;
+	// backward
+	while (deg >= step)
+	{
+		degreeModCandidates.set(deg, chromas);
+		deg = modulo(deg - step, period);
+		chromas--;
+	}
+	//}
+
+	return degreeModCandidates;
+}
+
 Array<Point<int>> ScaleStructure::getMODMOSProperties() const
 {
 	return modmosProperties;
