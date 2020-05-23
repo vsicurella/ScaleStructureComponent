@@ -58,7 +58,7 @@ public:
 	void selectorValueChanged(NumberSelector* selectorThatHasChanged) override;
 
 	void offsetChanged(int newOffset) override;
-	void degreesSwapped(int originalDegreeIndex, int chromasMoved) override;
+	void degreeAltered(int degreeIndex, int chromasMoved) override;
 
 	void updateGenerators();
 	void updateScaleSizes();
