@@ -302,21 +302,6 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 	sendChangeMessage();
 }
 
-void ScaleStructureComponent::valueChanged(Value& valueThatHasChanged)
-{
-	if (valueThatHasChanged.refersToSameSourceAs(*circleOffset))
-	{
-		scaleStructure.setGeneratorOffset((int) circleOffset->getValue());
-		circle->updateGenerator();
-
-		DBG("SSC: Generator Offset changed to: " + String(scaleStructure.getGeneratorOffset()));
-
-		updateOffsetLabel();
-		updateLsLabel();
-		sendChangeMessage();
-	}
-}
-
 void ScaleStructureComponent::offsetChanged(int newOffset)
 {
 	generatorOffset = newOffset;
@@ -326,6 +311,12 @@ void ScaleStructureComponent::offsetChanged(int newOffset)
 	updateOffsetLabel();
 	updateLsLabel();
 	sendChangeMessage();
+}
+
+void ScaleStructureComponent::degreesSwapped(int originalDegreeIndex, int chromasMoved)
+{
+	// TODO
+	DBG("Degrees swapped");
 }
 
 void ScaleStructureComponent::updateGenerators()
@@ -368,7 +359,7 @@ void ScaleStructureComponent::onPeriodFactorChange(int factorIndexIn)
 	else
 		periodFactorSelected = 0;
 
-	scaleStructure.setAll(scaleStructure.getPeriod(), -1, -1, circleOffset->getValue(), periodFactorSelected);
+	scaleStructure.setAll(scaleStructure.getPeriod(), -1, -1, generatorOffset, periodFactorSelected);
 	DBG("SSC: Num periods changed to: " + String(scaleStructure.getPeriodFactor()));
 
 	periodCents = log2f(periodRatio) * 1200 / scaleStructure.getPeriodFactor();
@@ -420,7 +411,7 @@ void ScaleStructureComponent::updateOffsetLabel()
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="ScaleStructureComponent"
-                 componentName="" parentClasses="public Component, public ChangeBroadcaster, private NumberSelector::Listener, private GroupingCircle::Listener, private Value::Listener, private Button::Listener"
+                 componentName="" parentClasses="public Component, public ChangeBroadcaster, private NumberSelector::Listener, private GroupingCircle::Listener, private Button::Listener"
                  constructorParams="ScaleStructure&amp; scaleStructureIn, Array&lt;Colour&gt;&amp; colourTableIn"
                  variableInitialisers="scaleStructure(scaleStructureIn), colourTable(colourTableIn)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"

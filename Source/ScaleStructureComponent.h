@@ -43,7 +43,6 @@ class ScaleStructureComponent  : public Component,
                                  public ChangeBroadcaster,
                                  private NumberSelector::Listener,
                                  private GroupingCircle::Listener,
-                                 private Value::Listener,
                                  private Button::Listener
 {
 public:
@@ -57,9 +56,9 @@ public:
 
 	void buttonClicked(Button* buttonThatWasClicked) override;
 	void selectorValueChanged(NumberSelector* selectorThatHasChanged) override;
-	void valueChanged(Value& valueThatHasChanged) override;
 
 	void offsetChanged(int newOffset) override;
+	void degreesSwapped(int originalDegreeIndex, int chromasMoved) override;
 
 	void updateGenerators();
 	void updateScaleSizes();
@@ -86,7 +85,6 @@ private:
 	Array<Colour>& colourTable;
 
 	GroupingCircle* circle;
-	Value* circleOffset;
 
 	TooltipWindow tooltipWindow;
 

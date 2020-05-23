@@ -251,7 +251,7 @@ void GroupingCircle::resized()
 
 void GroupingCircle::mouseMove(const MouseEvent& event)
 {
-	float mouseRadius = event.position.getDistanceFrom(center);
+	mouseRadius = event.position.getDistanceFrom(center);
 	bool dirty = false;
 
 	// If mouse is not in rings, remove highlights
@@ -313,14 +313,60 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 		repaint();
 }
 
+void GroupingCircle::mouseDown(const MouseEvent& event)
+{
+	bool cancelDegreeMods = true;
+
+	// If mouse is on a group or degree section
+	if (mouseRadius > degreeInnerRadius&& mouseRadius < groupOuterRadius)
+	{
+		// If mouse on a degree
+		if (mouseRadius < degreeOuterRadius)
+		{
+			// Show menu
+			if (event.mods.isRightButtonDown())
+			{
+				PopupMenu::Options options = PopupMenu::Options().withMaximumNumColumns(1);
+
+				int& modDegree = degreeChainIndexToMod;
+				int degreeMouseOn = degreeSectorMouseOver;
+				auto findMods = [this]() {findDegreeModCandidates(); };
+				auto redraw = [this]() {repaint(); };
+
+				degreeMenu.clear();
+				degreeMenu.addItem("Show modifiable degrees", true, false, [&modDegree, degreeMouseOn, findMods, redraw](void) {
+					modDegree = degreeMouseOn;
+					findMods();
+					redraw();
+				});
+
+				degreeMenu.showMenuAsync(options);
+				cancelDegreeMods = false;
+			}
+			else if (degreeModCandidates.contains(degreeSectorMouseOver))
+			{
+				listeners.call(&Listener::degreesSwapped, degreeChainIndexToMod, 0);
+				updateGenerator();
+			}
+		}
+	}
+
+	if (cancelDegreeMods)
+	{
+		degreeChainIndexToMod = -1;
+		degreeModCandidates.clear();
+		repaint();
+	}
+}
+
 void GroupingCircle::mouseDrag(const MouseEvent& event)
 {
-	float mouseDownRadius = event.mouseDownPosition.getDistanceFrom(center);
+	mouseDownRadius = event.mouseDownPosition.getDistanceFrom(center);
+	mouseRadius = event.position.getDistanceFrom(center);
 	bool dirty = false;
 
 	if (mouseDownRadius >= degreeInnerRadius && mouseDownRadius < degreeOuterRadius)
 	{
-		float mouseRadius = event.position.getDistanceFrom(center);
 		float angle = getNormalizedMouseAngle(event);
 		int degreeIndex = mouseInDegreeSector(event, angle);
 

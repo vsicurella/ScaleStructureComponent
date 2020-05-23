@@ -53,7 +53,9 @@ public:
     void resized() override;
 
 	void mouseMove(const MouseEvent& event) override;
+	void mouseDown(const MouseEvent& event) override;
 	void mouseDrag(const MouseEvent& event) override;
+
 
 	class Listener
 	{
@@ -61,6 +63,7 @@ public:
 		~Listener() {};
 
 		virtual void offsetChanged(int newOffset) = 0;
+		virtual void degreesSwapped(int originalDegreeIndex, int chromasMoved) = 0;
 	};
 
 	void addListener(Listener* listenerToAdd);
@@ -93,10 +96,22 @@ private:
 	// TODO: decide whether or not to have control modes
 	ControlMode controlModeSelected = ControlMode::Layout;
 
+	PopupMenu groupMenu;
+	PopupMenu degreeMenu;
 	
+	// MODMOS functionality
 	int degreeChainIndexToMod = -1;
 	Array<int> degreeModCandidates;
 	Array<int> stepsToChromas;
+
+	// Mouse functionality
+	
+	int mouseRadius, mouseDownRadius;
+	int degreeSectorMouseOver = -1;
+	int groupSectorMouseOver = -1;
+	int lastDegreeSectorMouseIn = -1;
+	int lastGroupSectorMouseIn = -1;
+
 
 	// Drawing related members
 	float borderRatio = 127.0f / 128.0f;
@@ -131,11 +146,6 @@ private:
 	PathStrokeType strokeType = PathStrokeType(2.0f);
 
 	float sectorLabelSizeRatio = 0.875f;
-
-	int degreeSectorMouseOver = -1;
-	int groupSectorMouseOver = -1;
-	int lastDegreeSectorMouseIn = -1;
-	int lastGroupSectorMouseIn = -1;
 
 	float highlightContrastRatio = 1.0f / 6.0f;
 	float labelContrastRatio = 2.0f / 3.0f;
