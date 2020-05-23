@@ -103,6 +103,7 @@ private:
 	int degreeIndexToMod = -1;
 	Array<int> degreeModCandidates;
 	Array<int> stepsToChromas;
+	Array<int> alterations;
 
 	// Mouse functionality
 	

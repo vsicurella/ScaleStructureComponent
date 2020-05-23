@@ -179,7 +179,7 @@ void GroupingCircle::resized()
 
 	int groupIndex = 0;
 	int groupDegreesPassed = 0;
-	
+
 	float degreeLabelSize = jmin(degreeRingWidth, float_Tau * degreeMiddleRadius / degreeLabels.size()) * sectorLabelSizeRatio;
 	float groupLabelSize = groupRingWidth * sectorLabelSizeRatio;
 
@@ -207,7 +207,7 @@ void GroupingCircle::resized()
 		// place labels
 		degreeLabel = degreeLabels[i];
 		degreeLabel->setFont(Font().withHeight(degreeLabelSize));
-		degreeLabelWidth = degreeLabel->getFont().getStringWidthFloat(" " + degreeLabel->getText() + " ");
+		degreeLabelWidth = degreeLabel->getFont().getStringWidthFloat(degreeLabel->getText());
 		degreeLabel->setSize(jmax(degreeLabelWidth, degreeLabelSize), degreeLabelSize);
 
 		degLabelAngle =  angleTo - angleHalf - float_HalfPi;
@@ -431,6 +431,7 @@ void GroupingCircle::updatePeriod()
 void GroupingCircle::updateGenerator()
 {
 	degreeGroupings = scaleStructure.getDegreeGroupings();
+	alterations = scaleStructure.getChromaAlterations();
 
 	// build generatorChain based on degreeGroupings
 	generatorChain.clear();
@@ -453,7 +454,16 @@ void GroupingCircle::updateGenerator()
 	
 	for (int i = 0; i < degreeLabels.size(); i++)
 	{
-		degreeLabels[i]->setText(String(generatorChain[i]), dontSendNotification);
+		String degreeText = " " + String(generatorChain[i]) + " ";
+		//if (alterations[i] > 0)
+		//{
+		//	degreeText += "+";
+		//}
+		//if (alterations[i] != 0)
+		//{
+		//	degreeText += String(alterations[i]);
+		//}
+		degreeLabels[i]->setText(String(degreeText), dontSendNotification);
 		//degreeLabels[i]->setColour(Label::ColourIds::outlineColourId, Colours::white);
 	}
 
