@@ -352,20 +352,29 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 				int& modDegree = degreeIndexToMod;
 				int degreeMouseOn = degreeSectorMouseOver;
 				Array<int>& mods = degreeModCandidates;
+				bool& hideMods = cancelDegreeMods;
+				
 				const ScaleStructure& structure = scaleStructure;
-
-				std::function<Array<int>(const ScaleStructure&, int, int)> findMods = &ScaleStructure::findDegreeMods;
+				
 				auto redraw = [this]() {repaint(); };
+				auto alterationCallback = [this](int degIndex, int alteration) {
+					listeners.call(&Listener::degreeAltered, degIndex, alteration);
+					updateGenerator();
+				};
 
 				degreeMenu.clear();
-				degreeMenu.addItem("Show modifiable degrees", true, false, [&modDegree, degreeMouseOn, &structure, &mods, findMods, redraw](void) {
+				degreeMenu.addItem("Show modifiable degrees", true, false, [&modDegree, degreeMouseOn, &structure, &mods, &hideMods, redraw](void) {
 					modDegree = degreeMouseOn;
-					mods = findMods(structure, modDegree, 1);
+					mods = structure.findDegreeMods(modDegree, 1);
+					hideMods = false;
 					redraw();
 				});
 
+				degreeMenu.addItem("Reset modifications", alterations[degreeSectorMouseOver] != 0, false, [degreeMouseOn, alterationCallback](void) {
+					alterationCallback(degreeMouseOn, 0);
+				});
+
 				degreeMenu.showMenuAsync(options);
-				cancelDegreeMods = false;
 			}
 
 			else if (degreeModCandidates[degreeSectorMouseOver] != 0)

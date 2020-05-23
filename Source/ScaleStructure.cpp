@@ -298,6 +298,13 @@ int ScaleStructure::getAlterationOfDegree(int degreeIn) const
 	return chromaAlterations[degreeIn];
 }
 
+int ScaleStructure::getDegreeIndexOfAlteration(int degreeIn, int alteration) const
+{
+	int fractionalChainIndex = degreeIn % fPeriod;
+	int periodDegreeIsIn = degreeIn / fPeriod;
+	return modulo(fractionalChainIndex + alteration * getScaleSize(), fPeriod) + fPeriod * periodDegreeIsIn;
+}
+
 void ScaleStructure::setAlterationOfDegree(int degreeIn, int alteration)
 {
 	if (degreeIn < period)
@@ -308,7 +315,7 @@ void ScaleStructure::setAlterationOfDegree(int degreeIn, int alteration)
 	}
 }
 
-void ScaleStructure::alterDegree(int degreeIn, int alterSize)
+void ScaleStructure::addAlterationToDegree(int degreeIn, int alterSize)
 {
 	if (degreeIn < period)
 	{
@@ -322,6 +329,16 @@ void ScaleStructure::alterDegree(int degreeIn, int alterSize)
 		DBG("MODMOS Properties:\n" + dbgstr);
 
 		fillSymmetricGrouping();
+	}
+}
+
+void ScaleStructure::resetAlterationOfDegree(int degreeIn)
+{
+	if (degreeIn < period)
+	{
+		int currentAlt = chromaAlterations[degreeIn];
+		chromaAlterations.set(getDegreeIndexOfAlteration(degreeIn, currentAlt), 0);
+		chromaAlterations.set(degreeIn, 0);
 	}
 }
 
@@ -607,24 +624,16 @@ void ScaleStructure::fillSymmetricGrouping()
 
 void ScaleStructure::applyChromaAlterations()
 {
-	Array<int> naturalScale = degreeGroupings[0];
-	naturalScale.sort();
-
 	// TODO: fix fractional periods
 	for (int degIndex = 0; degIndex < getScaleSize() * periodFactorSelected; degIndex++)
 	{
-		int scaleSize = scaleSizes[sizeIndexSelected];
 		int amount = chromaAlterations[degIndex];
 
 		// Find the altered scale degree
 		if (amount != 0)
 		{
 			int originalDegree = generatorChain[degIndex];
-			int fractionalChainIndex = degIndex % fPeriod;
-			int periodDegreeIsIn = degIndex / fPeriod;
-
-			int shiftAmount = amount * scaleSize;
-			int shiftedIndex = modulo(fractionalChainIndex + shiftAmount, fPeriod) + fPeriod * periodDegreeIsIn;
+			int shiftedIndex = getDegreeIndexOfAlteration(degIndex, amount); 
 			int alteredDegree = generatorChain[shiftedIndex];
 
 			// Swap the scale degrees in degreeGroupings

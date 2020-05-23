@@ -129,10 +129,14 @@ public:
 	int getGroupOfDegree(int scaleDegreeIn) const;
 
 	Array<int> findDegreeMods(int degreeIndex, int chromaLevels) const;
+	
 	Array<int> getChromaAlterations() const;
 	int getAlterationOfDegree(int degreeIn) const;
+	int getDegreeIndexOfAlteration(int degreeIn, int alteration) const;
+
 	void setAlterationOfDegree(int degreeIn, int alteration);
-	void alterDegree(int degreeIn, int alterSize);
+	void addAlterationToDegree(int degreeIn, int alterSize);
+	void resetAlterationOfDegree(int degreeIn);
 
 	bool isValid() const;
 

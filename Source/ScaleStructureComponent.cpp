@@ -313,11 +313,14 @@ void ScaleStructureComponent::offsetChanged(int newOffset)
 	sendChangeMessage();
 }
 
-void ScaleStructureComponent::degreeAltered(int degreeIndex, int chromasMoved)
+void ScaleStructureComponent::degreeAltered(int degreeIndex, int chromaAmount)
 {
-	// TODO
-	scaleStructure.setAlterationOfDegree(degreeIndex, chromasMoved);
-	DBG("Degree swapped: " + String(degreeIndex) + " Chromas: " + String(chromasMoved));
+	if (chromaAmount != 0)
+		scaleStructure.setAlterationOfDegree(degreeIndex, chromaAmount);
+	else
+		scaleStructure.resetAlterationOfDegree(degreeIndex);
+
+	DBG("Degree swapped: " + String(degreeIndex) + " Chromas: " + String(chromaAmount));
 	circle->updateGenerator();
 }
 
