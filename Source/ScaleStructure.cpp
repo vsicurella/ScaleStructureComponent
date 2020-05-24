@@ -245,11 +245,9 @@ int ScaleStructure::getGroupOfDegree(int scaleDegreeIn) const
 
 Array<int> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLevels) const
 {
-	// update chroma steps
 	Array<int> stepsToChroma;
 	for (int i = sizeIndexSelected; i < scaleSizes.size() - 1; i++)
 	{
-		// TODO: improve getter
 		stepsToChroma.add(scaleSizes[i]);
 	}
 
@@ -257,33 +255,38 @@ Array<int> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLevels) con
 	Array<int> degreeModCandidates;
 	degreeModCandidates.resize(period);
 
-	//for (int i = 0; i < stepsToChromas.size(); i++)
-	//{
-		//int step = stepsToChromas[i];
-	int step = stepsToChroma[0];
-	int deg = modulo(degreeIndex + step, period);
-	int chromas = 1;
+	int levels;
+	if (chromaLevels < 1) // Invalid values use all chromas
+		levels = stepsToChroma.size();
+	else
+		levels = jmin(chromaLevels, stepsToChroma.size());
 
-	// forward
-	// TODO: improve condition
-	while (deg >= step)
+	for (int i = 0; i < levels; i++)
 	{
-		// TODO: improve the "notAlreadyThere" check
-		degreeModCandidates.set(deg, chromas);
-		deg = modulo(deg + step, period);
-		chromas++;
-	}
+		int step = stepsToChroma[i];
+		int deg = modulo(degreeIndex + step, period);
+		int chromas = 1;
 
-	deg = modulo(degreeIndex - step, period);
-	chromas = -1;
-	// backward
-	while (deg >= step)
-	{
-		degreeModCandidates.set(deg, chromas);
-		deg = modulo(deg - step, period);
-		chromas--;
+		// forward
+		while (deg >= step)
+		{
+			if (degreeModCandidates[deg] == 0 && chromaAlterations[deg] == 0)
+				degreeModCandidates.set(deg, chromas);
+			deg = modulo(deg + step, period);
+			chromas++;
+		}
+
+		deg = modulo(degreeIndex - step, period);
+		chromas = -1;
+		// backward
+		while (deg >= step)
+		{
+			if (degreeModCandidates[deg] == 0 && chromaAlterations[deg] == 0)
+				degreeModCandidates.set(deg, chromas);
+			deg = modulo(deg - step, period);
+			chromas--;
+		}
 	}
-	//}
 
 	return degreeModCandidates;
 }
