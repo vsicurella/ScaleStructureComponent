@@ -322,6 +322,7 @@ void ScaleStructureComponent::degreeAltered(int degreeIndex, int chromaAmount)
 
 	DBG("Degree swapped: " + String(degreeIndex) + " Chromas: " + String(chromaAmount));
 	circle->updateGenerator();
+	sendChangeMessage();
 }
 
 void ScaleStructureComponent::updateGenerators()
