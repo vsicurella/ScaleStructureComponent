@@ -19,18 +19,8 @@
 class GroupingCircle    : public Component
 {
 public:
-
-	enum ControlMode
-	{
-		Layout = 0,
-		Notes
-	};
-
-public:
     GroupingCircle(const ScaleStructure& structureIn, Array<Colour>& colourTableIn);
     ~GroupingCircle();
-
-	ControlMode getControlMode();
 
 	float getInnerRadius() const;
 	float getMiddleRadius() const;
@@ -43,8 +33,6 @@ public:
 	Point<float> getCenter() const;
 	Point<float> getFloatPointFromCenter(float radius, float angle) const;
 	Point<int> getIntPointFromCenter(float radius, float angle) const;
-
-	void setControlMode(ControlMode controlModeIn);
 
 	void updatePeriod();
 	void updateGenerator();
@@ -92,9 +80,6 @@ private:
 
 	// Starting from the top (scale size selected) going clockwise
 	Array<int> groupSizes;
-
-	// TODO: decide whether or not to have control modes
-	ControlMode controlModeSelected = ControlMode::Layout;
 
 	PopupMenu groupMenu;
 	PopupMenu degreeMenu;

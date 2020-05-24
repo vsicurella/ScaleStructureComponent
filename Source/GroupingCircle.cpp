@@ -70,16 +70,6 @@ Point<int> GroupingCircle::getIntPointFromCenter(float radius, float angle) cons
 	return getFloatPointFromCenter(radius, angle).toInt();
 }
 
-GroupingCircle::ControlMode GroupingCircle::getControlMode()
-{
-	return controlModeSelected;
-}
-
-void GroupingCircle::setControlMode(ControlMode controlModeIn)
-{
-	controlModeSelected = controlModeIn;
-}
-
 void GroupingCircle::paint (Graphics& g)
 {
 	g.fillAll(Colour());
@@ -88,13 +78,6 @@ void GroupingCircle::paint (Graphics& g)
 	g.setColour(Colours::black);
 
 	strokeType.setStrokeThickness(2.0f);
-
-	if (controlModeSelected == ControlMode::Notes)
-	{
-	}
-	else
-	{
-	}
 
 	Colour groupColour;
 	Colour degreeColour;
@@ -145,11 +128,6 @@ void GroupingCircle::paint (Graphics& g)
 			degreeLabels[degIndex]->applyColourToAllText(degreeColour.contrasting(labelContrastRatio));
 			degIndex++;
 		}
-	}
-
-	if (controlModeSelected == ControlMode::Layout)
-	{
-		// TODO: Outline degree group edges
 	}
 }
 
