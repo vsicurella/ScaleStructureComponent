@@ -37,6 +37,8 @@ public:
 	void updatePeriod();
 	void updateGenerator();
 
+	void cancelDegreeMods();
+
     void paint (Graphics&) override;
     void resized() override;
 

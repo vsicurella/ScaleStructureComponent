@@ -314,7 +314,7 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 
 void GroupingCircle::mouseDown(const MouseEvent& event)
 {
-	bool cancelDegreeMods = true;
+	bool cancelMods = true;
 
 	// If mouse is on a group or degree section
 	if (mouseRadius > degreeInnerRadius&& mouseRadius < groupOuterRadius)
@@ -330,7 +330,7 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 				int& modDegree = degreeIndexToMod;
 				int degreeMouseOn = degreeSectorMouseOver;
 				Array<int>& mods = degreeModCandidates;
-				bool& hideMods = cancelDegreeMods;
+				bool& hideMods = cancelMods;
 				
 				const ScaleStructure& structure = scaleStructure;
 				
@@ -363,10 +363,9 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 		}
 	}
 
-	if (cancelDegreeMods)
+	if (cancelMods)
 	{
-		degreeIndexToMod = -1;
-		degreeModCandidates.clear();
+		cancelDegreeMods();
 		repaint();
 	}
 }
@@ -441,9 +440,11 @@ void GroupingCircle::updatePeriod()
 
 void GroupingCircle::updateGenerator()
 {
-	degreeGroupings = scaleStructure.getDegreeGroupings();
+	cancelDegreeMods();
 	alterations = scaleStructure.getChromaAlterations();
 
+	degreeGroupings = scaleStructure.getDegreeGroupings();
+	
 	// build generatorChain based on degreeGroupings
 	generatorChain.clear();
 	
@@ -482,6 +483,12 @@ void GroupingCircle::updateGenerator()
 
 	resized();
 	repaint();
+}
+
+void GroupingCircle::cancelDegreeMods()
+{
+	degreeIndexToMod = -1;
+	degreeModCandidates.clear();
 }
 
 float GroupingCircle::getNormalizedMouseAngle(const MouseEvent& event)

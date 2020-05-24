@@ -339,6 +339,7 @@ void ScaleStructure::resetAlterationOfDegree(int degreeIn)
 		int currentAlt = chromaAlterations[degreeIn];
 		chromaAlterations.set(getDegreeIndexOfAlteration(degreeIn, currentAlt), 0);
 		chromaAlterations.set(degreeIn, 0);
+		fillSymmetricGrouping();
 	}
 }
 
