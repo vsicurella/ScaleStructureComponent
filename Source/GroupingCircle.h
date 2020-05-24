@@ -37,6 +37,7 @@ public:
 	void updatePeriod();
 	void updateGenerator();
 
+	void degreeToModSelectedCallback(int degreeIndex);
 	void cancelDegreeMods();
 
     void paint (Graphics&) override;

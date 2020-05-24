@@ -195,6 +195,7 @@ void GroupingCircle::resized()
 		degreeLabel->insertTextAtCaret(String(generatorChain[i]));
 
 		degreeAlteration = alterations[i];
+
 		if (degreeAlteration != 0)
 		{
 			degreeText = "";
@@ -327,25 +328,22 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 			{
 				PopupMenu::Options options = PopupMenu::Options().withMaximumNumColumns(1);
 
-				int& modDegree = degreeIndexToMod;
 				int degreeMouseOn = degreeSectorMouseOver;
-				Array<int>& mods = degreeModCandidates;
 				bool& hideMods = cancelMods;
+								
+				auto selectionCallback = [this](int degIndex) {
+					degreeToModSelectedCallback(degIndex);
+				};
 				
-				const ScaleStructure& structure = scaleStructure;
-				
-				auto redraw = [this]() {repaint(); };
 				auto alterationCallback = [this](int degIndex, int alteration) {
 					listeners.call(&Listener::degreeAltered, degIndex, alteration);
 					updateGenerator();
 				};
 
 				degreeMenu.clear();
-				degreeMenu.addItem("Show modifiable degrees", true, false, [&modDegree, degreeMouseOn, &structure, &mods, &hideMods, redraw](void) {
-					modDegree = degreeMouseOn;
-					mods = structure.findDegreeMods(modDegree, 1);
+				degreeMenu.addItem("Show modifiable degrees", true, false, [selectionCallback, degreeMouseOn, &hideMods](void) {
+					selectionCallback(degreeMouseOn);
 					hideMods = false;
-					redraw();
 				});
 
 				degreeMenu.addItem("Reset modifications", alterations[degreeSectorMouseOver] != 0, false, [degreeMouseOn, alterationCallback](void) {
@@ -485,10 +483,27 @@ void GroupingCircle::updateGenerator()
 	repaint();
 }
 
+void GroupingCircle::degreeToModSelectedCallback(int degreeIndex)
+{
+	degreeIndexToMod = degreeIndex;
+	degreeModCandidates = scaleStructure.findDegreeMods(degreeIndexToMod, 1);
+	TextEditor* label = degreeLabels[degreeIndexToMod];
+	label->setFont(label->getFont().withHeight(label->getHeight() / 3.0f));
+	label->insertTextAtCaret("*");
+	repaint();
+}
+
 void GroupingCircle::cancelDegreeMods()
 {
-	degreeIndexToMod = -1;
-	degreeModCandidates.clear();
+	if (degreeIndexToMod > -1 && degreeIndexToMod < scaleStructure.getPeriod())
+	{
+		TextEditor* label = degreeLabels[degreeIndexToMod];
+		label->setHighlightedRegion(Range<int>(label->getText().length() - 1, label->getText().length()));
+		label->insertTextAtCaret(String());
+		degreeIndexToMod = -1;
+		degreeModCandidates.clear();
+	}
+	
 }
 
 float GroupingCircle::getNormalizedMouseAngle(const MouseEvent& event)
