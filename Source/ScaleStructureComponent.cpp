@@ -286,11 +286,12 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		scaleStructure.getStepSize().x,
 		scaleStructure.getStepSize().y);
 
-	updateOffsetLimit();
+	//updateOffsetLimit();
+	generatorOffset = scaleStructure.getGeneratorOffset();
 	circle->updateGenerator();
 
 	updateLsLabel();
-	sendChangeMessage();
+	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 }
 
 void ScaleStructureComponent::offsetChanged(int newOffset)
@@ -301,7 +302,7 @@ void ScaleStructureComponent::offsetChanged(int newOffset)
 
 	updateOffsetLabel();
 	updateLsLabel();
-	sendChangeMessage();
+	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 }
 
 void ScaleStructureComponent::degreeAltered(int degreeIndex, int chromaAmount)
@@ -313,7 +314,7 @@ void ScaleStructureComponent::degreeAltered(int degreeIndex, int chromaAmount)
 
 	DBG("Degree swapped: " + String(degreeIndex) + " Chromas: " + String(chromaAmount));
 	circle->updateGenerator();
-	sendChangeMessage();
+	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 }
 
 void ScaleStructureComponent::updateGenerators()
@@ -358,9 +359,10 @@ void ScaleStructureComponent::onPeriodChange(bool sendNotification)
 {
 	periodSelected = periodSlider->getValue();
 
-	scaleStructure.setAll(periodSelected, -1, -1, 0, 0);
+	scaleStructure.setAll(periodSelected, -1, -1, generatorOffset, 0);
 	DBG("SSC: Period changed to: " + String(scaleStructure.getPeriod()));
 
+	generatorOffset = scaleStructure.getGeneratorOffset();
 	updatePeriodFactors();
 
 	periodCents = log2f(periodRatio / scaleStructure.getPeriodFactor()) * 1200;
@@ -386,23 +388,18 @@ void ScaleStructureComponent::onPeriodFactorChange(int factorIndexIn)
 
 	scaleStructure.setAll(scaleStructure.getPeriod(), -1, -1, generatorOffset, periodFactorSelected);
 	DBG("SSC: Num periods changed to: " + String(scaleStructure.getPeriodFactor()));
+	generatorOffset = scaleStructure.getGeneratorOffset();
 
 	periodCents = log2f(periodRatio) * 1200 / scaleStructure.getPeriodFactor();
 
-	updateOffsetLimit();
 	updateGenerators();
 	updateScaleSizes();
+
+	updateOffsetLabel();
 	updatePGLabel();
-	sendChangeMessage();
+	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 
 	circle->updateGenerator();
-}
-
-void ScaleStructureComponent::updateOffsetLimit()
-{
-	generatorOffset = jlimit(0, scaleStructure.getScaleSize() - 1, generatorOffset);
-	scaleStructure.setGeneratorOffset(generatorOffset);
-	updateOffsetLabel();
 }
 
 void ScaleStructureComponent::updatePGLabel()
@@ -443,7 +440,7 @@ void ScaleStructureComponent::removeListener(Listener* listenerIn)
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="ScaleStructureComponent"
-                 componentName="" parentClasses="public Component, public ChangeBroadcaster, private NumberSelector::Listener, private GroupingCircle::Listener, private Button::Listener"
+                 componentName="" parentClasses="public Component, private NumberSelector::Listener, private GroupingCircle::Listener, private Button::Listener"
                  constructorParams="ScaleStructure&amp; scaleStructureIn, Array&lt;Colour&gt;&amp; colourTableIn"
                  variableInitialisers="scaleStructure(scaleStructureIn), colourTable(colourTableIn)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"

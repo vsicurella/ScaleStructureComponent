@@ -370,7 +370,12 @@ void ScaleStructure::setGeneratorIndex(int index)
 void ScaleStructure::setSizeIndex(int index)
 {
 	sizeIndexSelected = index;
-	useSuggestedSizeGrouping();
+
+	// Restrict GeneratorOffset to valid value
+	if (generatorOffset >= getScaleSize())
+		setGeneratorOffset(getScaleSize() - 1);
+	else
+		useSuggestedSizeGrouping();
 }
 
 void ScaleStructure::setGeneratorOffset(int offsetIn)
