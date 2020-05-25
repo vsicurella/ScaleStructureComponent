@@ -40,8 +40,11 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 
     //[UserPreSize]
 
-	// Initialize ScaleStructure
-	scaleStructure.setAll(12, 4, 5, 1, 0);
+	// TODO: more proper ScaleStructure initialization
+	if (scaleStructure.getPeriod() < 5 || scaleStructure.getPeriod() > 275)
+		scaleStructure.resetToPeriod(12);
+	if (scaleStructure.getGeneratorIndex() < 0)
+		scaleStructure.setAll(scaleStructure.getPeriod(), -1, -1);
 
 	// Set up components
 	periodSlider.reset(new NumberSelector("Period"));
@@ -127,7 +130,7 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 
     //[/UserPreSize]
 
-    setSize (800, 800);
+    setSize (600, 600);
 
 
     //[Constructor] You can add your own custom stuff here..
@@ -137,6 +140,7 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 ScaleStructureComponent::~ScaleStructureComponent()
 {
     //[Destructor_pre]. You can add your own custom destruction code here..
+	listeners.clear();
     //[/Destructor_pre]
 
     circleComponent = nullptr;
@@ -157,8 +161,6 @@ void ScaleStructureComponent::paint (Graphics& g)
 {
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
-
-    g.fillAll (Colour (0xff323e44));
 
     //[UserPaint] Add your own custom painting code here..
 
@@ -257,22 +259,7 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 {
 	if (selectorThatHasChanged == periodSlider.get())
 	{
-		periodSelected = periodSlider->getValue();
-
-		scaleStructure.setAll(periodSelected, -1, -1, 0, 0);
-		DBG("SSC: Period changed to: " + String(scaleStructure.getPeriod()));
-
-		updatePeriodFactors();
-
-		periodCents = log2f(periodRatio / scaleStructure.getPeriodFactor()) * 1200;
-		degreeCents = periodCents / scaleStructure.getPeriod();
-		generatorCents = degreeCents * scaleStructure.getGenerator();
-
-		updateGenerators();
-		updateScaleSizes();
-		updatePGLabel();
-
-		circle->updatePeriod();
+		onPeriodChange();
 	}
 
 	else if (selectorThatHasChanged == generatorSlider.get())
@@ -294,6 +281,10 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 		scaleStructure.setSizeIndex(sizeSelector->getIndex() + 1);
 		DBG("SSC: Size changed to: " + String(scaleStructure.getScaleSize()));
 	}
+
+	listeners.call(&ScaleStructureComponent::Listener::scaleStructureStepSizesChanged,
+		scaleStructure.getStepSize().x,
+		scaleStructure.getStepSize().y);
 
 	updateOffsetLimit();
 	circle->updateGenerator();
@@ -358,6 +349,34 @@ void ScaleStructureComponent::updatePeriodFactors()
 		periodFactorButton->setVisible(true);
 }
 
+void ScaleStructureComponent::setPeriod(int newPeriod)
+{
+	periodSlider->setValue(newPeriod);
+}
+
+void ScaleStructureComponent::onPeriodChange(bool sendNotification)
+{
+	periodSelected = periodSlider->getValue();
+
+	scaleStructure.setAll(periodSelected, -1, -1, 0, 0);
+	DBG("SSC: Period changed to: " + String(scaleStructure.getPeriod()));
+
+	updatePeriodFactors();
+
+	periodCents = log2f(periodRatio / scaleStructure.getPeriodFactor()) * 1200;
+	degreeCents = periodCents / scaleStructure.getPeriod();
+	generatorCents = degreeCents * scaleStructure.getGenerator();
+
+	updateGenerators();
+	updateScaleSizes();
+	updatePGLabel();
+
+	circle->updatePeriod();
+
+	if (sendNotification)
+		listeners.call(&ScaleStructureComponent::Listener::scaleStructurePeriodChanged, periodSelected);
+}
+
 void ScaleStructureComponent::onPeriodFactorChange(int factorIndexIn)
 {
 	if (factorIndexIn > -1)
@@ -384,9 +403,6 @@ void ScaleStructureComponent::updateOffsetLimit()
 	generatorOffset = jlimit(0, scaleStructure.getScaleSize() - 1, generatorOffset);
 	scaleStructure.setGeneratorOffset(generatorOffset);
 	updateOffsetLabel();
-
-	// TODO: remove value listener so this can be updated without notification *ergh*
-	//circleOffset->setValue(jlimit(0, scaleStructure.getScaleSize() - 1, (int) circleOffset->getValue()));
 }
 
 void ScaleStructureComponent::updatePGLabel()
@@ -402,6 +418,16 @@ void ScaleStructureComponent::updateLsLabel()
 void ScaleStructureComponent::updateOffsetLabel()
 {
 	offsetLabel->setText("Offset\n" + String(scaleStructure.getGeneratorOffset()), dontSendNotification);
+}
+
+void ScaleStructureComponent::addListener(Listener* listenerIn)
+{
+	listeners.add(listenerIn);
+}
+
+void ScaleStructureComponent::removeListener(Listener* listenerIn)
+{
+	listeners.remove(listenerIn);
 }
 
 //[/MiscUserCode]
@@ -421,8 +447,8 @@ BEGIN_JUCER_METADATA
                  constructorParams="ScaleStructure&amp; scaleStructureIn, Array&lt;Colour&gt;&amp; colourTableIn"
                  variableInitialisers="scaleStructure(scaleStructureIn), colourTable(colourTableIn)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
-                 fixedSize="0" initialWidth="800" initialHeight="800">
-  <BACKGROUND backgroundColour="ff323e44"/>
+                 fixedSize="0" initialWidth="600" initialHeight="600">
+  <BACKGROUND backgroundColour="ffffff"/>
   <GENERICCOMPONENT name="circleComponent" id="ec9c5dc09c2f91cf" memberName="circleComponent"
                     virtualName="" explicitFocusOrder="0" pos="0 0 100% 100%" class="GroupingCircle"
                     params="scaleStructure, colourTable"/>

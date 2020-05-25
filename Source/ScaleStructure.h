@@ -60,6 +60,7 @@ class ScaleStructure
 
 public:
 
+	ScaleStructure() {};
 	ScaleStructure(int periodIn);
 	ScaleStructure(int periodIn, int genIndexIn, int sizeIndexIn, Array<int> degreeGroupsIn = Array<int>());
 	ScaleStructure(const ScaleStructure& scaleToCopy);

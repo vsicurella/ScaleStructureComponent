@@ -65,11 +65,34 @@ public:
 	void updatePeriodFactors();
 	void updateOffsetLimit();
 
+	void setPeriod(int newPeriod);
+	void onPeriodChange(bool sendNotification=true);
 	void onPeriodFactorChange(int factorIndexIn);
 
 	void updatePGLabel();
 	void updateLsLabel();
 	void updateOffsetLabel();
+
+	class Listener
+	{
+	public:
+		virtual ~Listener() {}
+
+		// Called when period changes
+		virtual void scaleStructurePeriodChanged(int newPeriod) {};
+
+		// Called whenever step sizes change
+		virtual void scaleStructureStepSizesChanged(int rightUpwardSize, int horizontalSize) {};
+	};
+
+	void addListener(Listener* listenerIn);
+
+	void removeListener(Listener* listenerIn);
+
+protected:
+	ListenerList<Listener> listeners;
+
+public:
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -85,8 +108,6 @@ private:
 	Array<Colour>& colourTable;
 
 	GroupingCircle* circle;
-
-	TooltipWindow tooltipWindow;
 
 	// Components
 	std::unique_ptr<NumberSelector> generatorSlider;
