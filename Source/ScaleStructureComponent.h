@@ -67,6 +67,7 @@ public:
 	void updatePeriodFactors();
 
 	void setPeriod(int newPeriod);
+
 	void onPeriodChange(bool sendNotification = true);
 	void onPeriodFactorChange(int factorIndexIn);
 

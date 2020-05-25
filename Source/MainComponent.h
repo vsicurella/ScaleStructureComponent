@@ -31,7 +31,7 @@ private:
     //==============================================================================
     // Your private member variables go here...
     
-	std::unique_ptr<ScaleStructure> scaleStructure;
+	ScaleStructure scaleStructure;
     std::unique_ptr<ScaleStructureComponent> scaleController;
 
 	// Test colours

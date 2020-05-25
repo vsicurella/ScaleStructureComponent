@@ -11,9 +11,10 @@
 //==============================================================================
 MainComponent::MainComponent()
 {
-	scaleStructure.reset(new ScaleStructure(12));
+	// Default setting
+	scaleStructure.resetToPeriod(12);
 
-    scaleController.reset(new ScaleStructureComponent(*scaleStructure.get(), colourTable));
+    scaleController.reset(new ScaleStructureComponent(scaleStructure, colourTable));
     scaleController->setName("ScaleStructureComponent");
 
 	addAndMakeVisible(scaleController.get());
