@@ -79,7 +79,7 @@ private:
 	Array<Array<int>> degreeGroupings;
 
 	// The chain of scale degrees by stacking the chosen generator
-	Array<int> generatorChain;
+	Array<int> groupChain;
 
 	// Starting from the top (scale size selected) going clockwise
 	Array<int> groupSizes;

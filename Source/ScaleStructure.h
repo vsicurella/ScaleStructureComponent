@@ -161,10 +161,15 @@ public:
 	Array<int> getGroupingIndexedSizes() const;
 
 	/*
+		Returns a list of actual group sizes
+	*/
+	Array<int> getDegreeGroupSizes() const;
+
+	/*
 		Returns an array of scale sizes referring to the degree group sizes
 	*/
 	Array<Array<int>> getDegreeGroupings() const;
-
+	
 	/* 
 		Returns the index of the group the scale degree is a part of.
 		Used for determining the colour of the scale degree 

@@ -251,6 +251,11 @@ Array<int> ScaleStructure::getGroupingIndexedSizes() const
 	return degreeGroupIndexedSizes;
 }
 
+Array<int> ScaleStructure::getDegreeGroupSizes() const
+{
+	return degreeGroupScaleSizes;
+}
+
 Array<Array<int>> ScaleStructure::getDegreeGroupings() const
 {
 	return degreeGroupings;
@@ -270,11 +275,13 @@ int ScaleStructure::getGroupOfDegree(int scaleDegreeIn) const
 Array<Point<int>> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLevels) const
 {
 	// Uses scale size as first step, and then differences of succeeding scale sizes
-	Array<int> stepsToChromas = { scaleSizes[sizeIndexSelected] };
+
+	Array<int> stepsToChromas = { scaleSizes[sizeIndexSelected] * periodFactorSelected};
 	for (int i = sizeIndexSelected + 1; i < scaleSizes.size(); i++)
 	{
-		stepsToChromas.add(scaleSizes[i] - scaleSizes[i-1]);
+		stepsToChromas.add((scaleSizes[i] - scaleSizes[i-1]) * periodFactorSelected);
 	}
+	DBG("SS: Degree mod steps: " + arrayToString(stepsToChromas));
 
 	Array<Point<int>> degreeModCandidates;
 	degreeModCandidates.resize(period);
@@ -288,19 +295,22 @@ Array<Point<int>> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLeve
 
 	String dbgstr = "";
 	
+	int indexLimit = getScaleSize() * periodFactorSelected;
 
-	// Initialize for loop
-	int step, index = degreeIndex + stepsToChromas[0];
+	int step = stepsToChromas[0];
+	int index = modulo(degreeIndex + step, period);
 	int degree, chromas = 1;
 
 	// forward
-	while (index >= getScaleSize())
+	while (index >= indexLimit)
 	{
-		index = modulo(degreeIndex + stepsToChromas[0] * chromas, period);
-		degree = groupChain[index];
-
 		for (int c = 0; c < levels; c++)
 		{
+			if (index < indexLimit)
+				break;
+
+			degree = groupChain[index];
+
 			// Only add if degree isn't already altered
 			if (degreeModCandidates[degree].x == -1 && chromaAlterations[degree].x == -1)
 			{
@@ -308,24 +318,29 @@ Array<Point<int>> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLeve
 				dbgstr += String(degree) + ", ";
 			}
 
-			step = stepsToChromas[c + 1] * periodFactorSelected;
+			step = stepsToChromas[c + 1];
 			index = modulo(index + step, period);
-			degree = groupChain[index];
 		}
+
 		chromas++;
+		step = stepsToChromas[0] * chromas;
+		index = modulo(degreeIndex + step, period);
 	}
 
-	index = degreeIndex + stepsToChromas[0];
+	step = stepsToChromas[0];
+	index = modulo(degreeIndex - step, period);
 	chromas = -1;
 
 	// backward
-	while (index >= getScaleSize())
+	while (index >= indexLimit)
 	{
-		index = modulo(degreeIndex + stepsToChromas[0] * chromas, period);
-		degree = groupChain[index];
-
 		for (int c = 0; c < levels; c++)
 		{
+			if (index < indexLimit)
+				break;
+
+			degree = groupChain[index];
+
 			// Only add if degree isn't already altered
 			if (degreeModCandidates[degree].x == -1 && chromaAlterations[degree].x == -1)
 			{
@@ -333,11 +348,13 @@ Array<Point<int>> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLeve
 				dbgstr += String(degree) + ", ";
 			}
 
-			step = stepsToChromas[c + 1] * periodFactorSelected;
+			step = stepsToChromas[c + 1];
 			index = modulo(index - step, period);
-			degree = groupChain[index];
 		}
+
 		chromas--;
+		step = stepsToChromas[0] * -chromas;
+		index = modulo(degreeIndex - step, period);
 	}
 	
 
@@ -661,6 +678,11 @@ void ScaleStructure::fillSymmetricGrouping()
 
 	applyChromaAlterations();
 
+	groupChain.clear();
+	for (auto group : degreeGroupings)
+		for (auto deg : group)
+			groupChain.add(deg);
+
 	// DEBUG PRINTING
 
 	String dbgstr = "";
@@ -720,8 +742,8 @@ void ScaleStructure::applyChromaAlterations()
 
 					// TODO: Fix this - BAD!
 					// swap in group chain
-					groupChain.set(degIndex, alteredDegree);
-					groupChain.set(shiftedIndex, degree);
+					/*groupChain.set(degIndex, alteredDegree);
+					groupChain.set(shiftedIndex, degree);*/
 
 					// record inverse alteration
 					degreeAlterations.set(alteredDegree, alteration.withY(-alteration.y));
@@ -965,11 +987,10 @@ void ScaleStructure::useSuggestedSizeGrouping()
 
 	// fill scale size group
 	degreeGroupScaleSizes.clear();
-	for (int p = 0; p < periodFactorSelected; p++)
-		for (auto i : degreeGroupIndexedSizes)
-		{
-			degreeGroupScaleSizes.add(scaleSizes[i]);
-		}
+	for (auto i : degreeGroupIndexedSizes)
+	{
+		degreeGroupScaleSizes.add(scaleSizes[i] * periodFactorSelected);
+	}
 
 	//DBG("Symmetric group:");
 	//String dbgstr = "";
