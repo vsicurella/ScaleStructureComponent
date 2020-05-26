@@ -58,7 +58,7 @@ public:
 
 	// GroupingCircle::Listener Implementation
 	void offsetChanged(int newOffset) override;
-	void degreeAltered(int degreeIndex, int chromasMoved) override;
+	void degreeAltered(int degree, Point<int> alteration) override;
 
 	void loadScaleStructureSettings();
 

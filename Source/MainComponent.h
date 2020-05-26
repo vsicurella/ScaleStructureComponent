@@ -38,9 +38,9 @@ private:
 	Array<Colour> colourTable = 
 	{
 		Colours::lightyellow,
-		Colours::red,
+		Colours::green,
 		Colours::turquoise,
-		Colours::lightgreen,
+		Colours::yellow,
 		Colours::mediumpurple,
 		Colours::orange
 	};
