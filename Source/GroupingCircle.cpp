@@ -335,7 +335,7 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 				};
 				
 				auto alterationCallback = [this](int degIndex, Point<int> alteration) {
-					listeners.call(&Listener::degreeAltered, groupChain[degIndex], alteration);
+					listeners.call(&Listener::degreeIndexAltered, degIndex, alteration);
 					updateGenerator();
 				};
 
@@ -345,10 +345,11 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 					hideMods = false;
 				});
 
-				// TODO: make resets compatible with altered group chain index
 				degreeMenu.addItem("Reset modifications", isDegreeSectorIndexAltered(degreeSectorMouseOver), false, [degreeIndexMouseOn, alterationCallback](void) {
 					alterationCallback(degreeIndexMouseOn, Point<int>(-1, 0));
 				});
+
+				// TODO: add reset all modifcations
 
 				degreeMenu.showMenuAsync(options);
 			}
@@ -356,7 +357,7 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 			// Mouse left-clicked on mod candidate
 			else if (isDegreeSectorIndexModCandidate(degreeSectorMouseOver))
 			{
-				listeners.call(&Listener::degreeAltered, groupChain[degreeIndexToMod], degreeModCandidates[degree]);
+				listeners.call(&Listener::degreeIndexAltered, degreeIndexToMod, degreeModCandidates[degree]);
 				updateGenerator();
 			}
 		}
@@ -462,7 +463,6 @@ void GroupingCircle::updateGenerator()
 		if (i > 0)
 			addAndMakeVisible(l);
 	}
-
 
 	groupSectorMouseOver = -1;
 
@@ -579,9 +579,9 @@ bool GroupingCircle::isDegreeSectorIndexModCandidate(int degreeSectorIndexIn) co
 */
 bool GroupingCircle::isDegreeSectorIndexAltered(int degreeSectorIndexIn) const
 {
-	if (degreeSectorIndexIn >= 0 && degreeSectorIndexIn < chromaAlterations.size())
+	if (degreeSectorIndexIn >= 0 && degreeSectorIndexIn < degreeAlterations.size())
 	{
-		const Point<int>& alteration = chromaAlterations.getReference(groupChain[degreeSectorIndexIn]);
+		const Point<int>& alteration = degreeAlterations.getReference(groupChain[degreeSectorIndexIn]);
 		return alteration.x >= 0 && alteration.y != 0;
 	}
 	return false;

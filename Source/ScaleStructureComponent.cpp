@@ -282,14 +282,14 @@ void ScaleStructureComponent::offsetChanged(int newOffset)
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 }
 
-void ScaleStructureComponent::degreeAltered(int degree, Point<int> alteration)
+void ScaleStructureComponent::degreeIndexAltered(int degreeIndex, Point<int> alteration)
 {
-	DBG("\nSSC: Degree swapped: " + String(degree) + " (" + alteration.toString() + ")");
+	DBG("\nSSC: Degree Index swapped: " + String(degreeIndex) + " (" + alteration.toString() + ")");
 
 	if (alteration.x >= 0 && alteration.y != 0)
-		scaleStructure.setAlterationOfDegree(degree, alteration);
+		scaleStructure.setAlterationOfDegree(degreeIndex, alteration);
 	else
-		scaleStructure.resetAlterationOfDegree(degree);
+		scaleStructure.resetAlterationOfDegree(degreeIndex);
 
 	circle->updateGenerator();
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);

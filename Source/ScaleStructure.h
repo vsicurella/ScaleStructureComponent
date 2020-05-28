@@ -55,6 +55,10 @@ class ScaleStructure
 	// List of chroma alterations of each scale degree
 	Array<Point<int>> degreeAlterations;
 
+	// An option for handling degree alterations when offset is changed
+	// May removed one method if one is determined to be objectively wrong
+	bool alterationsAttachedToDegree = false;
+
 private:
 	/*
 		Private methods
@@ -75,7 +79,7 @@ private:
 	void fillGroupingSymmetrically();
 
 	// Takes an already 'symmetricized' group size array and fills groups of degrees based on this.
-	void fillSymmetricGrouping();
+	void fillSymmetricGrouping(bool applyAlterations=true);
 
 	// Swaps degrees in generator chain based off of modifications
 	void applyChromaAlterations();
@@ -206,9 +210,16 @@ public:
 	*/
 	int findAlterationOfDegree(int degreeIn, Point<int> alteration) const;
 
+	/*
+		Toggles whether or not alterations move with altered degree or stay in place (of chain index) with offset changes.
+		If true, patterns are not consistent when offset changes.
+		This can mutate the original alterations if called after offset has been changed.
+	*/
+	void attachAlterationsToDegree(bool isAttachedToDegree);
 
-	void setAlterationOfDegree(int degreeIn, Point<int> alteration);
-	void resetAlterationOfDegree(int degreeIn);
+
+	void setAlterationOfDegree(int degreeIndexIn, Point<int> alteration);
+	void resetAlterationOfDegree(int degreeIndexIn);
 
 	void setPeriodFactorIndex(int index);
 	void setSizeIndex(int index);

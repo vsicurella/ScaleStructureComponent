@@ -54,7 +54,7 @@ public:
 		~Listener() {};
 
 		virtual void offsetChanged(int newOffset) = 0;
-		virtual void degreeAltered(int degreeIndex, Point<int> alteration) = 0;
+		virtual void degreeIndexAltered(int degreeIndex, Point<int> alteration) = 0;
 	};
 
 	void addListener(Listener* listenerToAdd);

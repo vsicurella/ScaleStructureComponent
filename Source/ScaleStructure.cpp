@@ -395,21 +395,98 @@ int ScaleStructure::findAlterationOfDegree(int degreeIn, Point<int> alteration) 
 	return groupChain[findIndexedAlterationOfDegree(groupIndex, alteration)];
 }
 
-void ScaleStructure::setAlterationOfDegree(int degreeIn, Point<int> alteration)
+void ScaleStructure::attachAlterationsToDegree(bool isAttachedToDegree)
 {
-	if (degreeIn < period)
+	if (alterationsAttachedToDegree != isAttachedToDegree)
+	{
+		Array<Point<int>> originalAlterations = chromaAlterations;
+
+		// remove alterations
+		chromaAlterations.fill(Point<int>(-1, 0));
+		fillSymmetricGrouping(false);
+
+		Point<int> alteration;
+
+		// convert from degrees to indicies
+		if (!isAttachedToDegree)
+		{
+			for (int i = 0; i < groupChain.size(); i++)
+			{
+				alteration = originalAlterations[groupChain[i]];
+				if (alteration.x > -1 && alteration.y != 0)
+					chromaAlterations.set(i, alteration);
+			}
+		}
+
+		// convert from indicies to degrees
+		else
+		{
+			for (int i = 0; i < originalAlterations.size(); i++)
+			{
+				alteration = originalAlterations[i];
+				if (alteration.x > -1 && alteration.y != 0)
+					chromaAlterations.set(groupChain[i], alteration);
+			}
+		}
+
+		// reapply after conversion
+		alterationsAttachedToDegree = isAttachedToDegree;
+		applyChromaAlterations();
+	}
+}
+
+
+void ScaleStructure::setAlterationOfDegree(int degreeIndexIn, Point<int> alteration)
+{
+	if (degreeIndexIn < period)
 	{
 		// TODO: Restrict alterations if too big (degree gets swapped with another group0 degree)
-		chromaAlterations.set(degreeIn, alteration);
+		if (alterationsAttachedToDegree)
+		{
+			chromaAlterations.set(groupChain[degreeIndexIn], alteration);
+		}
+		else
+		{
+			chromaAlterations.set(degreeIndexIn, alteration);
+		}
+
 		fillSymmetricGrouping();
 	}
 }
 
-void ScaleStructure::resetAlterationOfDegree(int degreeIn)
+void ScaleStructure::resetAlterationOfDegree(int degreeIndexIn)
 {
-	if (degreeIn < period)
+	if (degreeIndexIn < period)
 	{
-		chromaAlterations.set(degreeIn, Point<int>(-1, 0));
+		int index;
+		Point<int> alteration;
+
+		if (alterationsAttachedToDegree)
+		{
+			index = groupChain[degreeIndexIn];
+			alteration = chromaAlterations[index];
+
+			// check if the input is actually the inverse
+			if (alteration.x == -1)
+			{
+				index = findAlterationOfDegree(index, alteration.withY(-alteration.y));
+			}
+		}
+		else
+		{
+			index = degreeIndexIn;
+			alteration = chromaAlterations[index];
+
+			if (alteration.x == -1)
+			{
+				alteration = degreeAlterations[groupChain[index]];
+				index = findIndexedAlterationOfDegree(index, alteration.withY(-alteration.y));
+			}
+		}
+
+
+		chromaAlterations.set(index, Point<int>(-1, 0));
+
 		fillSymmetricGrouping();
 	}
 }
@@ -649,10 +726,11 @@ void ScaleStructure::fillGroupingSymmetrically()
 	DBG(dbgstr);
 }
 
-void ScaleStructure::fillSymmetricGrouping()
+void ScaleStructure::fillSymmetricGrouping(bool applyAlterations)
 {
 	degreeGroupings.clear();
 	degreeGroupings.resize(degreeGroupIndexedSizes.size());
+	groupChain.clear();
 
 	// Fill degree groups symmetrically
 	int groupSize, degree, ind = 0;
@@ -665,23 +743,15 @@ void ScaleStructure::fillSymmetricGrouping()
 			{
 				degree = generatorChain[ind + groupInd + fPeriod * f];
 				degreeGroupings.getReference(group).add(degree);
+				groupChain.add(degree);
 			}
 		}
 
 		ind += groupSize;
 	}
 
-	groupChain.clear();
-	for (auto group : degreeGroupings)
-		for (auto deg : group)
-			groupChain.add(deg);
-
-	applyChromaAlterations();
-
-	groupChain.clear();
-	for (auto group : degreeGroupings)
-		for (auto deg : group)
-			groupChain.add(deg);
+	if (applyAlterations)
+		applyChromaAlterations();
 
 	// DEBUG PRINTING
 
@@ -715,12 +785,35 @@ void ScaleStructure::fillSymmetricGrouping()
 
 void ScaleStructure::applyChromaAlterations()
 {
-	degreeAlterations = chromaAlterations;
+	int numAlterations = 0;
+
+	// Copy alterations
+	if (alterationsAttachedToDegree)
+	{
+		degreeAlterations = chromaAlterations;
+	}
+	else
+	{
+		degreeAlterations.resize(chromaAlterations.size());
+		degreeAlterations.fill(Point<int>(-1, 0));
+		for (int i = 0; i < chromaAlterations.size(); i++)
+		{
+			const Point<int>& alteration = chromaAlterations.getReference(i);
+			if (alteration.x != -1)
+				degreeAlterations.set(groupChain[i], alteration);
+		}
+	}
+
 
 	for (int degIndex = 0; degIndex < period; degIndex++)
 	{
 		int degree = groupChain[degIndex];
-		Point<int> alteration = chromaAlterations[degree];
+
+		Point<int> alteration;
+		if (alterationsAttachedToDegree)
+			alteration = chromaAlterations[degree];
+		else
+			alteration = chromaAlterations[degIndex];
 
 		// Find the altered scale degree
 		if (alteration.x >= 0 && alteration.y != 0)
@@ -728,28 +821,52 @@ void ScaleStructure::applyChromaAlterations()
 			int shiftedIndex = findIndexedAlterationOfDegree(degIndex, alteration);
 			int alteredDegree = groupChain[shiftedIndex];
 
-			// Swap the scale degrees in degreeGroupings
-			for (int i = 0; i < degreeGroupings.size(); i++)
-			{
-				Array<int>& group = degreeGroupings.getReference(i);
-				
-				int indexToSwap = group.indexOf(alteredDegree);
-				if (indexToSwap > -1)
-				{
-					// swap in groupings
-					degreeGroupings.getReference(0).set(degIndex, alteredDegree);
-					group.set(indexToSwap, degree);
+			int orignalGroupIndex, originalGroupNum = -1;
+			int shiftedGroupIndex, shiftedGroupNum = -1;
 
-					// TODO: Fix this - BAD!
-					// swap in group chain
-					/*groupChain.set(degIndex, alteredDegree);
-					groupChain.set(shiftedIndex, degree);*/
+			// Find the groups indicies that each degree is in
+			for (int g = 0; g < degreeGroupings.size(); g++)
+			{
+				Array<int>& group = degreeGroupings.getReference(g);
+				
+				for (int i = 0; i < group.size(); i++)
+				{
+					if (group[i] == degree)
+					{
+						originalGroupNum = g;
+						orignalGroupIndex = i;
+					}
+					else if (group[i] == alteredDegree)
+					{
+						shiftedGroupNum = g;
+						shiftedGroupIndex = i;
+					}
+				}
+				
+				// Swap the degrees
+				if (originalGroupNum > -1 && shiftedGroupNum > -1)
+				{
+					degreeGroupings.getReference(originalGroupNum).set(orignalGroupIndex, alteredDegree);
+					degreeGroupings.getReference(shiftedGroupNum).set(shiftedGroupIndex, degree);
 
 					// record inverse alteration
 					degreeAlterations.set(alteredDegree, alteration.withY(-alteration.y));
+					
+					break;
 				}
 			}
+
+			numAlterations++;
 		}
+	}
+
+	if (numAlterations > 0)
+	{
+		// Update group chain with swapped degrees
+		groupChain.clear();
+		for (auto group : degreeGroupings)
+			for (auto deg : group)
+				groupChain.add(deg);
 	}
 
 	String dbgstr = "";
@@ -758,7 +875,10 @@ void ScaleStructure::applyChromaAlterations()
 	{
 		dbgstr += "(" + alteration.toString() + "), ";
 	}
-	DBG("SS MODMOS Properties:\n" + dbgstr);
+	dbgstr = alterationsAttachedToDegree 
+		? "SS MODMOS Properties by degree:\t" + dbgstr 
+		: "SS MODMOS Properties by gIndex:\t" + dbgstr;
+	DBG(dbgstr);
 }
 
 
