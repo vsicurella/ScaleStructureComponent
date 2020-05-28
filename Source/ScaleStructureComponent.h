@@ -59,6 +59,7 @@ public:
 	// GroupingCircle::Listener Implementation
 	void offsetChanged(int newOffset) override;
 	void degreeIndexAltered(int degree, Point<int> alteration) override;
+	void allModificationsReset() override;
 
 	void loadScaleStructureSettings();
 

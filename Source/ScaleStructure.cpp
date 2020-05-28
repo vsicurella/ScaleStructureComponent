@@ -295,6 +295,7 @@ Array<Point<int>> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLeve
 
 	String dbgstr = "";
 	
+	// Change so that non-group 0 degree can be fully altered
 	int indexLimit = getScaleSize() * periodFactorSelected;
 
 	int step = stepsToChromas[0];
@@ -312,7 +313,7 @@ Array<Point<int>> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLeve
 			degree = groupChain[index];
 
 			// Only add if degree isn't already altered
-			if (degreeModCandidates[degree].x == -1 && chromaAlterations[degree].x == -1)
+			if (degreeModCandidates[degree].x == -1 && degreeAlterations[degree].x == -1)
 			{
 				degreeModCandidates.set(degree, Point<int>(c, chromas));
 				dbgstr += String(degree) + ", ";
@@ -342,7 +343,7 @@ Array<Point<int>> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLeve
 			degree = groupChain[index];
 
 			// Only add if degree isn't already altered
-			if (degreeModCandidates[degree].x == -1 && chromaAlterations[degree].x == -1)
+			if (degreeModCandidates[degree].x == -1 && degreeAlterations[degree].x == -1)
 			{
 				degreeModCandidates.set(degree, Point<int>(c, chromas));
 				dbgstr += String(degree) + ", ";
@@ -526,6 +527,12 @@ void ScaleStructure::setGeneratorOffset(int offsetIn)
 bool ScaleStructure::setChromaAlterations(Array<Point<int>> chromaAlterationsIn)
 {
 	// TODO: better validity check
+	if (chromaAlterationsIn.size() == 0)
+	{
+		chromaAlterationsIn.resize(period);
+		chromaAlterationsIn.fill(Point<int>(-1, 0));
+	}
+
 	if (chromaAlterationsIn.size() == period)
 	{
 		chromaAlterations = chromaAlterationsIn;

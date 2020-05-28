@@ -291,8 +291,12 @@ void ScaleStructureComponent::degreeIndexAltered(int degreeIndex, Point<int> alt
 	else
 		scaleStructure.resetAlterationOfDegree(degreeIndex);
 
-	circle->updateGenerator();
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
+}
+
+void ScaleStructureComponent::allModificationsReset()
+{
+	scaleStructure.setChromaAlterations(Array<Point<int>>());
 }
 
 void ScaleStructureComponent::loadScaleStructureSettings()

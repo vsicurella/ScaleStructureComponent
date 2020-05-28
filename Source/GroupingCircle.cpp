@@ -339,17 +339,22 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 					updateGenerator();
 				};
 
+				auto resetCallback = [this]() {
+					listeners.call(&Listener::allModificationsReset);
+					updateGenerator();
+				};
+
 				degreeMenu.clear();
 				degreeMenu.addItem("Show modifiable degrees", true, false, [selectionCallback, degreeIndexMouseOn, &hideMods](void) {
 					selectionCallback(degreeIndexMouseOn);
 					hideMods = false;
 				});
 
-				degreeMenu.addItem("Reset modifications", isDegreeSectorIndexAltered(degreeSectorMouseOver), false, [degreeIndexMouseOn, alterationCallback](void) {
+				degreeMenu.addItem("Reset degree modifications", isDegreeSectorIndexAltered(degreeSectorMouseOver), false, [degreeIndexMouseOn, alterationCallback](void) {
 					alterationCallback(degreeIndexMouseOn, Point<int>(-1, 0));
 				});
 
-				// TODO: add reset all modifcations
+				degreeMenu.addItem("Reset all modifications", true, false, resetCallback);
 
 				degreeMenu.showMenuAsync(options);
 			}

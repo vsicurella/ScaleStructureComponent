@@ -55,6 +55,7 @@ public:
 
 		virtual void offsetChanged(int newOffset) = 0;
 		virtual void degreeIndexAltered(int degreeIndex, Point<int> alteration) = 0;
+		virtual void allModificationsReset() = 0;
 	};
 
 	void addListener(Listener* listenerToAdd);
