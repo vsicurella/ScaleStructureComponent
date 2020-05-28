@@ -148,9 +148,9 @@ private:
 	float getNormalizedMouseAngle(const MouseEvent& event) const;
 
 	/*
-		Returns the degree index of the degree's corresponding sector that the mouse is in.
+		Returns the degree index of the degree's corresponding sector that the angle is in.
 	*/
-	int mouseInDegreeSector(const MouseEvent& event, float angle) const;
+	int degreeSectorOfAngle(float angle) const;
 
 	/*
 		Returns the degree index that the mouse is in if in the area of a degree ring sector.

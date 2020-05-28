@@ -266,7 +266,7 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 	else
 	{
 		float angle = getNormalizedMouseAngle(event);
-		int degreeIndex = mouseInDegreeSector(event, angle);
+		int degreeIndex = degreeSectorOfAngle(angle);
 
 		// Check Degree Sectors
 		if (mouseRadius < degreeOuterRadius)
@@ -314,9 +314,10 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 void GroupingCircle::mouseDown(const MouseEvent& event)
 {
 	bool cancelMods = true;
+	degreeSectorMouseOver = degreeSectorOfAngle(getNormalizedMouseAngle(event));
 
 	// If mouse is on a group or degree section
-	if (mouseRadius > degreeInnerRadius&& mouseRadius < groupOuterRadius)
+	if (mouseRadius > degreeInnerRadius && mouseRadius < groupOuterRadius)
 	{
 		// If mouse on a degree
 		if (mouseRadius < degreeOuterRadius)
@@ -384,7 +385,7 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 	if (mouseDownRadius >= degreeInnerRadius && mouseDownRadius < degreeOuterRadius)
 	{
 		float angle = getNormalizedMouseAngle(event);
-		int degreeIndex = mouseInDegreeSector(event, angle);
+		int degreeIndex = degreeSectorOfAngle(angle);
 
 		if (degreeSectorMouseOver != degreeIndex)
 		{
@@ -507,7 +508,7 @@ float GroupingCircle::getNormalizedMouseAngle(const MouseEvent& event) const
 	return angle;
 }
 
-int GroupingCircle::mouseInDegreeSector(const MouseEvent& event, float angle) const
+int GroupingCircle::degreeSectorOfAngle(float angle) const
 {
 	return (int)(angle / angleIncrement) % groupChain.size();
 }
@@ -515,7 +516,7 @@ int GroupingCircle::mouseInDegreeSector(const MouseEvent& event, float angle) co
 int GroupingCircle::mouseInDegreeRingSector(const MouseEvent& event, float radiusFromCenter, float angle) const
 {
 	if (radiusFromCenter >= degreeInnerRadius && radiusFromCenter < degreeOuterRadius)
-		return mouseInDegreeSector(event, angle);
+		return degreeSectorOfAngle(angle);
 
 	return -1;
 }
@@ -540,7 +541,7 @@ int GroupingCircle::mouseInGroupSector(int degreeIndex) const
 int GroupingCircle::mouseInGroupRingSector(const MouseEvent& event, float radiusFromCenter, float angle) const
 {
 	if (radiusFromCenter >= degreeOuterRadius && radiusFromCenter < groupOuterRadius)
-		mouseInGroupSector(mouseInDegreeSector(event, angle));
+		mouseInGroupSector(degreeSectorOfAngle(angle));
 
 	return -1;
 }
