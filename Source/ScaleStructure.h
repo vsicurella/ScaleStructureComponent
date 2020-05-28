@@ -217,7 +217,6 @@ public:
 	*/
 	void attachAlterationsToDegree(bool isAttachedToDegree);
 
-
 	void setAlterationOfDegree(int degreeIndexIn, Point<int> alteration);
 	void resetAlterationOfDegree(int degreeIndexIn);
 
@@ -231,6 +230,13 @@ public:
 	*/
 	bool setChromaAlterations(Array<Point<int>> chromaAlterationsIn);
 
+	/*
+		Input a degree group index and get compatible alternate sizes (in scaleSize indicies)
+		If symmetric, will take resizing the group on the opposite side of the circle into account
+	*/
+	//Array<Point<int>> 
+
+
 	// Returns the index whose generator is closest to a perfect fifth
 	int getSuggestedGeneratorIndex();
 
@@ -242,11 +248,13 @@ public:
 	Array<int> getComplimentarySizeGrouping();
 	void useSuggestedSizeGrouping();
 
-	// Returns the scale as a string of step sizes and puts integer values into passed in point reference
-	String getIntervalSteps(Point<int>& stepSizesOut);
+	/*
+		Returns the scale as a string of step sizes and puts integer values into passed in point reference
+	*/
+	String getIntervalSteps(Point<int>& stepSizesOut, bool withModifications = true);
 
 	// Returns the scale as a string of step sizes
-	String getIntervalSteps();
+	String getIntervalSteps(bool withModifications = true);
 
 	// Returns the scale as a string of L and s step sizes
 	String getLsSteps();

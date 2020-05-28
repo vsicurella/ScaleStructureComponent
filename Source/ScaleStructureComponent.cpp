@@ -293,11 +293,13 @@ void ScaleStructureComponent::degreeIndexAltered(int degreeIndex, Point<int> alt
 		scaleStructure.resetAlterationOfDegree(degreeIndex);
 
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
+	updateLsLabel();
 }
 
 void ScaleStructureComponent::allModificationsReset()
 {
 	scaleStructure.setChromaAlterations(Array<Point<int>>());
+	updateLsLabel();
 }
 
 void ScaleStructureComponent::loadScaleStructureSettings()
@@ -419,7 +421,7 @@ void ScaleStructureComponent::updatePGLabel()
 
 void ScaleStructureComponent::updateLsLabel()
 {
-	stepSizePatternLbl->setText(scaleStructure.getLsSteps(), dontSendNotification);
+	stepSizePatternLbl->setText(scaleStructure.getIntervalSteps(), dontSendNotification);
 }
 
 void ScaleStructureComponent::updateOffsetLabel()

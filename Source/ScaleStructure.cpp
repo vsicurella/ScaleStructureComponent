@@ -1128,13 +1128,14 @@ void ScaleStructure::useSuggestedSizeGrouping()
 	fillSymmetricGrouping();
 }
 
-String ScaleStructure::getIntervalSteps(Point<int>& stepSizesOut)
+String ScaleStructure::getIntervalSteps(Point<int>& stepSizesOut, bool withModifications)
 {
 	Array<int> sizes;
+	Array<int>& chain = withModifications ? groupChain : generatorChain;
 	for (int i = 0; i < getScaleSize(); i++)
 	{
 		for (int p = 0; p < periodFactorSelected; p++)
-			sizes.add(generatorChain[i + fPeriod * p]);
+			sizes.add(chain[i + fPeriod * p]);
 	}
 
 	sizes.add(period);
@@ -1163,10 +1164,10 @@ String ScaleStructure::getIntervalSteps(Point<int>& stepSizesOut)
 	return steps.substring(0, steps.length() - 1);
 }
 
-String ScaleStructure::getIntervalSteps()
+String ScaleStructure::getIntervalSteps(bool withModifications)
 {
 	Point<int> dummySteps;
-	return getIntervalSteps(dummySteps);
+	return getIntervalSteps(dummySteps, withModifications);
 }
 
 String ScaleStructure::getLsSteps()
