@@ -232,10 +232,18 @@ public:
 
 	/*
 		Input a degree group index and get compatible alternate sizes (in scaleSize indicies)
-		If symmetric, will take resizing the group on the opposite side of the circle into account
+		If symmetric, will take resizing the group on the opposite side of the circle into account.
+		The returned Point includes the passed in index sizes as X, and the adjacent sizes as Y
 	*/
-	//Array<Point<int>> 
+	Array<Point<int>> findValidGroupSize(int groupIndexIn, bool adjacentGroupClockwise);
 
+
+	/*
+		Input a degree group index and get size indices that result in a remainder size 
+		that is also a valid scale size.
+		This is used for resizing a group while creating a new group
+	*/
+	Array<Point<int>> findValidGroupSizeRemainders(int groupIndexIn);
 
 	// Returns the index whose generator is closest to a perfect fifth
 	int getSuggestedGeneratorIndex();
