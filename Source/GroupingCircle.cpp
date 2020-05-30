@@ -70,6 +70,78 @@ Point<int> GroupingCircle::getIntPointFromCenter(float radius, float angle) cons
 	return getFloatPointFromCenter(radius, angle).toInt();
 }
 
+void GroupingCircle::updatePeriod()
+{
+	DBG("CIRCLE: Updating Period.");
+
+	removeAllChildren();
+
+	degreeLabels.clear();
+
+	for (int i = 0; i < scaleStructure.getPeriod(); i++)
+	{
+		TextEditor* l = degreeLabels.add(new TextEditor());
+		l->setJustification(Justification::centred);
+		l->setReadOnly(true);
+		l->setInterceptsMouseClicks(false, false);
+		l->setColour(TextEditor::ColourIds::backgroundColourId, Colour());
+		l->setColour(TextEditor::ColourIds::outlineColourId, Colour());
+		addAndMakeVisible(l);
+	}
+
+	degreeSectorMouseOver = -1;
+}
+
+void GroupingCircle::updateGenerator()
+{
+	DBG("CIRCLE: Updating degree ring.");
+	cancelDegreeMods();
+
+	groupSizes = scaleStructure.getDegreeGroupSizes();
+	groupChain = scaleStructure.getGroupChain();
+	chromaAlterations = scaleStructure.getChromaAlterations();
+	degreeAlterations = scaleStructure.getDegreeAlterations();
+
+	DBG("\t" + arrayToString(groupChain));
+
+	// Set up group size labels
+	groupSizeLabels.clear();
+	for (int i = 0; i < groupSizes.size(); i++)
+	{
+		Label* l = groupSizeLabels.add(new Label());
+		l->setJustificationType(Justification::centred);
+		l->setText(String(groupSizes[i]), dontSendNotification);
+		l->setInterceptsMouseClicks(false, false);
+		//l->setColour(Label::ColourIds::outlineColourId, Colours::white);
+
+		// First one will be replaced by scaleSizeSelector
+		if (i > 0)
+			addAndMakeVisible(l);
+	}
+
+	// Set up group handles
+	groupHandles.clear();
+	highlightedEdges.clear();
+
+	for (int i = 1; i < groupSizes.size(); i++)
+	{
+		groupHandles.add(GroupHandle(i, true, false));
+		groupHandles.add(GroupHandle(i, true, true));
+
+		if (i > 1)
+		{
+			groupHandles.add(GroupHandle(i, false, false));
+		}
+	}
+
+	highlightedEdges.resize(groupSizes.size());
+
+	groupSectorMouseOver = -1;
+
+	resized();
+	repaint();
+}
+
 void GroupingCircle::paint (Graphics& g)
 {
 	g.fillAll(Colour());
@@ -77,7 +149,7 @@ void GroupingCircle::paint (Graphics& g)
 	// Draw outline
 	g.setColour(Colours::black);
 
-	strokeType.setStrokeThickness(2.0f);
+	solidStroke.setStrokeThickness(2.0f);
 
 	Colour groupColour;
 	Colour degreeColour;
@@ -98,7 +170,7 @@ void GroupingCircle::paint (Graphics& g)
 		g.fillPath(groupPath);
 
 		g.setColour(Colours::black);
-		g.strokePath(groupPath, strokeType);
+		g.strokePath(groupPath, solidStroke);
 
 		groupSizeLabels[i]->setColour(Label::ColourIds::textColourId, groupColour.contrasting(labelContrastRatio));
 
@@ -122,11 +194,42 @@ void GroupingCircle::paint (Graphics& g)
 			g.fillPath(degreePath);
 
 			g.setColour(degreeColour.darker());
-			g.strokePath(degreePath, strokeType);
+			g.strokePath(degreePath, solidStroke);
 
 			degreeLabels[degIndex]->applyColourToAllText(degreeColour.contrasting(labelContrastRatio));
 			degIndex++;
 		}
+	}
+
+	// Draw edge handles
+	for (int i = 0; i < groupHandles.size(); i++)
+	{
+		GroupHandle& handle = groupHandles.getReference(i);
+		
+		if (handleBeingDragged == &handle)
+			handle.setSize(handle.getSize() * handleHighlightMult);
+		
+		g.setColour(handle.getColour());
+		
+		if (handle.addsGroupWhenDragged())
+			g.fillPath(handlePaths[i]);
+		else
+			g.strokePath(handlePaths[i], solidStroke);
+		
+		if (handleBeingDragged == &handle)
+			handle.setSize(handle.getSize() / handleHighlightMult);
+	}
+
+	// Highlight degree edges
+	int edgePath = 0;
+	for (auto index : highlightDegreeIndicies)
+	{
+		Path& path = highlightedEdges.getReference(edgePath);
+		
+		g.setColour(colourTable[index].contrasting(0.5f));
+		g.strokePath(path, dashedStroke);
+
+		edgePath++;
 	}
 }
 
@@ -151,6 +254,9 @@ void GroupingCircle::resized()
 	angleIncrement = 2 * double_Pi / groupChain.size();
 	angleHalf = angleIncrement / 2.0f;
 
+	handleDotAngRatio = angleIncrement / 10.0f;
+	handleDotRadius = groupRingWidth / 25.0f;
+
 	// determine circle offset, based off of middle angle of first degree group
 	circleOffset = groupSizes[0] * angleIncrement / 2.0f;
 
@@ -172,6 +278,7 @@ void GroupingCircle::resized()
 	Label* groupLabel;
 	float degreeLabelWidth, groupLabelWidth;
 
+	// Resize group & degree arc sections
 	groupArcPaths.clear();
 	degreeArcPaths.clear();
 	for (int i = 0; i < degreeLabels.size(); i++)
@@ -245,6 +352,62 @@ void GroupingCircle::resized()
 			groupAngleFrom = angleTo;
 		}
 	}
+
+	int degreeIndex = groupSizes[0];
+	groupIndex = 1;
+	handlePaths.clear();
+	// Resize group handles
+	for (int i = 0; i < groupHandles.size(); i++)
+	{
+		GroupHandle& handle = groupHandles.getReference(i);
+		float angle = -circleOffset - float_HalfPi;
+
+		if (handle.getGroupIndex() > groupIndex)
+		{
+			degreeIndex += groupSizes[groupIndex];
+			groupIndex++;
+		}
+
+		angle += angleIncrement * degreeIndex;
+
+		if (handle.addsGroupWhenDragged())
+		{
+			if (handle.isDraggingClockwise())
+			{
+				handle.setPosition(Point<float>(angle + handleDotAngRatio, groupMiddleRadius), center);
+			}
+			else
+			{
+				angle += groupSizes[groupIndex] * angleIncrement;
+				handle.setPosition(Point<float>(angle - handleDotAngRatio, groupMiddleRadius), center);
+			}
+
+			handle.setSize(handleDotRadius);
+		}
+		else
+		{
+			handle.setPosition(Point<float>(angle, degreeInnerRadius), center);
+			handle.setSize(groupOuterRadius / degreeInnerRadius);
+		}
+
+		handlePaths.add(handle.getPath());
+	}
+
+	float f[] = { (groupRingWidth + degreeRingWidth) / 10.0f };
+
+	for (int i = 0; i < highlightDegreeIndicies.size(); i++)
+	{
+		int index = highlightDegreeIndicies[i];
+		Path line;
+		line.addLineSegment(GroupHandle::getGroupEdgeLine(
+			center,
+			Point<float>( angleIncrement * index, degreeInnerRadius ),
+			groupOuterRadius / degreeInnerRadius)
+		, 1.0f);
+		
+		solidStroke.createDashedStroke(line, line, f, 1);
+		highlightedEdges.set(i, line);
+	}
 }
 
 void GroupingCircle::mouseMove(const MouseEvent& event)
@@ -260,6 +423,9 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 
 		lastGroupSectorMouseIn = groupSectorMouseOver;
 		groupSectorMouseOver = -1;
+
+		handleBeingDragged = nullptr;
+
 		dirty = true;
 	}
 
@@ -284,6 +450,8 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 				groupSectorMouseOver = -1;
 				dirty = true;
 			}
+
+			handleBeingDragged = nullptr;
 		}
 
 		// Check Group Sectors
@@ -304,9 +472,32 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 				degreeSectorMouseOver = -1;
 				dirty = true;
 			}
+
+			// check if over a handle
+			// TODO: improve detecting?
+			int handleIndex;
+			for (handleIndex = 0; handleIndex < handlePaths.size(); handleIndex++)
+			{
+				Path& p = handlePaths.getReference(handleIndex);
+				GroupHandle* handle = &groupHandles.getUnchecked(handleIndex);
+
+				if (p.contains(event.position) && handleBeingDragged != handle)
+				{
+					DBG("mouse in handle");
+					handleBeingDragged = handle;
+					dirty = true;
+					break;
+				}
+			}
+
+			if (handleIndex >= handlePaths.size())
+			{
+				handleBeingDragged = nullptr;
+			}
 		}
 	}
 
+	// TODO: implement ring sectors as components so only certain ones need to be repainted
 	if (dirty)
 		repaint();
 }
@@ -420,60 +611,6 @@ void GroupingCircle::addListener(Listener* listenerToAdd)
 void GroupingCircle::removeListener(Listener* listenerToRemove)
 {
 	listeners.remove(listenerToRemove);
-}
-
-void GroupingCircle::updatePeriod()
-{
-	DBG("CIRCLE: Updating Period.");
-
-	removeAllChildren();
-
-	degreeLabels.clear();
-
-	for (int i = 0; i < scaleStructure.getPeriod(); i++)
-	{
-		TextEditor* l = degreeLabels.add(new TextEditor());
-		l->setJustification(Justification::centred);
-		l->setReadOnly(true);
-		l->setInterceptsMouseClicks(false, false);
-		l->setColour(TextEditor::ColourIds::backgroundColourId, Colour());
-		l->setColour(TextEditor::ColourIds::outlineColourId, Colour());
-		addAndMakeVisible(l);
-	}
-
-	degreeSectorMouseOver = -1;
-}
-
-void GroupingCircle::updateGenerator()
-{
-	DBG("CIRCLE: Updating degree ring.");
-	cancelDegreeMods();
-	
-	groupSizes = scaleStructure.getDegreeGroupSizes();
-	groupChain = scaleStructure.getGroupChain();
-	chromaAlterations = scaleStructure.getChromaAlterations();
-	degreeAlterations = scaleStructure.getDegreeAlterations();
-
-	DBG("\t" + arrayToString(groupChain));
-
-	groupSizeLabels.clear();
-	for (int i = 0; i < groupSizes.size(); i++)
-	{
-		Label* l = groupSizeLabels.add(new Label());
-		l->setJustificationType(Justification::centred);
-		l->setText(String(groupSizes[i]), dontSendNotification);
-		l->setInterceptsMouseClicks(false, false);
-		//l->setColour(Label::ColourIds::outlineColourId, Colours::white);
-
-		// First one will be replaced by scaleSizeSelector
-		if (i > 0)
-			addAndMakeVisible(l);
-	}
-
-	groupSectorMouseOver = -1;
-
-	resized();
-	repaint();
 }
 
 void GroupingCircle::degreeToModSelectedCallback(int degreeIndex)

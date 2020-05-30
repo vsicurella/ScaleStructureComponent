@@ -4,6 +4,8 @@
               jucerVersion="5.4.7">
   <MAINGROUP id="beGhad" name="ScaleStructureController">
     <GROUP id="{C32CC330-DD57-B0CF-1455-158ECD9B3F8C}" name="Source">
+      <FILE id="axJ8j6" name="GroupHandle.cpp" compile="1" resource="0" file="Source/GroupHandle.cpp"/>
+      <FILE id="EUP47S" name="GroupHandle.h" compile="0" resource="0" file="Source/GroupHandle.h"/>
       <FILE id="mu4zKT" name="TransparentDropDown.h" compile="0" resource="0"
             file="Source/TransparentDropDown.h"/>
       <FILE id="EdOkEq" name="NumberSelector.cpp" compile="1" resource="0"

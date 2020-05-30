@@ -12,6 +12,7 @@
 
 #include <JuceHeader.h>
 #include "ScaleStructure.h"
+#include "GroupHandle.h"
 
 //==============================================================================
 /*
@@ -94,8 +95,17 @@ private:
 	Array<Point<int>> chromaAlterations;
 	Array<Point<int>> degreeAlterations;
 
-	// Mouse functionality
+	// Group sizing functionality
+	Array<GroupHandle> groupHandles;
+	Array<Path> handlePaths;
+	GroupHandle* handleBeingDragged = nullptr;
+	Array<int> highlightDegreeIndicies; // Refers to the most counter-clockwise edge of a degree
+	Array<Path> highlightedEdges;
+	float handleDotAngRatio;
+	float handleDotRadius;
+	float handleHighlightMult = 1.5f;
 	
+	// Mouse functionality
 	int mouseRadius, mouseDownRadius;
 	int degreeSectorMouseOver = -1;
 	int groupSectorMouseOver = -1;
@@ -132,7 +142,8 @@ private:
 	Array<Line<float>> radiLines;
 	Array<Path> degreeArcPaths;
 	Array<Path> groupArcPaths;
-	PathStrokeType strokeType = PathStrokeType(2.0f);
+	PathStrokeType solidStroke = PathStrokeType(2.0f);
+	PathStrokeType dashedStroke = PathStrokeType(2.0f);
 
 	float sectorLabelSizeRatio = 0.875f;
 
