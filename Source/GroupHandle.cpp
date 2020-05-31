@@ -49,11 +49,11 @@ float GroupHandle::getSize() const
 /*
 	Returns the path that represents this handle as a dot
 */
-Path GroupHandle::getDot() const
+Path GroupHandle::getDot(float dotRadius) const
 {
 	Path dot;
 	Point<float> p1, p2;
-	float sqrtSizeSq = sqrtf( size * size * 2);
+	float sqrtSizeSq = sqrtf(dotRadius * dotRadius * 2);
 	float xv = position.y * cosf(position.x) + center.x;
 	float yv = position.y * sinf(position.x) + center.y;
 
@@ -68,10 +68,10 @@ Path GroupHandle::getDot() const
 /*
 	Returns the path that represents this handle as a line (edge)
 */
-Path GroupHandle::getLine() const
+Path GroupHandle::getLine(float lineThickness) const
 {
 	Path line;
-	line.addLineSegment(getGroupEdgeLine(center, position, size), 1.0f);
+	line.addLineSegment(getGroupEdgeLine(center, position, size), lineThickness);
 
 	return line;
 }
@@ -81,15 +81,38 @@ Path GroupHandle::getLine() const
 */
 Path GroupHandle::getPath() const
 {
-	if (addsGroup)
-		return getDot();
-	else
-		return getLine();
+	return handlePath;
 }
 
 Colour GroupHandle::getColour() const
 {
 	return colour;
+}
+
+bool GroupHandle::isMouseOver(const MouseEvent& event)
+{
+	bool isOver = handlePath.contains(event.position, 100.0f);
+
+	if (isOver && !mouseIsOver)
+	{
+		mouseIsOver = true;
+
+		if (addsGroup)
+			handlePath = getDot(size * mouseOverMultiplier);
+		else
+			handlePath = getLine(lineThickness * mouseOverMultiplier);
+	}
+	else if (!isOver && mouseIsOver)
+	{
+		mouseIsOver = false;
+
+		if (addsGroup)
+			handlePath = getDot(size);
+		else
+			handlePath = getLine(lineThickness);
+	}
+
+	return isOver;
 }
 
 /*
@@ -119,16 +142,45 @@ void GroupHandle::setPosition(Point<float> polarCoordinates, Point<float> center
 }
 
 /*
-	If represents an edge(addsGroup = false), this is thickness.If it's a dot, it's a radius.
+	If represents an edge(addsGroup = false), this is thickness. If it's a dot, it's a radius.
 */
 void GroupHandle::setSize(float sizeIn)
 {
 	size = sizeIn;
+
+	if (addsGroup)
+		handlePath = getDot(size);
+	else
+		handlePath = getLine(2.0f);
 }
 
 void GroupHandle::setColour(Colour colourIn)
 {
 	colour = colourIn;
+}
+
+void GroupHandle::setMouseOver(bool isMouseOver)
+{
+	if (mouseIsOver != isMouseOver)
+	{
+		if (mouseIsOver)
+		{
+			if (addsGroup)
+				handlePath = getDot(size);
+			else
+				handlePath = getLine(lineThickness);
+		}
+
+		else
+		{
+			if (addsGroup)
+				handlePath = getDot(size * mouseOverMultiplier);
+			else
+				handlePath = getLine(lineThickness * mouseOverMultiplier);
+		}
+
+		mouseIsOver = isMouseOver;
+	}
 }
 
 Line<float> GroupHandle::getGroupEdgeLine(Point<float> centerCircle, Point<float> polarCoords, float ringWidthRatio)

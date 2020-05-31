@@ -39,17 +39,22 @@ public:
 	/*
 		Returns the path that represents this handle as a dot
 	*/
-	Path getDot() const;
+	Path getDot(float dotRadius) const;
 
 	/*
 		Returns the path that represents this handle as a line (edge)
 	*/
-	Path getLine() const;
+	Path getLine(float lineThickness) const;
 
 	/*
 		Returns the path that represents this handle depending on the addsGroup member
 	*/
 	Path getPath() const;
+
+	/*
+		Checks if mouse is over path. Adjusts sizes accordingly
+	*/
+	bool isMouseOver(const MouseEvent& event);
 
 	/*
 		Returns thickness value.
@@ -69,8 +74,9 @@ public:
 		If represents an edge (addsGroup = false), this is the line length. If it's a dot, it's a radius.
 	*/
 	void setSize(float sizeIn);
-
 	void setColour(Colour colourIn);
+
+	void setMouseOver(bool isMouseOver);
 
 public:
 
@@ -87,4 +93,10 @@ private:
 
 	float size;
 	Colour colour;
+	bool mouseIsOver = false;
+
+	const float lineThickness = 4.0f;
+	const float mouseOverMultiplier = 1.5f;
+
+	Path handlePath;
 };
