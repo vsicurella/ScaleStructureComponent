@@ -888,7 +888,7 @@ void ScaleStructure::applyChromaAlterations()
 	DBG(dbgstr);
 }
 
-Array<Point<int>> ScaleStructure::findValidGroupSize(int groupIndexIn, bool adjacentGroupClockwise)
+Array<Point<int>> ScaleStructure::findValidGroupSize(int groupIndexIn, bool adjacentGroupClockwise) const
 {
 	int numGroups = degreeGroupIndexedSizes.size();
 	Array<Point<int>> sizesOut;
@@ -924,14 +924,14 @@ Array<Point<int>> ScaleStructure::findValidGroupSize(int groupIndexIn, bool adja
 			else if (newAdjIndex == 0)
 				newAdjIndex++;
 
-			sizesOut.add(Point<int>(i, newAdjIndex));
+			sizesOut.add(Point<int>(scaleSizes[i], scaleSizes[newAdjIndex]));
 		}
 	}
 
 	return sizesOut;
 }
 
-Array<Point<int>> ScaleStructure::findValidGroupSizeRemainders(int groupIndexIn)
+Array<Point<int>> ScaleStructure::findValidGroupSizeRemainders(int groupIndexIn) const
 {
 	int numGroups = degreeGroupIndexedSizes.size();
 	Array<Point<int>> sizesIndiciesOut;
@@ -955,7 +955,7 @@ Array<Point<int>> ScaleStructure::findValidGroupSizeRemainders(int groupIndexIn)
 			else if (remSizeIndex == 0)
 				remSizeIndex++;
 
-			sizesIndiciesOut.add(Point<int>(i, remSizeIndex));
+			sizesIndiciesOut.add(Point<int>(scaleSizes[i], scaleSizes[remSizeIndex]));
 		}
 	}
 

@@ -235,7 +235,7 @@ public:
 		If symmetric, will take resizing the group on the opposite side of the circle into account.
 		The returned Point includes the passed in index sizes as X, and the adjacent sizes as Y
 	*/
-	Array<Point<int>> findValidGroupSize(int groupIndexIn, bool adjacentGroupClockwise);
+	Array<Point<int>> findValidGroupSize(int groupIndexIn, bool adjacentGroupClockwise) const;
 
 
 	/*
@@ -243,7 +243,7 @@ public:
 		that is also a valid scale size.
 		This is used for resizing a group while creating a new group
 	*/
-	Array<Point<int>> findValidGroupSizeRemainders(int groupIndexIn);
+	Array<Point<int>> findValidGroupSizeRemainders(int groupIndexIn) const;
 
 	// Returns the index whose generator is closest to a perfect fifth
 	int getSuggestedGeneratorIndex();
