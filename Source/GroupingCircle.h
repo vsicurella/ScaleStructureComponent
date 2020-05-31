@@ -46,6 +46,7 @@ public:
 
 	void mouseMove(const MouseEvent& event) override;
 	void mouseDown(const MouseEvent& event) override;
+	void mouseUp(const MouseEvent& event) override;
 	void mouseDrag(const MouseEvent& event) override;
 
 
@@ -96,11 +97,12 @@ private:
 	Array<Point<int>> degreeAlterations;
 
 	// Group sizing functionality
-	Array<GroupHandle> groupHandles;
-	Array<Path> handlePaths;
+	OwnedArray<GroupHandle> groupHandles;
 	GroupHandle* handleBeingDragged = nullptr;
+
 	Array<int> highlightDegreeIndicies; // Refers to the most counter-clockwise edge of a degree
-	Array<Path> highlightedEdges;
+	Array<Line<float>> highlightedEdges;
+	
 	float handleDotAngRatio;
 	float handleDotRadius;
 	float handleHighlightMult = 1.5f;

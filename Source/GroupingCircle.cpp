@@ -122,15 +122,16 @@ void GroupingCircle::updateGenerator()
 	// Set up group handles
 	groupHandles.clear();
 	highlightedEdges.clear();
+	
 
 	for (int i = 1; i < groupSizes.size(); i++)
 	{
-		groupHandles.add(GroupHandle(i, true, false));
-		groupHandles.add(GroupHandle(i, true, true));
+		groupHandles.add(new GroupHandle(i, true, false));
+		groupHandles.add(new GroupHandle(i, true, true));
 
 		if (i > 1)
 		{
-			groupHandles.add(GroupHandle(i, false, false));
+			groupHandles.add(new GroupHandle(i, false, false));
 		}
 	}
 
@@ -204,30 +205,22 @@ void GroupingCircle::paint (Graphics& g)
 	// Draw edge handles
 	for (int i = 0; i < groupHandles.size(); i++)
 	{
-		GroupHandle& handle = groupHandles.getReference(i);
+		GroupHandle* handle = groupHandles.getUnchecked(i);
 		
-		if (handleBeingDragged == &handle)
-			handle.setSize(handle.getSize() * handleHighlightMult);
-		
-		g.setColour(handle.getColour());
-		
-		if (handle.addsGroupWhenDragged())
-			g.fillPath(handlePaths[i]);
-		else
-			g.strokePath(handlePaths[i], solidStroke);
-		
-		if (handleBeingDragged == &handle)
-			handle.setSize(handle.getSize() / handleHighlightMult);
+		g.setColour(handle->getColour());
+		g.fillPath(handle->getPath());
 	}
 
+	float dashPattern[2] = {
+		(groupRingWidth + degreeRingWidth) / 20.0f,
+		(groupRingWidth + degreeRingWidth) / 20.0f
+	};
 	// Highlight degree edges
 	int edgePath = 0;
 	for (auto index : highlightDegreeIndicies)
-	{
-		Path& path = highlightedEdges.getReference(edgePath);
-		
-		g.setColour(colourTable[index].contrasting(0.5f));
-		g.strokePath(path, dashedStroke);
+	{		
+		g.setColour(colourTable[index].contrasting(1.0f));
+		g.drawDashedLine(highlightedEdges[edgePath], dashPattern, 2, 2.0f);
 
 		edgePath++;
 	}
@@ -354,59 +347,52 @@ void GroupingCircle::resized()
 	}
 
 	int degreeIndex = groupSizes[0];
+
 	groupIndex = 1;
-	handlePaths.clear();
 	// Resize group handles
 	for (int i = 0; i < groupHandles.size(); i++)
 	{
-		GroupHandle& handle = groupHandles.getReference(i);
-		float angle = -circleOffset - float_HalfPi;
-
-		if (handle.getGroupIndex() > groupIndex)
+		float angleOfs = -circleOffset - float_HalfPi;
+		GroupHandle* handle = groupHandles.getUnchecked(i);
+		
+		if (handle->getGroupIndex() > groupIndex)
 		{
 			degreeIndex += groupSizes[groupIndex];
 			groupIndex++;
 		}
 
-		angle += angleIncrement * degreeIndex;
+		angleOfs += angleIncrement * degreeIndex;
 
-		if (handle.addsGroupWhenDragged())
+		if (handle->addsGroupWhenDragged())
 		{
-			if (handle.isDraggingClockwise())
+			if (handle->isDraggingClockwise())
 			{
-				handle.setPosition(Point<float>(angle + handleDotAngRatio, groupMiddleRadius), center);
+				handle->setPosition(Point<float>(angleOfs + handleDotAngRatio, groupMiddleRadius), center);
 			}
 			else
 			{
-				angle += groupSizes[groupIndex] * angleIncrement;
-				handle.setPosition(Point<float>(angle - handleDotAngRatio, groupMiddleRadius), center);
+				angleOfs += groupSizes[groupIndex] * angleIncrement;
+				handle->setPosition(Point<float>(angleOfs - handleDotAngRatio, groupMiddleRadius), center);
 			}
 
-			handle.setSize(handleDotRadius);
+			handle->setSize(handleDotRadius);
 		}
 		else
 		{
-			handle.setPosition(Point<float>(angle, degreeInnerRadius), center);
-			handle.setSize(groupOuterRadius / degreeInnerRadius);
+			handle->setPosition(Point<float>(angleOfs, degreeInnerRadius), center);
+			handle->setSize(groupOuterRadius / degreeInnerRadius);
 		}
-
-		handlePaths.add(handle.getPath());
 	}
 
-	float f[] = { (groupRingWidth + degreeRingWidth) / 10.0f };
+	float angleOfs = -circleOffset - float_HalfPi;
+	float length = groupOuterRadius / degreeInnerRadius;
 
+	highlightedEdges.clear();
 	for (int i = 0; i < highlightDegreeIndicies.size(); i++)
 	{
-		int index = highlightDegreeIndicies[i];
-		Path line;
-		line.addLineSegment(GroupHandle::getGroupEdgeLine(
-			center,
-			Point<float>( angleIncrement * index, degreeInnerRadius ),
-			groupOuterRadius / degreeInnerRadius)
-		, 1.0f);
-		
-		solidStroke.createDashedStroke(line, line, f, 1);
-		highlightedEdges.set(i, line);
+		int index = highlightDegreeIndicies[i];	
+		Line<float> line = GroupHandle::getGroupEdgeLine(center, Point<float>(angleOfs + angleIncrement * index, degreeInnerRadius), length);
+		highlightedEdges.add(line);
 	}
 }
 
@@ -424,8 +410,13 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 		lastGroupSectorMouseIn = groupSectorMouseOver;
 		groupSectorMouseOver = -1;
 
-		handleBeingDragged = nullptr;
-
+		if (handleBeingDragged)
+		{
+			handleBeingDragged->setMouseOver(false);
+			handleBeingDragged = nullptr;
+			highlightDegreeIndicies.clear();
+		}
+		
 		dirty = true;
 	}
 
@@ -451,7 +442,13 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 				dirty = true;
 			}
 
-			handleBeingDragged = nullptr;
+			if (handleBeingDragged)
+			{
+				handleBeingDragged->setMouseOver(false);
+				handleBeingDragged = nullptr;
+				highlightDegreeIndicies.clear();
+				dirty = true;
+			}
 		}
 
 		// Check Group Sectors
@@ -476,23 +473,24 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 			// check if over a handle
 			// TODO: improve detecting?
 			int handleIndex;
-			for (handleIndex = 0; handleIndex < handlePaths.size(); handleIndex++)
+			for (handleIndex = 0; handleIndex < groupHandles.size(); handleIndex++)
 			{
-				Path& p = handlePaths.getReference(handleIndex);
-				GroupHandle* handle = &groupHandles.getUnchecked(handleIndex);
+				GroupHandle* handle = groupHandles.getUnchecked(handleIndex);
 
-				if (p.contains(event.position) && handleBeingDragged != handle)
+				if (handleBeingDragged != handle && handle->isMouseOver(event))
 				{
-					DBG("mouse in handle");
 					handleBeingDragged = handle;
 					dirty = true;
 					break;
 				}
 			}
 
-			if (handleIndex >= handlePaths.size())
+			if (handleBeingDragged && !handleBeingDragged->isMouseOver(event))
 			{
 				handleBeingDragged = nullptr;
+				highlightDegreeIndicies.clear();
+
+				dirty = true;
 			}
 		}
 	}
@@ -505,7 +503,6 @@ void GroupingCircle::mouseMove(const MouseEvent& event)
 void GroupingCircle::mouseDown(const MouseEvent& event)
 {
 	bool cancelMods = true;
-	degreeSectorMouseOver = degreeSectorOfAngle(getNormalizedMouseAngle(event));
 
 	// If mouse is on a group or degree section
 	if (mouseRadius > degreeInnerRadius && mouseRadius < groupOuterRadius)
@@ -513,6 +510,7 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 		// If mouse on a degree
 		if (mouseRadius < degreeOuterRadius)
 		{
+			degreeSectorMouseOver = degreeSectorOfAngle(getNormalizedMouseAngle(event));
 			int degree = groupChain[degreeSectorMouseOver];
 			// Show menu
 			if (event.mods.isRightButtonDown())
@@ -558,11 +556,69 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 				updateGenerator();
 			}
 		}
+
+		// If mouse in a group area
+		else if (mouseRadius < groupOuterRadius)
+		{
+			// Show possible degrees to drag handle to
+			if (handleBeingDragged)
+			{
+				int groupIndex = handleBeingDragged->getGroupIndex();
+				int groupSize = groupSizes[groupIndex];
+
+				// find first degree index of group
+				// TODO: put degreeIndex in GroupHandle
+				int groupDeg = 0;
+				for (int i = 0; i < groupIndex; groupDeg += groupSizes[i++]);
+
+				Array<Point<int>> sizePairs;
+				highlightDegreeIndicies.clear();
+				if (handleBeingDragged->addsGroupWhenDragged())
+				{
+					sizePairs = scaleStructure.findValidGroupSizeRemainders(handleBeingDragged->getGroupIndex());
+					for (auto sizePair : sizePairs)
+					{
+						if (sizePair.x < groupSize)
+						{
+							if (handleBeingDragged->isDraggingClockwise())
+							{
+								highlightDegreeIndicies.add(sizePair.x + groupDeg);
+							}
+							else
+							{
+								highlightDegreeIndicies.add(groupDeg + groupSize - sizePair.x);
+							}
+						}
+					}
+				}			
+				else
+				{
+					sizePairs = scaleStructure.findValidGroupSize(handleBeingDragged->getGroupIndex(), true);
+					sizePairs.addArray(scaleStructure.findValidGroupSize(handleBeingDragged->getGroupIndex(), false));
+					for (auto sizePair : sizePairs)
+					{
+						if (groupSize != sizePair.x)
+							highlightDegreeIndicies.add(groupSize - sizePair.x + groupDeg);
+					}
+				}
+
+				resized();
+			}
+		}
 	}
 
 	if (cancelMods)
 	{
 		cancelDegreeMods();
+		repaint();
+	}
+}
+
+void GroupingCircle::mouseUp(const MouseEvent& event)
+{
+	if (highlightDegreeIndicies.size() > 0)
+	{
+		highlightDegreeIndicies.clear();
 		repaint();
 	}
 }
