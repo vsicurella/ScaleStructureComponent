@@ -246,6 +246,11 @@ Array<int> ScaleStructure::getGroupChain() const
 	return groupChain;
 }
 
+int ScaleStructure::getGroupChainIndexOfDegree(int degreeIn) const
+{
+	return groupChainDegreeIndicies[degreeIn];
+}
+
 Array<int> ScaleStructure::getGroupingIndexedSizes() const
 {
 	return degreeGroupIndexedSizes;
@@ -263,13 +268,12 @@ Array<Array<int>> ScaleStructure::getDegreeGroupings() const
 
 int ScaleStructure::getGroupOfDegree(int scaleDegreeIn) const
 {
-	for (int g = 0; g < degreeGroupIndexedSizes.size(); g++)
-	{
-		if (degreeGroupings.getReference(g).contains(scaleDegreeIn))
-			return g;
-	}
+	return degreeGroupChainMap[groupChainDegreeIndicies[scaleDegreeIn]];
+}
 
-	return -1;
+int ScaleStructure::getGroupOfDegreeIndex(int groupChainIndex) const
+{
+	return degreeGroupChainMap[groupChainIndex];
 }
 
 Array<Point<int>> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLevels) const
@@ -667,76 +671,13 @@ void ScaleStructure::calculateGeneratorChain()
 	DBG("SS Generator Chain: " + dbgstr);
 }
 
-void ScaleStructure::fillGroupingSymmetrically()
-{
-	degreeGroupings.clear();
-	groupChain.clear();
-
-	Array<int> grouping;
-
-	for (int i = 0; i < periodFactorSelected; i++)
-	{
-		grouping.addArray(degreeGroupIndexedSizes);
-	}
-
-	degreeGroupings.resize(grouping.size());
-
-	// Fill degree groups symmetrically
-	int indexForward = 0;
-	int indexBackwards = period - 1;
-	int ind;
-	for (int t = 0; t < grouping.size(); t++)
-	{
-		for (int n = 0; n < scaleSizes[grouping[t]]; n++)
-		{
-			if (t % 2 == 0)
-			{
-				ind = modulo(indexForward, period);
-				indexForward++;
-			}
-			else
-			{
-				ind = modulo(indexBackwards, period);
-				indexBackwards--;
-			}
-
-			degreeGroupings.getReference(t).add(generatorChain[ind]);
-			groupChain.add(generatorChain[ind]);
-		}
-	}
-
-	String dbgstr = "";
-	int size, sum = 0;
-	for (int i = 0; i < grouping.size(); i++) {
-		size = scaleSizes[grouping[i]];
-		dbgstr += String(size) + ", ";
-		sum += size;
-	}
-	dbgstr += " = " + String(sum);
-	DBG("SS Updated grouping: " + dbgstr);
-
-	dbgstr = "\t";
-	for (int group = 0; group < grouping.size(); group++)
-	{
-		Array<int> degreeGroup = degreeGroupings[group];
-		dbgstr += "Tier " + String(group) + ": ";
-		for (int deg = 0; deg < degreeGroup.size(); deg++)
-		{
-			dbgstr += String(degreeGroup[deg]) + ", ";
-		}
-
-		if (group + 1 < degreeGroupIndexedSizes.size())
-			dbgstr += "\n\t";
-	}
-
-	DBG("SS Degree groupings: ");
-	DBG(dbgstr);
-}
-
 void ScaleStructure::fillSymmetricGrouping(bool applyAlterations)
 {
 	degreeGroupings.clear();
 	degreeGroupings.resize(degreeGroupIndexedSizes.size());
+		
+	groupChainDegreeIndicies.resize(period);
+	degreeGroupChainMap.resize(period);
 	groupChain.clear();
 
 	// Fill degree groups symmetrically
@@ -750,6 +691,9 @@ void ScaleStructure::fillSymmetricGrouping(bool applyAlterations)
 			{
 				degree = generatorChain[ind + groupInd + fPeriod * f];
 				degreeGroupings.getReference(group).add(degree);
+				
+				degreeGroupChainMap.set(groupChain.size(), group);
+				groupChainDegreeIndicies.set(degree, groupChain.size());
 				groupChain.add(degree);
 			}
 		}
@@ -858,6 +802,13 @@ void ScaleStructure::applyChromaAlterations()
 
 					// record inverse alteration
 					degreeAlterations.set(alteredDegree, alteration.withY(-alteration.y));
+
+					// update helper maps
+					degreeGroupChainMap.set(shiftedIndex, originalGroupNum);
+					degreeGroupChainMap.set(degIndex, shiftedGroupNum);
+
+					groupChainDegreeIndicies.set(degree, shiftedIndex);
+					groupChainDegreeIndicies.set(alteredDegree, degIndex);
 					
 					break;
 				}

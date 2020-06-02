@@ -47,6 +47,12 @@ class ScaleStructure
 	// List of scale degrees of how they're grouped - different than generatorChain for fractional periods
 	Array<int> groupChain;
 
+	// Map of scale degree -> groupChain index
+	Array<int> groupChainDegreeIndicies;
+
+	// Map of group chain indicies -> degree group index
+	Array<int> degreeGroupChainMap;
+
 	// List of user-chosen alterations by group chain index
 	// X-value is chroma level, Y-value is alteration amount
 	// A chroma level of -1 is used if there is no alteration
@@ -73,12 +79,7 @@ private:
 	// Enumerates the scale as a chain of generators
 	void calculateGeneratorChain();
 
-	// Fills arrays of degrees based on degreeGroupIndexedSizes. Use this if group sizes haven't been arranged symmetrically
-	// Starts at beginning of generatorChain and puts the succeeding degrees in the second group, but wraps to degrees
-	// preceding the generatorChain beginning into the third group, and alternates to fill all degrees
-	void fillGroupingSymmetrically();
-
-	// Takes an already 'symmetricized' group size array and fills groups of degrees based on this.
+	// Takes an symmetric group size array and fills groups of degrees based on this.
 	void fillSymmetricGrouping(bool applyAlterations=true);
 
 	// Swaps degrees in generator chain based off of modifications
@@ -161,6 +162,11 @@ public:
 	Array<int> getGeneratorChain() const;
 	Array<int> getGroupChain() const;
 
+	/*
+		Returns the group chain index of the input scale degree
+	*/
+	int getGroupChainIndexOfDegree(int degreeIn) const;
+
 	// Returns an array of indicies reffering to scale sizes of degree groups
 	Array<int> getGroupingIndexedSizes() const;
 
@@ -179,6 +185,11 @@ public:
 		Used for determining the colour of the scale degree 
 	*/
 	int getGroupOfDegree(int scaleDegreeIn) const;
+
+	/*
+		Returns the index of the group the group chain index falls in
+	*/
+	int getGroupOfDegreeIndex(int groupChainIndex) const;
 
 	/*
 		Finds the generator chain indices a given degree can be altered to
