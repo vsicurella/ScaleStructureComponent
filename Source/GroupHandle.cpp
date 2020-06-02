@@ -10,8 +10,9 @@
 
 #include "GroupHandle.h"
 
-GroupHandle::GroupHandle(int groupIndexIn, bool addsGroupIn, bool clockwiseDragIn)
+GroupHandle::GroupHandle(int groupIndexIn, int degreeIndexIn, bool addsGroupIn, bool clockwiseDragIn)
 	:	groupIndex(groupIndexIn),
+		degreeIndex(degreeIndexIn),
 		addsGroup(addsGroupIn),
 		clockwiseDrag(clockwiseDragIn)
 {
@@ -21,6 +22,11 @@ GroupHandle::GroupHandle(int groupIndexIn, bool addsGroupIn, bool clockwiseDragI
 int GroupHandle::getGroupIndex() const
 {
 	return groupIndex;
+}
+
+int GroupHandle::getDegreeIndex() const
+{
+	return degreeIndex;
 }
 
 bool GroupHandle::addsGroupWhenDragged() const

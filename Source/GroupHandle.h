@@ -18,10 +18,12 @@ class GroupHandle
 
 public:
 
-	GroupHandle(int groupIndexIn, bool addsGroupIn, bool clockwiseDragIn);
+	GroupHandle(int groupIndexIn, int degreeIndexIn, bool addsGroupIn, bool clockwiseDragIn);
 	~GroupHandle() {};
 
 	int getGroupIndex() const;
+
+	int getDegreeIndex() const;
 
 	bool addsGroupWhenDragged() const;
 
@@ -85,6 +87,7 @@ public:
 private:
 
 	int groupIndex;
+	int degreeIndex;
 	bool addsGroup;
 	bool clockwiseDrag;
 
