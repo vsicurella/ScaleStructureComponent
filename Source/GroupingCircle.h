@@ -100,8 +100,13 @@ private:
 	OwnedArray<GroupHandle> groupHandles;
 	GroupHandle* handleBeingDragged = nullptr;
 
-	Array<int> highlightDegreeIndicies; // Refers to the most counter-clockwise edge of a degree
+	// Refers to the most counter-clockwise edge of a degree
+	Array<int> highlightDegreeIndicies; 
 	Array<Line<float>> highlightedEdges;
+	
+	// The two highlighted degree indices that are closest to the dragged GroupHandle
+	// Counterclockwise, clockwise
+	Point<int> adjacentEdges; 
 	
 	float handleDotAngRatio;
 	float handleDotRadius;

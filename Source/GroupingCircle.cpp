@@ -122,16 +122,17 @@ void GroupingCircle::updateGenerator()
 	// Set up group handles
 	groupHandles.clear();
 	highlightedEdges.clear();
-	
-
+	int degIndex = 0;
 	for (int i = 1; i < groupSizes.size(); i++)
 	{
-		groupHandles.add(new GroupHandle(i, true, false));
-		groupHandles.add(new GroupHandle(i, true, true));
+		degIndex += groupSizes[i - 1];
+
+		groupHandles.add(new GroupHandle(i, degIndex, true, false));
+		groupHandles.add(new GroupHandle(i, degIndex, true, true));
 
 		if (i > 1)
 		{
-			groupHandles.add(new GroupHandle(i, false, false));
+			groupHandles.add(new GroupHandle(i, degIndex, false, false));
 		}
 	}
 
@@ -215,11 +216,16 @@ void GroupingCircle::paint (Graphics& g)
 		(groupRingWidth + degreeRingWidth) / 20.0f,
 		(groupRingWidth + degreeRingWidth) / 20.0f
 	};
+
 	// Highlight degree edges
 	int edgePath = 0;
 	for (auto index : highlightDegreeIndicies)
-	{		
-		g.setColour(colourTable[index].contrasting(1.0f));
+	{
+		g.setColour(colourTable[scaleStructure.getGroupOfDegreeIndex(index)].contrasting(0.75f));
+
+		if (adjacentEdges.x == index || adjacentEdges.y == index)
+			g.setColour(Colours::red);
+
 		g.drawDashedLine(highlightedEdges[edgePath], dashPattern, 2, 2.0f);
 
 		edgePath++;
@@ -346,53 +352,49 @@ void GroupingCircle::resized()
 		}
 	}
 
-	int degreeIndex = groupSizes[0];
-
-	groupIndex = 1;
+	float thetaOffset = -circleOffset - float_HalfPi;
 	// Resize group handles
 	for (int i = 0; i < groupHandles.size(); i++)
 	{
-		float angleOfs = -circleOffset - float_HalfPi;
 		GroupHandle* handle = groupHandles.getUnchecked(i);
-		
-		if (handle->getGroupIndex() > groupIndex)
-		{
-			degreeIndex += groupSizes[groupIndex];
-			groupIndex++;
-		}
-
-		angleOfs += angleIncrement * degreeIndex;
+		float theta = angleIncrement * handle->getDegreeIndex() + thetaOffset;
 
 		if (handle->addsGroupWhenDragged())
 		{
 			if (handle->isDraggingClockwise())
 			{
-				handle->setPosition(Point<float>(angleOfs + handleDotAngRatio, groupMiddleRadius), center);
+				handle->setPosition(Point<float>(theta + handleDotAngRatio, groupMiddleRadius), center);
 			}
 			else
 			{
-				angleOfs += groupSizes[groupIndex] * angleIncrement;
-				handle->setPosition(Point<float>(angleOfs - handleDotAngRatio, groupMiddleRadius), center);
+				theta += groupSizes[handle->getGroupIndex()] * angleIncrement;
+				handle->setPosition(Point<float>(theta - handleDotAngRatio, groupMiddleRadius), center);
 			}
 
 			handle->setSize(handleDotRadius);
 		}
 		else
 		{
-			handle->setPosition(Point<float>(angleOfs, degreeInnerRadius), center);
+			handle->setPosition(Point<float>(theta, degreeInnerRadius), center);
 			handle->setSize(groupOuterRadius / degreeInnerRadius);
 		}
 	}
 
-	float angleOfs = -circleOffset - float_HalfPi;
-	float length = groupOuterRadius / degreeInnerRadius;
-
-	highlightedEdges.clear();
-	for (int i = 0; i < highlightDegreeIndicies.size(); i++)
+	// Resize degree edge lines if groups are being resized
+	if (highlightDegreeIndicies.size() > 0)
 	{
-		int index = highlightDegreeIndicies[i];	
-		Line<float> line = GroupHandle::getGroupEdgeLine(center, Point<float>(angleOfs + angleIncrement * index, degreeInnerRadius), length);
-		highlightedEdges.add(line);
+		highlightedEdges.clear();
+
+		float length = groupOuterRadius / degreeInnerRadius;
+		int index;
+		Line<float> line;
+		
+		for (int i = 0; i < highlightDegreeIndicies.size(); i++)
+		{
+			index = highlightDegreeIndicies[i];
+			line = GroupHandle::getGroupEdgeLine(center, Point<float>(angleIncrement * index + thetaOffset, degreeInnerRadius), length);
+			highlightedEdges.add(line);
+		}
 	}
 }
 
@@ -560,49 +562,84 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 		// If mouse in a group area
 		else if (mouseRadius < groupOuterRadius)
 		{
+			// TODO: move most calculations to ScaleStructure class
 			// Show possible degrees to drag handle to
 			if (handleBeingDragged)
 			{
 				int groupIndex = handleBeingDragged->getGroupIndex();
 				int groupSize = groupSizes[groupIndex];
+				int handleDeg = handleBeingDragged->getDegreeIndex();
 
-				// find first degree index of group
-				// TODO: put degreeIndex in GroupHandle
-				int groupDeg = 0;
-				for (int i = 0; i < groupIndex; groupDeg += groupSizes[i++]);
+				// will minimize the difference of possible degree edges
+				// to find the edges adjacent to the handle
+				adjacentEdges = Point<int>(-1, -1);
 
-				Array<Point<int>> sizePairs;
+				Array<Point<int>> newGroupSizes;
+				int newDegreeEdge;
 				highlightDegreeIndicies.clear();
+
 				if (handleBeingDragged->addsGroupWhenDragged())
 				{
-					sizePairs = scaleStructure.findValidGroupSizeRemainders(handleBeingDragged->getGroupIndex());
-					for (auto sizePair : sizePairs)
+					newGroupSizes = scaleStructure.findValidGroupSizeRemainders(handleBeingDragged->getGroupIndex());
+					for (auto sizePair : newGroupSizes)
 					{
 						if (sizePair.x < groupSize)
 						{
 							if (handleBeingDragged->isDraggingClockwise())
 							{
-								highlightDegreeIndicies.add(sizePair.x + groupDeg);
+								newDegreeEdge = sizePair.x + handleDeg;
+
+								if (adjacentEdges.y < 0 || newDegreeEdge < adjacentEdges.y)
+									adjacentEdges.setY(newDegreeEdge);
 							}
 							else
 							{
-								highlightDegreeIndicies.add(groupDeg + groupSize - sizePair.x);
+								newDegreeEdge = groupSize - sizePair.x + handleDeg;
+
+								if (adjacentEdges.x < 0 || newDegreeEdge > adjacentEdges.x)
+									adjacentEdges.setX(newDegreeEdge);
+
 							}
+
+							highlightDegreeIndicies.add(newDegreeEdge);
 						}
 					}
-				}			
+				}
+
+				// TODO: add checking for edges that go beyond adjacent groups
 				else
 				{
-					sizePairs = scaleStructure.findValidGroupSize(handleBeingDragged->getGroupIndex(), true);
-					sizePairs.addArray(scaleStructure.findValidGroupSize(handleBeingDragged->getGroupIndex(), false));
-					for (auto sizePair : sizePairs)
+					newGroupSizes = scaleStructure.findValidGroupSize(handleBeingDragged->getGroupIndex(), true);
+					newGroupSizes.addArray(scaleStructure.findValidGroupSize(handleBeingDragged->getGroupIndex(), false));
+					for (auto sizePair : newGroupSizes)
 					{
 						if (groupSize != sizePair.x)
-							highlightDegreeIndicies.add(groupSize - sizePair.x + groupDeg);
+						{
+							newDegreeEdge = groupSize - sizePair.x + handleDeg;
+							highlightDegreeIndicies.add(newDegreeEdge);
+
+							if (newDegreeEdge < handleDeg && (adjacentEdges.x < 0 || handleDeg - newDegreeEdge < handleDeg - adjacentEdges.x))
+								adjacentEdges.setX(newDegreeEdge);
+
+							if (newDegreeEdge > handleDeg && (adjacentEdges.y < 0 || newDegreeEdge - handleDeg < adjacentEdges.y - handleDeg))
+								adjacentEdges.setY(newDegreeEdge);
+						}
 					}
 				}
 
 				resized();
+
+				DBG("CIRCLE: Handle grabbed. Available degree edges:");
+				String dbgstr;
+				for (auto hdi : highlightDegreeIndicies)
+				{
+					dbgstr = "\t" + String(hdi);
+					if (adjacentEdges.x == hdi)
+						dbgstr += " * ccw adj";
+					else if (adjacentEdges.y == hdi)
+						dbgstr += " * cw adj";
+					DBG(dbgstr);
+				}
 			}
 		}
 	}
