@@ -253,6 +253,7 @@ void GroupingCircle::resized()
 	angleIncrement = 2 * double_Pi / groupChain.size();
 	angleHalf = angleIncrement / 2.0f;
 
+	handleDragThreshold = angleHalf * groupMiddleRadius;
 	handleDotAngRatio = angleIncrement / 10.0f;
 	handleDotRadius = groupRingWidth / 25.0f;
 
@@ -573,6 +574,7 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 				// will minimize the difference of possible degree edges
 				// to find the edges adjacent to the handle
 				adjacentEdges = Point<int>(-1, -1);
+				adjacentEdgeIndicies = adjacentEdges;
 
 				Array<Point<int>> newGroupSizes;
 				int newDegreeEdge;
@@ -581,8 +583,10 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 				if (handleBeingDragged->addsGroupWhenDragged())
 				{
 					newGroupSizes = scaleStructure.findValidGroupSizeRemainders(handleBeingDragged->getGroupIndex());
-					for (auto sizePair : newGroupSizes)
+					for (int i = 0; i <  newGroupSizes.size(); i++)
 					{
+						Point<int> sizePair = newGroupSizes[i];
+
 						if (sizePair.x < groupSize)
 						{
 							if (handleBeingDragged->isDraggingClockwise())
@@ -590,14 +594,20 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 								newDegreeEdge = sizePair.x + handleDeg;
 
 								if (adjacentEdges.y < 0 || newDegreeEdge < adjacentEdges.y)
+								{
 									adjacentEdges.setY(newDegreeEdge);
+									adjacentEdgeIndicies.setY(i);
+								}
 							}
 							else
 							{
 								newDegreeEdge = groupSize - sizePair.x + handleDeg;
 
 								if (adjacentEdges.x < 0 || newDegreeEdge > adjacentEdges.x)
+								{
 									adjacentEdges.setX(newDegreeEdge);
+									adjacentEdgeIndicies.setX(i);
+								}
 
 							}
 
@@ -611,18 +621,26 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 				{
 					newGroupSizes = scaleStructure.findValidGroupSize(handleBeingDragged->getGroupIndex(), true);
 					newGroupSizes.addArray(scaleStructure.findValidGroupSize(handleBeingDragged->getGroupIndex(), false));
-					for (auto sizePair : newGroupSizes)
+					for (int i = 0; i < newGroupSizes.size(); i++)
 					{
+						Point<int> sizePair = newGroupSizes[i];
 						if (groupSize != sizePair.x)
 						{
 							newDegreeEdge = groupSize - sizePair.x + handleDeg;
-							highlightDegreeIndicies.add(newDegreeEdge);
 
 							if (newDegreeEdge < handleDeg && (adjacentEdges.x < 0 || handleDeg - newDegreeEdge < handleDeg - adjacentEdges.x))
+							{
 								adjacentEdges.setX(newDegreeEdge);
+								adjacentEdgeIndicies.setX(highlightDegreeIndicies.size());
+							}
 
-							if (newDegreeEdge > handleDeg && (adjacentEdges.y < 0 || newDegreeEdge - handleDeg < adjacentEdges.y - handleDeg))
+							else if (newDegreeEdge > handleDeg && (adjacentEdges.y < 0 || newDegreeEdge - handleDeg < adjacentEdges.y - handleDeg))
+							{
 								adjacentEdges.setY(newDegreeEdge);
+								adjacentEdgeIndicies.setY(highlightDegreeIndicies.size());
+							}
+
+							highlightDegreeIndicies.add(newDegreeEdge);
 						}
 					}
 				}
@@ -653,8 +671,10 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 
 void GroupingCircle::mouseUp(const MouseEvent& event)
 {
-	if (highlightDegreeIndicies.size() > 0)
+
+	if (handleBeingDragged)
 	{
+		handleBeingDragged = nullptr;
 		highlightDegreeIndicies.clear();
 		repaint();
 	}
@@ -666,27 +686,88 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 	mouseRadius = event.position.getDistanceFrom(center);
 	bool dirty = false;
 
-	if (mouseDownRadius >= degreeInnerRadius && mouseDownRadius < degreeOuterRadius)
+	if (mouseDownRadius >= degreeInnerRadius)
 	{
 		float angle = getNormalizedMouseAngle(event);
 		int degreeIndex = degreeSectorOfAngle(angle);
 
-		if (degreeSectorMouseOver != degreeIndex)
+		if (mouseDownRadius < degreeOuterRadius)
 		{
-			int offset = degreeIndex - degreeSectorMouseOver + scaleStructure.getGeneratorOffset();
-
-			if (offset > -1 && offset < scaleStructure.getScaleSize())
+			if (degreeSectorMouseOver != degreeIndex)
 			{
-				//generatorOffset.setValue(offset);
-				listeners.call(&Listener::offsetChanged, offset);
+				int offset = degreeIndex - degreeSectorMouseOver + scaleStructure.getGeneratorOffset();
 
-				DBG("Moved by " + String(degreeIndex - degreeSectorMouseOver) + "\tNew offset: " + String(offset));
-				dirty = true;
+				if (offset > -1 && offset < scaleStructure.getScaleSize())
+				{
+					//generatorOffset.setValue(offset);
+					listeners.call(&Listener::offsetChanged, offset);
+
+					DBG("Moved by " + String(degreeIndex - degreeSectorMouseOver) + "\tNew offset: " + String(offset));
+					dirty = true;
+				}
+
+				lastDegreeSectorMouseIn = degreeSectorMouseOver;
+				degreeSectorMouseOver = degreeIndex;
+
 			}
+		}
 
-			lastDegreeSectorMouseIn = degreeSectorMouseOver;
-			degreeSectorMouseOver = degreeIndex;
-			
+		else if (mouseDownRadius <= groupOuterRadius)
+		{
+			if (handleBeingDragged)
+			{
+				float distanceX = 10e6, distanceY = 10e6;
+				float distance;
+				int edgeIndex;
+				if (adjacentEdgeIndicies.x > -1)
+				{
+					distanceX = abs(
+						highlightedEdges[adjacentEdgeIndicies.x]
+						.findNearestPointTo(event.position)
+						.getDistanceFrom(event.position)
+					);
+
+					DBG("Distance from CCW edge: " + String(distanceX));
+				}
+
+
+				if (adjacentEdgeIndicies.y > -1)
+				{
+					distanceY = abs(
+						highlightedEdges[adjacentEdgeIndicies.y]
+						.findNearestPointTo(event.position)
+						.getDistanceFrom(event.position)
+					);
+
+					DBG("Distance from CW edge: " + String(distanceY));
+				}
+
+				distance = jmin(distanceX, distanceY);
+
+				if (distance <= handleDragThreshold)
+				{
+
+					// Figure out type of change (merge, resize, split)
+
+
+					DBG("Passed threshold: " + String(handleDragThreshold));
+
+					if (distance == distanceX)
+					{
+
+
+					}
+					else
+					{
+
+
+					}
+
+					// TODO: degreeGroupingChanged callback
+
+					dirty = true;
+				}
+			}
 		}
 	}
 

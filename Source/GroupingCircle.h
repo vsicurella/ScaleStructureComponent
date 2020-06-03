@@ -56,8 +56,13 @@ public:
 		~Listener() {};
 
 		virtual void offsetChanged(int newOffset) = 0;
+		
 		virtual void degreeIndexAltered(int degreeIndex, Point<int> alteration) = 0;
 		virtual void allModificationsReset() = 0;
+
+		virtual void groupingSplit(int groupIndex, int groupSizeIndex, bool newGroupClockWise) = 0;
+		virtual void groupingResized(int groupIndex, int groupSizeIndex, bool resizedClockwise) = 0;
+		virtual void groupingsMerged(int groupIndex, bool mergedClockwise) = 0;
 	};
 
 	void addListener(Listener* listenerToAdd);
@@ -99,6 +104,7 @@ private:
 	// Group sizing functionality
 	OwnedArray<GroupHandle> groupHandles;
 	GroupHandle* handleBeingDragged = nullptr;
+	float handleDragThreshold;
 
 	// Refers to the most counter-clockwise edge of a degree
 	Array<int> highlightDegreeIndicies; 
@@ -107,7 +113,8 @@ private:
 	// The two highlighted degree indices that are closest to the dragged GroupHandle
 	// Counterclockwise, clockwise
 	Point<int> adjacentEdges; 
-	
+	Point<int> adjacentEdgeIndicies;
+		
 	float handleDotAngRatio;
 	float handleDotRadius;
 	float handleHighlightMult = 1.5f;
