@@ -525,7 +525,7 @@ void ScaleStructure::setGeneratorOffset(int offsetIn)
 {
 	generatorOffset = offsetIn;
 	calculateGeneratorChain();
-	useSuggestedSizeGrouping();
+	fillSymmetricGrouping();
 }
 
 bool ScaleStructure::setChromaAlterations(Array<Point<int>> chromaAlterationsIn)
@@ -856,10 +856,10 @@ int ScaleStructure::getSymmetricGroup(int groupIndexIn) const
 	return -1;
 }
 
-Array<Point<int>> ScaleStructure::findValidGroupSize(int groupIndexIn, bool adjacentGroupClockwise) const
+Array<int> ScaleStructure::findValidGroupSize(int groupIndexIn, bool adjacentGroupClockwise) const
 {
 	int numGroups = degreeGroupIndexedSizes.size();
-	Array<Point<int>> sizesOut;
+	Array<int> sizesIndiciesOut;
 
 	if (groupIndexIn > 0 && groupIndexIn < numGroups)
 	{
@@ -873,36 +873,31 @@ Array<Point<int>> ScaleStructure::findValidGroupSize(int groupIndexIn, bool adja
 
 		// For now, don't allow resizing of group 0 
 		if (adjacentIndex == 0)
-			return sizesOut;
+			return sizesIndiciesOut;
 
 		adjacentSize = degreeGroupScaleSizes[adjacentIndex];
 
-		int dif, newAdjIndex;
+		int dif;
 		// 0 is redundant, last index is full scale size
 		for (int i = 1; i < scaleSizes.size() - 1; i++)
 		{
 			dif = groupSize - scaleSizes[i];
 
-			// if the adjacentSize + dif is a valid scale size, we got a match
-			newAdjIndex = scaleSizes.indexOf(adjacentSize + dif);
-			
-			if (newAdjIndex < 0)
+			// if the adjacentSize + dif is a valid scale size, we got a match			
+			if (scaleSizes.indexOf(adjacentSize + dif) < 0)
 				continue;
 
-			else if (newAdjIndex == 0)
-				newAdjIndex++;
-
-			sizesOut.add(Point<int>(scaleSizes[i], scaleSizes[newAdjIndex]));
+			sizesIndiciesOut.add(i);
 		}
 	}
 
-	return sizesOut;
+	return sizesIndiciesOut;
 }
 
-Array<Point<int>> ScaleStructure::findValidGroupSizeRemainders(int groupIndexIn) const
+Array<int> ScaleStructure::findValidGroupSizeRemainders(int groupIndexIn) const
 {
 	int numGroups = degreeGroupIndexedSizes.size();
-	Array<Point<int>> sizesIndiciesOut;
+	Array<int> sizesIndiciesOut;
 
 	if (groupIndexIn > 0 && groupIndexIn < numGroups)
 	{
@@ -915,15 +910,10 @@ Array<Point<int>> ScaleStructure::findValidGroupSizeRemainders(int groupIndexIn)
 			dif = groupSize - scaleSizes[i];
 
 			// if the adjacentSize + dif is a valid scale size, we got a match
-			remSizeIndex = scaleSizes.indexOf(dif);
-
-			if (remSizeIndex < 0)
+			if (scaleSizes.indexOf(dif) < 0)
 				continue;
 
-			else if (remSizeIndex == 0)
-				remSizeIndex++;
-
-			sizesIndiciesOut.add(Point<int>(scaleSizes[i], scaleSizes[remSizeIndex]));
+			sizesIndiciesOut.add(i);
 		}
 	}
 
