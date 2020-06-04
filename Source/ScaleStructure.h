@@ -65,6 +65,12 @@ class ScaleStructure
 	// May removed one method if one is determined to be objectively wrong
 	bool alterationsAttachedToDegree = false;
 
+	// Used in degree grouping related functions to make sure that the groups 
+	// can be arranged on a circle with symmetrically so that each group has
+	// a group of the same size on the other side of the circle (horizontally across),
+	// except for the first group and the middle group (for odd-amounts of groups).
+	bool retainGroupingSymmetry = true;
+
 private:
 	/*
 		Private methods
@@ -242,6 +248,13 @@ public:
 	bool setChromaAlterations(Array<Point<int>> chromaAlterationsIn);
 
 	/*
+		Returns the degree group on the other side of the grouping cirle horizontally if groupings are symmetric.
+		If there is no opposite it will return itself.
+		If the grouping is not symmetric, it will return -1;
+	*/
+	int getSymmetricGroup(int groupIndexIn) const;
+
+	/*
 		Input a degree group index and get compatible alternate sizes (in scaleSize indicies)
 		If symmetric, will take resizing the group on the opposite side of the circle into account.
 		The returned Point includes the passed in index sizes as X, and the adjacent sizes as Y
@@ -255,6 +268,36 @@ public:
 		This is used for resizing a group while creating a new group
 	*/
 	Array<Point<int>> findValidGroupSizeRemainders(int groupIndexIn) const;
+
+	/*
+		Sets and updates degree grouping arrangment.
+		If the passed in grouping contains invalid scale size indicies and if they do not
+		add to the period, then it will not be applied.
+		If retainSymmetry is true, this will check if the grouping is symmetric, and won't apply it if not.
+	*/
+	void setDegreeGrouping(Array<int> groupingSizeIndiciesIn);
+
+	/*
+		Splits a group index into two groups. The two sizes added must equal original size.
+		If newGroupClockwise is true, the new group using the remainder size will be added
+		clockwise to the original group.
+		If retaining symmetry, this also effects the group on the other side.
+	*/
+	void splitDegreeGroup(int groupIndexIn, int groupSizeIndex, bool newGroupClockwise);
+
+	/*
+		Resizes two adjacent groups. The new group sizes added must equal the original sizes added.
+		If resizedClockwise is true, the group clockwise to the passed in groupIndex will be resized.
+		If retaining symmetry, this also effects the group on the other side.
+	*/
+	void resizeDegreeGroup(int groupIndex, int groupSizeIndex, bool resizedClockwise);
+
+	/*
+		Merges two adjacent groups. The new group size must be a valid size that the scale structure supports.
+		If mergedClockwise is true, the group clockwise to the passed in groupIndex will be consumed.
+		If retaining symmetry, this also effects the group on the other side.
+	*/
+	void mergeDegreeGroups(int groupIndex, bool mergedClockwise);
 
 	// Returns the index whose generator is closest to a perfect fifth
 	int getSuggestedGeneratorIndex();

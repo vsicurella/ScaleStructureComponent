@@ -299,7 +299,26 @@ void ScaleStructureComponent::degreeIndexAltered(int degreeIndex, Point<int> alt
 void ScaleStructureComponent::allModificationsReset()
 {
 	scaleStructure.setChromaAlterations(Array<Point<int>>());
+	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 	updateLsLabel();
+}
+
+void ScaleStructureComponent::groupingSplit(int groupIndex, int groupSizeIndex, bool newGroupClockwise)
+{
+	scaleStructure.splitDegreeGroup(groupIndex, groupSizeIndex, newGroupClockwise);
+	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
+}
+
+void ScaleStructureComponent::groupingResized(int groupIndex, int groupSizeIndex, bool resizedClockwise)
+{
+	scaleStructure.resizeDegreeGroup(groupIndex, groupSizeIndex, resizedClockwise);
+	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
+}
+
+void ScaleStructureComponent::groupingsMerged(int groupIndex, bool mergedClockwise)
+{
+	scaleStructure.mergeDegreeGroups(groupIndex, mergedClockwise);
+	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 }
 
 void ScaleStructureComponent::loadScaleStructureSettings()

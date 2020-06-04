@@ -675,6 +675,7 @@ void ScaleStructure::fillSymmetricGrouping(bool applyAlterations)
 {
 	degreeGroupings.clear();
 	degreeGroupings.resize(degreeGroupIndexedSizes.size());
+	degreeGroupScaleSizes.clear();
 		
 	groupChainDegreeIndicies.resize(period);
 	degreeGroupChainMap.resize(period);
@@ -685,6 +686,8 @@ void ScaleStructure::fillSymmetricGrouping(bool applyAlterations)
 	for (int group = 0; group < degreeGroupIndexedSizes.size(); group++)
 	{
 		groupSize = scaleSizes[degreeGroupIndexedSizes[group]];
+		degreeGroupScaleSizes.add(groupSize * periodFactorSelected);
+
 		for (int f = 0; f < periodFactorSelected; f++)
 		{
 			for (int groupInd = 0; groupInd < groupSize; groupInd++)
@@ -709,7 +712,7 @@ void ScaleStructure::fillSymmetricGrouping(bool applyAlterations)
 	String dbgstr = "";
 	int size, sum = 0;
 	for (int i = 0; i < degreeGroupIndexedSizes.size(); i++) {
-		size = scaleSizes[degreeGroupIndexedSizes[i]];
+		size = degreeGroupScaleSizes[i];
 		dbgstr += String(size) + ", ";
 		sum += size;
 	}
@@ -839,6 +842,20 @@ void ScaleStructure::applyChromaAlterations()
 	DBG(dbgstr);
 }
 
+int ScaleStructure::getSymmetricGroup(int groupIndexIn) const
+{
+	// Check for symmetry first?
+	if (retainGroupingSymmetry)
+	{
+		if (groupIndexIn == 0)
+			return 0;
+
+		return degreeGroupIndexedSizes.size() - groupIndexIn;
+	}
+
+	return -1;
+}
+
 Array<Point<int>> ScaleStructure::findValidGroupSize(int groupIndexIn, bool adjacentGroupClockwise) const
 {
 	int numGroups = degreeGroupIndexedSizes.size();
@@ -913,6 +930,180 @@ Array<Point<int>> ScaleStructure::findValidGroupSizeRemainders(int groupIndexIn)
 	return sizesIndiciesOut;
 }
 
+/*
+	Sets and updates degree grouping arrangment.
+	If the passed in grouping contains invalid scale size indicies and if they do not
+	add to the period, then it will not be applied.
+	If retainSymmetry is true, this will check if the grouping is symmetric, and won't apply it if not.
+*/
+void ScaleStructure::setDegreeGrouping(Array<int> groupingSizeIndiciesIn)
+{
+	bool sym = isSymmetric(groupingSizeIndiciesIn);
+	if (retainGroupingSymmetry && !sym)
+	{
+		// TODO: status flags?
+		DBG("Scale Structure: Grouping is not symmetric");
+		return;
+	}
+
+	// Check if group sizes add up to period
+	int sum = 0;
+	for (auto i : groupingSizeIndiciesIn)
+	{
+		sum += scaleSizes[i];
+	}
+
+	if (sum == fPeriod)
+	{
+		degreeGroupIndexedSizes = groupingSizeIndiciesIn;
+
+		if (sym)
+			fillSymmetricGrouping();
+		else
+			return; // TODO: bring back other degree grouping function
+
+		return;
+	}
+
+	DBG("Scale Structure: Groupings did not add up to period");
+}
+
+/*
+	Splits a group index into two groups. The two sizes added must equal original size.
+	If newGroupClockwise is true, the new group using the remainder size will be added
+	clockwise to the original group.
+	If retaining symmetry, this also effects the group on the other side.
+*/
+void ScaleStructure::splitDegreeGroup(int groupIndexIn, int groupSizeIndex, bool newGroupClockwise)
+{
+	Array<int> newGrouping;
+	
+	// Check if group's new size is valid
+	if (groupSizeIndex >= 0 && groupSizeIndex < scaleSizes.size())
+	{
+		int newGroupSize = degreeGroupScaleSizes[groupIndexIn] - scaleSizes[groupSizeIndex];
+		int newSizeIndex = scaleSizes.indexOf(newGroupSize);
+
+		if (newSizeIndex >= 0)
+		{
+			int symGroupIndex = getSymmetricGroup(groupIndexIn);
+
+			for (int i = 0; i < degreeGroupIndexedSizes.size(); i++)
+			{
+				if (i == groupIndexIn)
+				{
+					if (newGroupClockwise)
+					{
+						newGrouping.add(groupSizeIndex);
+						newGrouping.add(newSizeIndex);
+					}
+					else
+					{
+						newGrouping.add(newSizeIndex);
+						newGrouping.add(groupSizeIndex);
+					}
+				}
+				else if (i == symGroupIndex)
+				{
+					// Inverse for symmetric group
+					if (!newGroupClockwise)
+					{
+						newGrouping.add(groupSizeIndex);
+						newGrouping.add(newSizeIndex);
+					}
+					else
+					{
+						newGrouping.add(newSizeIndex);
+						newGrouping.add(groupSizeIndex);
+					}
+				}
+				else
+					newGrouping.add(degreeGroupIndexedSizes[i]);
+			}
+
+			setDegreeGrouping(newGrouping);
+		}
+	}
+}
+
+/*
+	Resizes two adjacent groups. The new group sizes added must equal the original sizes added.
+	If resizedClockwise is true, the group clockwise to the passed in groupIndex will be resized.
+	If retaining symmetry, this also effects the group on the other side.
+*/
+void ScaleStructure::resizeDegreeGroup(int groupIndex, int groupSizeIndex, bool resizedClockwise)
+{
+	Array<int> newGrouping;
+
+	int adjGroupIndex = resizedClockwise ? groupIndex + 1 : groupIndex - 1;
+
+	// Checks if adjacent group is not group 0 and if the new size index is valid
+	if (adjGroupIndex != 0 && adjGroupIndex != degreeGroupIndexedSizes.size() &&
+		groupSizeIndex >= 0 && groupSizeIndex < scaleSizes.size())
+	{
+		int adjGroupSize = degreeGroupScaleSizes[adjGroupIndex] + degreeGroupScaleSizes[groupIndex] - scaleSizes[groupSizeIndex];
+		int adjSizeIndex = scaleSizes.indexOf(adjGroupSize);
+
+		if (adjSizeIndex >= 0)
+		{
+			int symGroupIndex = getSymmetricGroup(groupIndex);
+			int symAdjGroup = getSymmetricGroup(adjGroupIndex);
+
+			for (int i = 0; i < degreeGroupIndexedSizes.size(); i++)
+			{
+				if (i == adjGroupIndex || i == symGroupIndex)
+					newGrouping.add(groupSizeIndex);
+
+				else if (i == adjGroupIndex || i == symAdjGroup)
+					newGrouping.add(adjSizeIndex);
+
+				else
+					newGrouping.add(degreeGroupIndexedSizes[i]);
+			}
+
+			setDegreeGrouping(newGrouping);
+		}
+	}
+}
+
+/*
+	Merges two adjacent groups. The new group size must be a valid size that the scale structure supports.
+	If mergedClockwise is true, the group clockwise to the passed in groupIndex will be consumed.
+	If retaining symmetry, this also effects the group on the other side.
+*/
+void ScaleStructure::mergeDegreeGroups(int groupIndex, bool mergedClockwise)
+{
+	Array<int> newGrouping;
+
+	int adjGroupIndex = mergedClockwise ? groupIndex + 1 : groupIndex - 1;
+	
+	// Checks if adjacent group is not group 0 and if the new size index is valid
+	if (adjGroupIndex != 0 && adjGroupIndex != degreeGroupIndexedSizes.size())
+	{
+		int newGroupSize = degreeGroupScaleSizes[groupIndex] + degreeGroupScaleSizes[adjGroupIndex];
+		int newSizeIndex = scaleSizes.indexOf(newGroupSize);
+
+		if (newSizeIndex >= 0)
+		{
+			int symGroupIndex = getSymmetricGroup(groupIndex);
+			int symAdjGroup = getSymmetricGroup(adjGroupIndex);
+
+			for (int i = 0; i < degreeGroupIndexedSizes.size(); i++)
+			{
+				if (i == adjGroupIndex || i == symGroupIndex)
+					newGrouping.add(newSizeIndex);
+
+				else if (i == adjGroupIndex || i == symAdjGroup)
+					continue;
+
+				else
+					newGrouping.add(degreeGroupIndexedSizes[i]);
+			}
+
+			setDegreeGrouping(newGrouping);
+		}
+	}
+}
 
 int ScaleStructure::getSuggestedGeneratorIndex()
 {
@@ -1136,13 +1327,6 @@ void ScaleStructure::useSuggestedSizeGrouping()
 
 	// make symmetric and fill degree groupings
 	degreeGroupIndexedSizes = arrangeSymmetrically(groupings[index]);
-
-	// fill scale size group
-	degreeGroupScaleSizes.clear();
-	for (auto i : degreeGroupIndexedSizes)
-	{
-		degreeGroupScaleSizes.add(scaleSizes[i] * periodFactorSelected);
-	}
 
 	//DBG("Symmetric group:");
 	//String dbgstr = "";
