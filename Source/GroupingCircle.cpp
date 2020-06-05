@@ -575,38 +575,49 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 				// to find the edges adjacent to the handle
 				adjacentEdges = Point<int>(-1, -1);
 				adjacentEdgeIndicies = adjacentEdges;
+				adjacentSizeIndicies = adjacentEdges;
 
-				Array<Point<int>> newGroupSizes;
-				int newDegreeEdge;
+				Array<int> newValidSizes;
+				int size, newDegreeEdge;
 				highlightDegreeIndicies.clear();
 
 				if (handleBeingDragged->addsGroupWhenDragged())
 				{
-					newGroupSizes = scaleStructure.findValidGroupSizeRemainders(handleBeingDragged->getGroupIndex());
-					for (int i = 0; i <  newGroupSizes.size(); i++)
-					{
-						Point<int> sizePair = newGroupSizes[i];
+					// True if retainSymmetry is being used and if the group lands in the exact middle
+					bool selfSymmetric = true;
+					if (!scaleStructure.isRetainingSymmetry() || scaleStructure.getSymmetricGroup(groupIndex) != groupIndex)
+						selfSymmetric = false;
 
-						if (sizePair.x < groupSize)
+					newValidSizes = scaleStructure.findValidGroupSizeRemainders(handleBeingDragged->getGroupIndex());
+					for (int i = 0; i <  newValidSizes.size(); i++)
+					{
+						size = scaleStructure.getScaleSize(newValidSizes[i]);
+						
+						if (selfSymmetric)
+							size *= 2;
+
+						if (size < groupSize)
 						{
 							if (handleBeingDragged->isDraggingClockwise())
 							{
-								newDegreeEdge = sizePair.x + handleDeg;
+								newDegreeEdge = size + handleDeg;
 
 								if (adjacentEdges.y < 0 || newDegreeEdge < adjacentEdges.y)
 								{
 									adjacentEdges.setY(newDegreeEdge);
 									adjacentEdgeIndicies.setY(i);
+									adjacentSizeIndicies.setY(newValidSizes[i]);
 								}
 							}
 							else
 							{
-								newDegreeEdge = groupSize - sizePair.x + handleDeg;
+								newDegreeEdge = groupSize - size + handleDeg;
 
 								if (adjacentEdges.x < 0 || newDegreeEdge > adjacentEdges.x)
 								{
 									adjacentEdges.setX(newDegreeEdge);
 									adjacentEdgeIndicies.setX(i);
+									adjacentSizeIndicies.setX(newValidSizes[i]);
 								}
 
 							}
@@ -619,25 +630,27 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 				// TODO: add checking for edges that go beyond adjacent groups
 				else
 				{
-					newGroupSizes = scaleStructure.findValidGroupSize(handleBeingDragged->getGroupIndex(), true);
-					newGroupSizes.addArray(scaleStructure.findValidGroupSize(handleBeingDragged->getGroupIndex(), false));
-					for (int i = 0; i < newGroupSizes.size(); i++)
+					newValidSizes = scaleStructure.findValidGroupSize(handleBeingDragged->getGroupIndex(), true);
+					newValidSizes.addArray(scaleStructure.findValidGroupSize(handleBeingDragged->getGroupIndex(), false));
+					for (int i = 0; i < newValidSizes.size(); i++)
 					{
-						Point<int> sizePair = newGroupSizes[i];
-						if (groupSize != sizePair.x)
+						size = scaleStructure.getScaleSize(newValidSizes[i]);
+						if (groupSize != size)
 						{
-							newDegreeEdge = groupSize - sizePair.x + handleDeg;
+							newDegreeEdge = groupSize - size + handleDeg;
 
 							if (newDegreeEdge < handleDeg && (adjacentEdges.x < 0 || handleDeg - newDegreeEdge < handleDeg - adjacentEdges.x))
 							{
 								adjacentEdges.setX(newDegreeEdge);
 								adjacentEdgeIndicies.setX(highlightDegreeIndicies.size());
+								adjacentSizeIndicies.setX(newValidSizes[i]);
 							}
 
 							else if (newDegreeEdge > handleDeg && (adjacentEdges.y < 0 || newDegreeEdge - handleDeg < adjacentEdges.y - handleDeg))
 							{
 								adjacentEdges.setY(newDegreeEdge);
 								adjacentEdgeIndicies.setY(highlightDegreeIndicies.size());
+								adjacentSizeIndicies.setY(newValidSizes[i]);
 							}
 
 							highlightDegreeIndicies.add(newDegreeEdge);
@@ -685,6 +698,7 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 	mouseDownRadius = event.mouseDownPosition.getDistanceFrom(center);
 	mouseRadius = event.position.getDistanceFrom(center);
 	bool dirty = false;
+	bool groupingChanged = false;
 
 	if (mouseDownRadius >= degreeInnerRadius)
 	{
@@ -716,6 +730,8 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 		{
 			if (handleBeingDragged)
 			{
+				int groupIndex = handleBeingDragged->getGroupIndex();
+
 				float distanceX = 10e6, distanceY = 10e6;
 				float distance;
 				int edgeIndex;
@@ -726,10 +742,7 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 						.findNearestPointTo(event.position)
 						.getDistanceFrom(event.position)
 					);
-
-					DBG("Distance from CCW edge: " + String(distanceX));
 				}
-
 
 				if (adjacentEdgeIndicies.y > -1)
 				{
@@ -738,34 +751,54 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 						.findNearestPointTo(event.position)
 						.getDistanceFrom(event.position)
 					);
-
-					DBG("Distance from CW edge: " + String(distanceY));
 				}
 
 				distance = jmin(distanceX, distanceY);
 
 				if (distance <= handleDragThreshold)
 				{
+					DBG("Passed threshold: " + String(handleDragThreshold));
+
+					// Set drag direction of edge handles
+					if (!handleBeingDragged->addsGroupWhenDragged())
+					{
+						if (distance == distanceX)
+						{
+							handleBeingDragged->setDraggingClockwise(false);
+						}
+						else
+						{
+							handleBeingDragged->setDraggingClockwise(true);
+						}
+					}
+
+					int newSizeIndex = handleBeingDragged->isDraggingClockwise() ? adjacentSizeIndicies.y : adjacentSizeIndicies.x;
 
 					// Figure out type of change (merge, resize, split)
 
-
-					DBG("Passed threshold: " + String(handleDragThreshold));
-
-					if (distance == distanceX)
+					// If handle is a dot
+					if (handleBeingDragged->addsGroupWhenDragged())
 					{
-
-
+						// For dots, the group affected is in the opposite direction of dragging
+						listeners.call(&Listener::groupingSplit, groupIndex, newSizeIndex, !handleBeingDragged->isDraggingClockwise());
 					}
+
+					// If handle is an edge
 					else
 					{
+						// Check if the new size merges the adjacent group
 
 
+						// TODO: Improve condition
+						// If adjacent group is consumed, do a merge
+						if (false)
+							listeners.call(&Listener::groupingsMerged, groupIndex, handleBeingDragged->isDraggingClockwise());
+						else
+							listeners.call(&Listener::groupingResized, groupIndex, newSizeIndex, handleBeingDragged->isDraggingClockwise());
 					}
 
-					// TODO: degreeGroupingChanged callback
-
 					dirty = true;
+					groupingChanged = true;
 				}
 			}
 		}
@@ -774,6 +807,12 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 	if (dirty)
 	{
 		updateGenerator();
+
+		if (groupingChanged)
+		{
+			handleBeingDragged = nullptr;
+			highlightDegreeIndicies.clear();
+		}
 	}
 }
 

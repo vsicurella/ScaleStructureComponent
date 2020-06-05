@@ -114,6 +114,7 @@ private:
 	// Counterclockwise, clockwise
 	Point<int> adjacentEdges; 
 	Point<int> adjacentEdgeIndicies;
+	Point<int> adjacentSizeIndicies;
 		
 	float handleDotAngRatio;
 	float handleDotRadius;

@@ -305,18 +305,21 @@ void ScaleStructureComponent::allModificationsReset()
 
 void ScaleStructureComponent::groupingSplit(int groupIndex, int groupSizeIndex, bool newGroupClockwise)
 {
+	DBG("SSC: Group " + String(groupIndex) + " split with new size " + String(scaleStructure.getScaleSize(groupSizeIndex)));
 	scaleStructure.splitDegreeGroup(groupIndex, groupSizeIndex, newGroupClockwise);
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 }
 
 void ScaleStructureComponent::groupingResized(int groupIndex, int groupSizeIndex, bool resizedClockwise)
 {
+	DBG("SSC: Group " + String(groupIndex) + " resized with group " + String(groupIndex + resizedClockwise ? 1 : -1));
 	scaleStructure.resizeDegreeGroup(groupIndex, groupSizeIndex, resizedClockwise);
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 }
 
 void ScaleStructureComponent::groupingsMerged(int groupIndex, bool mergedClockwise)
 {
+	DBG("SSC: Group " + String(groupIndex) + " merged with group " + String(groupIndex + mergedClockwise ? 1 : - 1));
 	scaleStructure.mergeDegreeGroups(groupIndex, mergedClockwise);
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 }
