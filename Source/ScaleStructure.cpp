@@ -276,6 +276,11 @@ int ScaleStructure::getGroupOfDegreeIndex(int groupChainIndex) const
 	return degreeGroupChainMap[groupChainIndex];
 }
 
+bool ScaleStructure::isRetainingSymmetry() const
+{
+	return retainGroupingSymmetry;
+}
+
 Array<Point<int>> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLevels) const
 {
 	// Uses scale size as first step, and then differences of succeeding scale sizes
@@ -902,12 +907,20 @@ Array<int> ScaleStructure::findValidGroupSizeRemainders(int groupIndexIn) const
 	if (groupIndexIn > 0 && groupIndexIn < numGroups)
 	{
 		int groupSize = degreeGroupScaleSizes[groupIndexIn];
+		int symGroup = getSymmetricGroup(groupIndexIn);
 
-		int dif, remSizeIndex;
+		int remainderSize, remSizeIndex, dif;
 		// 0 is redundant, last index is full scale size
 		for (int i = 1; i < scaleSizes.size() - 1; i++)
 		{
-			dif = groupSize - scaleSizes[i];
+			remainderSize = scaleSizes[i];
+
+			// TODO: figure out nitty gritty 
+			// If symmetry is required and the group passed in is in the very middle
+			if (retainGroupingSymmetry && groupIndexIn == symGroup)
+				remainderSize *= 2;
+
+			dif = groupSize - remainderSize;
 
 			// if the adjacentSize + dif is a valid scale size, we got a match
 			if (scaleSizes.indexOf(dif) < 0)
@@ -928,6 +941,8 @@ Array<int> ScaleStructure::findValidGroupSizeRemainders(int groupIndexIn) const
 */
 void ScaleStructure::setDegreeGrouping(Array<int> groupingSizeIndiciesIn)
 {
+	DBG("Scale Structure: Grouping passed in: " + arrayToString(groupingSizeIndiciesIn));
+
 	bool sym = isSymmetric(groupingSizeIndiciesIn);
 	if (retainGroupingSymmetry && !sym)
 	{
@@ -971,31 +986,37 @@ void ScaleStructure::splitDegreeGroup(int groupIndexIn, int groupSizeIndex, bool
 	// Check if group's new size is valid
 	if (groupSizeIndex >= 0 && groupSizeIndex < scaleSizes.size())
 	{
+		int symGroupIndex = getSymmetricGroup(groupIndexIn);
 		int newGroupSize = degreeGroupScaleSizes[groupIndexIn] - scaleSizes[groupSizeIndex];
+		
+		// Halve new size if symmetry causes both group edges to be reduced
+		if (symGroupIndex == groupIndexIn)
+			newGroupSize /= 2;
+
+		DBG("Scale Structure: New group size is " + String(newGroupSize));
+
 		int newSizeIndex = scaleSizes.indexOf(newGroupSize);
+
+		DBG("Scale structure: Remainder group size index: " + String(newSizeIndex));
 
 		if (newSizeIndex >= 0)
 		{
-			int symGroupIndex = getSymmetricGroup(groupIndexIn);
-
 			for (int i = 0; i < degreeGroupIndexedSizes.size(); i++)
 			{
-				if (i == groupIndexIn)
+				if (i != groupIndexIn && i != symGroupIndex)
 				{
-					if (newGroupClockwise)
-					{
-						newGrouping.add(groupSizeIndex);
-						newGrouping.add(newSizeIndex);
-					}
-					else
-					{
-						newGrouping.add(newSizeIndex);
-						newGrouping.add(groupSizeIndex);
-					}
+					newGrouping.add(degreeGroupIndexedSizes[i]);
 				}
-				else if (i == symGroupIndex)
+
+				else if (i == groupIndexIn && groupIndexIn == symGroupIndex)
 				{
-					// Inverse for symmetric group
+					newGrouping.add(newGroupSize);
+					newGrouping.add(groupSizeIndex);
+					newGrouping.add(newSizeIndex);
+				}
+
+				else if (i == groupIndexIn)
+				{
 					if (!newGroupClockwise)
 					{
 						newGrouping.add(groupSizeIndex);
@@ -1007,12 +1028,27 @@ void ScaleStructure::splitDegreeGroup(int groupIndexIn, int groupSizeIndex, bool
 						newGrouping.add(groupSizeIndex);
 					}
 				}
-				else
-					newGrouping.add(degreeGroupIndexedSizes[i]);
+
+				else if (i == symGroupIndex)
+				{
+					// Inverse for symmetric group
+					if (newGroupClockwise)
+					{
+						newGrouping.add(groupSizeIndex);
+						newGrouping.add(newSizeIndex);
+					}
+					else
+					{
+						newGrouping.add(newSizeIndex);
+						newGrouping.add(groupSizeIndex);
+					}
+				}
 			}
 
 			setDegreeGrouping(newGrouping);
 		}
+		else
+			DBG("Size passed in is invalid");
 	}
 }
 

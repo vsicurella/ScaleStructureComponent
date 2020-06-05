@@ -168,6 +168,8 @@ public:
 	Array<int> getGeneratorChain() const;
 	Array<int> getGroupChain() const;
 
+	bool isRetainingSymmetry() const;
+
 	/*
 		Returns the group chain index of the input scale degree
 	*/
