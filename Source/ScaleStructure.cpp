@@ -281,6 +281,11 @@ bool ScaleStructure::isRetainingSymmetry() const
 	return retainGroupingSymmetry;
 }
 
+bool ScaleStructure::isRetainingMOSSizes() const
+{
+	return retainMOSGroupSizes;
+}
+
 Array<Point<int>> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLevels) const
 {
 	// Uses scale size as first step, and then differences of succeeding scale sizes
@@ -899,38 +904,80 @@ Array<int> ScaleStructure::findValidGroupSize(int groupIndexIn, bool adjacentGro
 	return sizesIndiciesOut;
 }
 
-Array<int> ScaleStructure::findValidGroupSizeRemainders(int groupIndexIn) const
+Array<Point<int>> ScaleStructure::findIndiciesForGroupSplitting(int groupIndexIn, bool newGroupClockwise) const
 {
 	int numGroups = degreeGroupIndexedSizes.size();
-	Array<int> sizesIndiciesOut;
+	Array<Point<int>> degreeIndiciesOut;
 
 	if (groupIndexIn > 0 && groupIndexIn < numGroups)
 	{
-		int groupSize = degreeGroupScaleSizes[groupIndexIn];
+		int groupSizeIndex = degreeGroupIndexedSizes[groupIndexIn];
+		int groupSize = scaleSizes[groupSizeIndex];
 		int symGroup = getSymmetricGroup(groupIndexIn);
+		
+		int ccwDegIndex = groupChain.indexOf(degreeGroupings[groupIndexIn][0]);
+		int cwDegIndex = ccwDegIndex + groupSize;
+		int ccwSymIndex = groupChain.indexOf(degreeGroupings[symGroup][0]);
+		int cwSymIndex = ccwSymIndex + groupSize;
 
-		int remainderSize, remSizeIndex, dif;
-		// 0 is redundant, last index is full scale size
-		for (int i = 1; i < scaleSizes.size() - 1; i++)
+		// Build alias functions for simplifying getting degree indicies and symmetrical complements
+		auto displacedFromCCWEdge = [](int degIndexIn, int numDegrees)
 		{
-			remainderSize = scaleSizes[i];
+			return degIndexIn + numDegrees;
+		};
 
-			// TODO: figure out nitty gritty 
-			// If symmetry is required and the group passed in is in the very middle
-			if (retainGroupingSymmetry && groupIndexIn == symGroup)
-				remainderSize *= 2;
+		auto displacedFromCWEdge = [](int degIndexIn, int numDegrees)
+		{
+			return degIndexIn - numDegrees;
+		};
 
-			dif = groupSize - remainderSize;
+		std::function<int(int)> getDegIndex, getSymIndex;
+		if (newGroupClockwise)
+		{
+			getDegIndex = std::bind(displacedFromCWEdge, cwDegIndex, std::placeholders::_1);
+			getSymIndex = std::bind(displacedFromCCWEdge, ccwSymIndex, std::placeholders::_1);
+		}
+		else
+		{
+			getDegIndex = std::bind(displacedFromCCWEdge, ccwDegIndex, std::placeholders::_1);
+			getSymIndex = std::bind(displacedFromCWEdge, cwSymIndex, std::placeholders::_1);
+		}
 
-			// if the adjacentSize + dif is a valid scale size, we got a match
-			if (scaleSizes.indexOf(dif) < 0)
-				continue;
+		// For-loop limit whether MOS sizes are retained or not
+		int indexLimit = retainMOSGroupSizes ? groupSizeIndex : groupSize;
+		int degLimit = groupSize;
+		if (retainGroupingSymmetry && groupIndexIn == symGroup)
+			degLimit /= 2;
+		
+		for (int i = 1, dif = 0; i < indexLimit && dif < degLimit ; i++)
+		{
+			if (retainMOSGroupSizes)
+				dif = scaleSizes[i];
+			else
+				dif = i;
 
-			sizesIndiciesOut.add(i);
+			// skip size if remainder size is not supported by MOS
+			if (retainMOSGroupSizes)
+			{
+				int remSize = groupSize;
+
+				if (retainGroupingSymmetry && groupIndexIn == symGroup)
+					remSize -= dif * 2;
+				else
+					remSize -= dif;
+
+				if (scaleSizes.indexOf(remSize) < 0)
+					continue;
+			}
+
+			if (retainGroupingSymmetry)
+				degreeIndiciesOut.add({ getDegIndex(dif), getSymIndex(dif) });
+			else
+				degreeIndiciesOut.add({ getDegIndex(dif), -1 });
 		}
 	}
 
-	return sizesIndiciesOut;
+	return degreeIndiciesOut;
 }
 
 /*

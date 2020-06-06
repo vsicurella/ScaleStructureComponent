@@ -71,6 +71,12 @@ class ScaleStructure
 	// except for the first group and the middle group (for odd-amounts of groups).
 	bool retainGroupingSymmetry = true;
 
+	// Used in degree grouping related functions to make sure that the groups'
+	// sizes are restricted to sizes supported by the MOS properties
+	// This allows for consistency with the scale's natural properties which 
+	// lends well particularly for notation and theory.
+	bool retainMOSGroupSizes = true;
+
 private:
 	/*
 		Private methods
@@ -170,6 +176,8 @@ public:
 
 	bool isRetainingSymmetry() const;
 
+	bool isRetainingMOSSizes() const;
+
 	/*
 		Returns the group chain index of the input scale degree
 	*/
@@ -265,11 +273,12 @@ public:
 
 
 	/*
-		Input a degree group index and get size indices that result in a remainder size 
-		that is also a valid scale size.
-		This is used for resizing a group while creating a new group
+		Input a degree group index and get group chain indicies that the edge of a group can move to.
+		If retainMOSGroupSizes, then the degree indicies are only what can create supported MOS sizes out of
+		the new group size and the remaining new group to be created.
+		If retainGroupSymmetry, the y value corresponds to the degree indicies of the symmetric group.
 	*/
-	Array<int> findValidGroupSizeRemainders(int groupIndexIn) const;
+	Array<Point<int>> findIndiciesForGroupSplitting(int groupIndexIn, bool newGroupClockwise) const;
 
 	/*
 		Sets and updates degree grouping arrangment.
