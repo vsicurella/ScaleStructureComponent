@@ -265,11 +265,15 @@ public:
 	int getSymmetricGroup(int groupIndexIn) const;
 
 	/*
-		Input a degree group index and get compatible alternate sizes (in scaleSize indicies)
-		If symmetric, will take resizing the group on the opposite side of the circle into account.
-		The returned Point includes the passed in index sizes as X, and the adjacent sizes as Y
+		Input a degree group index and get chain indicies that the edge of a group can move to.
+		If retainMOSGroupSizes, then the degree indicies are only what can create supported MOS sizes out of
+		the group and adjacent group sizes.
+		If retainGroupSymmetry, the y value corresponds to the degree indicies of the symmetric group.
+
+		The first value will always refer to the adjacent CCW edge that the group edge can move to, and 
+		the second value will always refer to the adjacent CW edge.
 	*/
-	Array<int> findValidGroupSize(int groupIndexIn, bool adjacentGroupClockwise) const;
+	Array<Point<int>> findIndiciesForGroupResizing(int groupIndexIn) const;
 
 
 	/*

@@ -866,42 +866,123 @@ int ScaleStructure::getSymmetricGroup(int groupIndexIn) const
 	return -1;
 }
 
-Array<int> ScaleStructure::findValidGroupSize(int groupIndexIn, bool adjacentGroupClockwise) const
+
+/*
+	Input a degree group index and get chain indicies that the edge of a group can move to.
+	If retainMOSGroupSizes, then the degree indicies are only what can create supported MOS sizes out of
+	the group and adjacent group sizes.
+	If retainGroupSymmetry, the y value corresponds to the degree indicies of the symmetric group.
+
+	The first value will always refer to the adjacent CCW edge that the group edge can move to, and
+	the second value will always refer to the adjacent CW edge.
+*/
+Array<Point<int>> ScaleStructure::findIndiciesForGroupResizing(int groupIndexIn) const
 {
 	int numGroups = degreeGroupIndexedSizes.size();
-	Array<int> sizesIndiciesOut;
+	Array<Point<int>> degreeIndiciesOut;
 
 	if (groupIndexIn > 0 && groupIndexIn < numGroups)
 	{
+		int groupSizeIndex = degreeGroupIndexedSizes[groupIndexIn];
 		int groupSize = degreeGroupScaleSizes[groupIndexIn];
-		int adjacentIndex, adjacentSize;
-
-		if (adjacentGroupClockwise)
-			adjacentIndex = modulo(groupIndexIn + 1, numGroups);
-		else
-			adjacentIndex = modulo(groupIndexIn - 1, numGroups);
+		int adjGroupIndex = groupIndexIn - 1;
 
 		// For now, don't allow resizing of group 0 
-		if (adjacentIndex == 0)
-			return sizesIndiciesOut;
+		if (adjGroupIndex <= 0)
+			return degreeIndiciesOut;
 
-		adjacentSize = degreeGroupScaleSizes[adjacentIndex];
+		int adjGroupSize = degreeGroupScaleSizes[adjGroupIndex];  
+		
+		int symGroup = getSymmetricGroup(groupIndexIn);
+		int symAdjGroup = symGroup + 1;
 
-		int dif;
-		// 0 is redundant, last index is full scale size
-		for (int i = 1; i < scaleSizes.size() - 1; i++)
+		// Happens when number of groups is odd and the degree edge is in the exact middle
+		// TODO: make this a special handle that can add a group in the middle
+		if (groupIndexIn == symAdjGroup)
+			return degreeIndiciesOut;
+
+		int degIndex = groupChain.indexOf(degreeGroupings[groupIndexIn][0]);
+		int symDegIndex = groupChain.indexOf(degreeGroupings[symAdjGroup][0]); // manipulated in opposite direction
+
+		int newSize, adjSize;
+		// Find CW degree indicies
+		for (int i = 1; i <= groupSize; i++)
 		{
-			dif = groupSize - scaleSizes[i];
+			// skip if sizes are not supported by MOS
+			if (retainMOSGroupSizes)
+			{
+				newSize = groupSize - i;
+				adjSize = adjGroupSize + i;
 
-			// if the adjacentSize + dif is a valid scale size, we got a match			
-			if (scaleSizes.indexOf(adjacentSize + dif) < 0)
-				continue;
+				if (retainGroupingSymmetry)
+				{
+					if (groupIndexIn == symGroup)
+						newSize -= i;
 
-			sizesIndiciesOut.add(i);
+					if (adjGroupIndex == symAdjGroup)
+						adjSize += i;
+
+					if (newSize < 0)
+						continue;
+				}
+
+				if (scaleSizes.indexOf(adjSize) < 0 || scaleSizes.indexOf(groupSize - i) < 0)
+					continue;
+			}
+
+			if (retainGroupingSymmetry)
+				degreeIndiciesOut.add({ degIndex + i, symDegIndex - i });
+			else
+				degreeIndiciesOut.add({ degIndex + i, -1 });
 		}
+
+		// Find CCW degree indicies
+		bool addedFirstEdge = false;
+		for (int i = 1; i <= adjGroupSize; i++)
+		{
+			// skip if sizes are not supported by MOS
+			if (retainMOSGroupSizes)
+			{
+				newSize = groupSize + i;
+				adjSize = adjGroupSize - i;
+
+				if (retainGroupingSymmetry)
+				{
+					if (groupIndexIn == symGroup)
+						newSize += i;
+
+					if (adjGroupIndex == symAdjGroup)
+						adjSize -= i;
+
+					if (adjSize < 0)
+						continue;
+				}
+
+				if (scaleSizes.indexOf(newSize) < 0 || scaleSizes.indexOf(adjSize) < 0)
+					continue;
+			}
+
+			Point<int> indiciesOut;
+
+			if (retainGroupingSymmetry)
+				indiciesOut = { degIndex - i, symDegIndex + i };
+			else
+				indiciesOut = { degIndex - i, -1 };
+
+			if (addedFirstEdge)
+				degreeIndiciesOut.add(indiciesOut);
+			else
+			{
+				degreeIndiciesOut.insert(0, indiciesOut);
+				addedFirstEdge = true;
+			}
+		}
+
+		if (!addedFirstEdge)
+			degreeIndiciesOut.insert(0, { -1, -1 });
 	}
 
-	return sizesIndiciesOut;
+	return degreeIndiciesOut;
 }
 
 Array<Point<int>> ScaleStructure::findIndiciesForGroupSplitting(int groupIndexIn, bool newGroupClockwise) const
@@ -915,6 +996,7 @@ Array<Point<int>> ScaleStructure::findIndiciesForGroupSplitting(int groupIndexIn
 		int groupSize = scaleSizes[groupSizeIndex];
 		int symGroup = getSymmetricGroup(groupIndexIn);
 		
+		// Degree indicies to reference whether group is being split via CCW or CW direction
 		int ccwDegIndex = groupChain.indexOf(degreeGroupings[groupIndexIn][0]);
 		int cwDegIndex = ccwDegIndex + groupSize;
 		int ccwSymIndex = groupChain.indexOf(degreeGroupings[symGroup][0]);
@@ -956,17 +1038,16 @@ Array<Point<int>> ScaleStructure::findIndiciesForGroupSplitting(int groupIndexIn
 			else
 				dif = i;
 
-			// skip size if remainder size is not supported by MOS
+			// skip if sizes are not supported by MOS
 			if (retainMOSGroupSizes)
 			{
-				int remSize = groupSize;
+				int remSize = groupSize - dif;
 
 				if (retainGroupingSymmetry && groupIndexIn == symGroup)
-					remSize -= dif * 2;
-				else
 					remSize -= dif;
 
-				if (scaleSizes.indexOf(remSize) < 0)
+				// accept 0, where group will split into equal parts
+				if (remSize != 0 && scaleSizes.indexOf(remSize) < 0)
 					continue;
 			}
 
