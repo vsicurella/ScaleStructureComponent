@@ -288,9 +288,7 @@ void GroupingCircle::resized()
 	
 		// draw arc sections
 		degreePath = Path();
-		addArcToPath(degreePath, degreeInnerCircleBounds, angle, angleTo, true);
-		addArcToPath(degreePath, groupInnerCircleBounds, angleTo, angle);
-		degreePath.closeSubPath();
+		addAnnulusSector(degreePath, groupInnerCircleBounds, degreeInnerCircleBounds, angle, angleTo);
 		degreeArcPaths.add(degreePath);
 
 		// find label size
@@ -328,9 +326,7 @@ void GroupingCircle::resized()
 		if ((i + 1) - groupDegreesPassed >= groupSize && groupSize > 0)
 		{
 			groupPath = Path();
-			addArcToPath(groupPath, groupInnerCircleBounds, groupAngleFrom, angleTo, true);
-			addArcToPath(groupPath, groupOuterCircleBounds, angleTo, groupAngleFrom);
-			groupPath.closeSubPath();
+			addAnnulusSector(groupPath, groupOuterCircleBounds, groupInnerCircleBounds, groupAngleFrom, angleTo);
 			groupArcPaths.add(groupPath);
 
 			groupLabelAngle = (groupAngleFrom + angleTo) / 2.0f - float_HalfPi;
@@ -899,19 +895,6 @@ int GroupingCircle::mouseInGroupRingSector(const MouseEvent& event, float radius
 	return -1;
 }
 
-void GroupingCircle::addArcToPath(Path& pathIn, Rectangle<float>& ellipseBounds, float fromRadians, float toRadians, bool startAsNewSubPath)
-{
-	pathIn.addArc(
-		ellipseBounds.getX(),
-		ellipseBounds.getY(),
-		ellipseBounds.getWidth(),
-		ellipseBounds.getHeight(),
-		fromRadians,
-		toRadians,
-		startAsNewSubPath
-	);
-}
-
 /*
 	Returns true if degree sector is a modification candidate
 */
@@ -936,4 +919,24 @@ bool GroupingCircle::isDegreeSectorIndexAltered(int degreeSectorIndexIn) const
 		return alteration.x >= 0 && alteration.y != 0;
 	}
 	return false;
+}
+
+void GroupingCircle::addArcToPath(Path& pathIn, Rectangle<float> ellipseBounds, float fromRadians, float toRadians, bool startAsNewSubPath)
+{
+	pathIn.addArc(
+		ellipseBounds.getX(),
+		ellipseBounds.getY(),
+		ellipseBounds.getWidth(),
+		ellipseBounds.getHeight(),
+		fromRadians,
+		toRadians,
+		startAsNewSubPath
+	);
+}
+
+void GroupingCircle::addAnnulusSector(Path& pathIn, Rectangle<float> outerBounds, Rectangle<float> innerBounds, float fromRadians, float toRadians)
+{
+	pathIn.addArc(outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), fromRadians, toRadians, true);
+	pathIn.addArc(innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), toRadians, fromRadians);
+	pathIn.closeSubPath();
 }

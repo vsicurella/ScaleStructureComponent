@@ -68,8 +68,10 @@ public:
 	void addListener(Listener* listenerToAdd);
 	void removeListener(Listener* listenerToRemove);
 
-	// Arc path helper
-	static void addArcToPath(Path& pathIn, Rectangle<float>& ellipseBounds, float fromRadians, float toRadians, bool startAsNewSubPath = false);
+public:
+
+	static void addArcToPath(Path& pathIn, Rectangle<float> ellipseBounds, float fromRadians, float toRadians, bool startAsNewSubPath = false);
+	static void addAnnulusSector(Path& pathIn, Rectangle<float> outerBounds, Rectangle<float> innerBounds, float fromRadians, float toRadians);
 
 protected:
 	ListenerList<Listener> listeners;
