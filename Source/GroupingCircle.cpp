@@ -687,42 +687,6 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 	}
 }
 
-void GroupingCircle::mouseUp(const MouseEvent& event)
-{
-
-	if (handleBeingDragged)
-	{
-		// Figure out type of change (merge, resize, split)
-
-		// If handle is a dot
-		if (handleBeingDragged->addsGroupWhenDragged())
-		{
-			// For dots, the group affected is in the opposite direction of dragging
-			//listeners.call(&Listener::groupingSplit, groupIndex, newSizeIndex, !handleBeingDragged->isDraggingClockwise());
-		}
-
-		// If handle is an edge
-		else
-		{
-			// Check if the new size merges the adjacent group
-
-
-			// TODO: Improve condition
-			// If adjacent group is consumed, do a merge
-			//if (false)
-			//	listeners.call(&Listener::groupingsMerged, groupIndex, handleBeingDragged->isDraggingClockwise());
-			//else
-			//	listeners.call(&Listener::groupingResized, groupIndex, newSizeIndex, handleBeingDragged->isDraggingClockwise());
-		}
-
-		handleDraggedToDegIndex = -1;
-		handleDragAmt = 0;
-		handleBeingDragged = nullptr;
-		highlightedDegreeEdges.clear();
-		repaint();
-	}
-}
-
 void GroupingCircle::mouseDrag(const MouseEvent& event)
 {
 	mouseDownRadius = event.mouseDownPosition.getDistanceFrom(center);
@@ -809,6 +773,7 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 				int adjGroup = groupIndex - 1; // for edge handles only
 				int dragLimit;
 
+				// TODO: some abstraction of this (since it's reused in this class and also a bit in ScaleStructure)
 				if (handleBeingDragged->addsGroupWhenDragged() || handleBeingDragged->isDraggingClockwise())
 				{
 					dragLimit = groupSizes[groupIndex];
@@ -839,6 +804,63 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 	if (dirty)
 	{
 		updateGenerator();
+	}
+}
+
+void GroupingCircle::mouseUp(const MouseEvent& event)
+{
+
+	if (handleBeingDragged)
+	{
+		DBG("Handle released at AMT " + String(handleDragAmt));
+
+		// Figure out type of change (merge, resize, split)
+		if (highlightedDegreeEdges.contains(handleDraggedToDegIndex))
+		{
+			int groupIndex = handleBeingDragged->getGroupIndex();
+
+			// If handle is a dot
+			if (handleBeingDragged->addsGroupWhenDragged())
+			{
+				// For dots, the group affected is in the opposite direction of dragging
+				listeners.call(&Listener::groupingSplit, groupIndex, handleDragAmt);
+			}
+
+			// If handle is an edge
+			else
+			{
+				// Check if the new size merges the adjacent group
+				bool groupsMerged = false;
+				int adjGroup = groupIndex - 1;
+
+				// TODO: some abstraction of this (since it's reused in this class and also a bit in ScaleStructure)
+				if (handleBeingDragged->isDraggingClockwise())
+				{
+					if (groupIndex != scaleStructure.getSymmetricGroup(groupIndex) && abs(handleDragAmt) == groupSizes[groupIndex])
+						groupsMerged = true;
+				}
+				else
+				{
+					if (adjGroup != scaleStructure.getSymmetricGroup(adjGroup) && abs(handleDragAmt) == groupSizes[adjGroup])
+						groupsMerged = true;
+				}
+
+				// If adjacent group is consumed, do a merge
+				if (groupsMerged)
+					listeners.call(&Listener::groupingsMerged, groupIndex);
+				else
+					listeners.call(&Listener::groupingResized, groupIndex, handleDragAmt);
+			}
+
+			handleBeingDragged = nullptr;
+			updateGenerator();
+		}
+
+		handleBeingDragged = nullptr;
+		handleDraggedToDegIndex = -1;
+		handleDragAmt = 0;
+		highlightedDegreeEdges.clear();
+		repaint();
 	}
 }
 

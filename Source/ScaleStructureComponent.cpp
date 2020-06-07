@@ -303,24 +303,24 @@ void ScaleStructureComponent::allModificationsReset()
 	updateLsLabel();
 }
 
-void ScaleStructureComponent::groupingSplit(int groupIndex, int groupSizeIndex, bool newGroupClockwise)
+void ScaleStructureComponent::groupingSplit(int groupIndex, int sizeChangeAmount)
 {
-	DBG("SSC: Group " + String(groupIndex) + " split with new size " + String(scaleStructure.getScaleSize(groupSizeIndex)));
-	scaleStructure.splitDegreeGroup(groupIndex, groupSizeIndex, newGroupClockwise);
+	DBG("SSC: Group " + String(groupIndex) + " split with new size " + String(sizeChangeAmount));
+	scaleStructure.splitDegreeGroup(groupIndex, sizeChangeAmount);
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 }
 
-void ScaleStructureComponent::groupingResized(int groupIndex, int groupSizeIndex, bool resizedClockwise)
+void ScaleStructureComponent::groupingResized(int groupIndex, int sizeChangeAmount)
 {
-	DBG("SSC: Group " + String(groupIndex) + " resized with group " + String(groupIndex + resizedClockwise ? 1 : -1));
-	scaleStructure.resizeDegreeGroup(groupIndex, groupSizeIndex, resizedClockwise);
+	DBG("SSC: Group " + String(groupIndex) + " resized by " + String(sizeChangeAmount));
+	scaleStructure.resizeDegreeGroup(groupIndex, sizeChangeAmount);
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 }
 
-void ScaleStructureComponent::groupingsMerged(int groupIndex, bool mergedClockwise)
+void ScaleStructureComponent::groupingsMerged(int groupIndex)
 {
-	DBG("SSC: Group " + String(groupIndex) + " merged with group " + String(groupIndex + mergedClockwise ? 1 : - 1));
-	scaleStructure.mergeDegreeGroups(groupIndex, mergedClockwise);
+	DBG("SSC: Group " + String(groupIndex) + " merged with group " + String(groupIndex - 1));
+	scaleStructure.mergeDegreeGroups(groupIndex);
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 }
 

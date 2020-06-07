@@ -46,8 +46,8 @@ public:
 
 	void mouseMove(const MouseEvent& event) override;
 	void mouseDown(const MouseEvent& event) override;
-	void mouseUp(const MouseEvent& event) override;
 	void mouseDrag(const MouseEvent& event) override;
+	void mouseUp(const MouseEvent& event) override;
 
 
 	class Listener
@@ -60,9 +60,9 @@ public:
 		virtual void degreeIndexAltered(int degreeIndex, Point<int> alteration) = 0;
 		virtual void allModificationsReset() = 0;
 
-		virtual void groupingSplit(int groupIndex, int groupSizeIndex, bool newGroupClockWise) = 0;
-		virtual void groupingResized(int groupIndex, int groupSizeIndex, bool resizedClockwise) = 0;
-		virtual void groupingsMerged(int groupIndex, bool mergedClockwise) = 0;
+		virtual void groupingSplit(int groupIndex, int sizeChangeAmount) = 0;
+		virtual void groupingResized(int groupIndex, int sizeChangeAmount) = 0;
+		virtual void groupingsMerged(int groupIndex) = 0;
 	};
 
 	void addListener(Listener* listenerToAdd);
