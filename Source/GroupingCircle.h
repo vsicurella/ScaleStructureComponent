@@ -107,8 +107,8 @@ private:
 	float handleDragThreshold;
 
 	// Refers to the most counter-clockwise edge of a degree
-	Array<int> highlightDegreeIndicies; 
-	Array<Line<float>> highlightedEdges;
+	Array<int> highlightedDegreeEdges; // TODO: turn this into Array<Point<int>> to differentiate symmetric edges
+	Array<Line<float>> highlightedEdgeLines;
 	
 	// The two highlighted degree indices that are closest to the dragged GroupHandle
 	// Counterclockwise, clockwise
