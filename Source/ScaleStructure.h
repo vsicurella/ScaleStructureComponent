@@ -298,21 +298,19 @@ public:
 		clockwise to the original group.
 		If retaining symmetry, this also effects the group on the other side.
 	*/
-	void splitDegreeGroup(int groupIndexIn, int groupSizeIndex, bool newGroupClockwise);
+	void splitDegreeGroup(int groupIndexIn, int sizeChangeAmount);
 
 	/*
-		Resizes two adjacent groups. The new group sizes added must equal the original sizes added.
-		If resizedClockwise is true, the group clockwise to the passed in groupIndex will be resized.
-		If retaining symmetry, this also effects the group on the other side.
+		Resizes two adjacent groups, where the passed in group's size will have the passed in sizeChangeAmount added.
+		If retaining symmetry, this also effects the groups on the other side.
 	*/
-	void resizeDegreeGroup(int groupIndex, int groupSizeIndex, bool resizedClockwise);
+	void resizeDegreeGroup(int groupIndex, int sizeChangeAmount);
 
 	/*
 		Merges two adjacent groups. The new group size must be a valid size that the scale structure supports.
-		If mergedClockwise is true, the group clockwise to the passed in groupIndex will be consumed.
 		If retaining symmetry, this also effects the group on the other side.
 	*/
-	void mergeDegreeGroups(int groupIndex, bool mergedClockwise);
+	void mergeDegreeGroups(int groupIndex);
 
 	// Returns the index whose generator is closest to a perfect fifth
 	int getSuggestedGeneratorIndex();

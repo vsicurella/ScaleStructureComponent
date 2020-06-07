@@ -926,7 +926,7 @@ Array<Point<int>> ScaleStructure::findIndiciesForGroupResizing(int groupIndexIn)
 						continue;
 				}
 
-				if (scaleSizes.indexOf(adjSize) < 0 || scaleSizes.indexOf(groupSize - i) < 0)
+				if ((newSize >= 0 && scaleSizes.indexOf(adjSize) < 0) || (newSize != 0 && scaleSizes.indexOf(newSize) < 0))
 					continue;
 			}
 
@@ -958,7 +958,7 @@ Array<Point<int>> ScaleStructure::findIndiciesForGroupResizing(int groupIndexIn)
 						continue;
 				}
 
-				if (scaleSizes.indexOf(newSize) < 0 || scaleSizes.indexOf(adjSize) < 0)
+				if ((adjSize >= 0 && scaleSizes.indexOf(newSize) < 0) || (adjSize != 0 && scaleSizes.indexOf(adjSize) < 0))
 					continue;
 			}
 
@@ -1107,117 +1107,143 @@ void ScaleStructure::setDegreeGrouping(Array<int> groupingSizeIndiciesIn)
 	clockwise to the original group.
 	If retaining symmetry, this also effects the group on the other side.
 */
-void ScaleStructure::splitDegreeGroup(int groupIndexIn, int groupSizeIndex, bool newGroupClockwise)
+void ScaleStructure::splitDegreeGroup(int groupIndexIn, int sizeChangeAmount)
 {
-	Array<int> newGrouping;
-	
-	// Check if group's new size is valid
-	if (groupSizeIndex >= 0 && groupSizeIndex < scaleSizes.size())
+	int numGroups = degreeGroupScaleSizes.size();
+
+	// Check if group index is valid
+	if (groupIndexIn < 1 || groupIndexIn >= numGroups)
 	{
-		int symGroupIndex = getSymmetricGroup(groupIndexIn);
-		int newGroupSize = degreeGroupScaleSizes[groupIndexIn] - scaleSizes[groupSizeIndex];
-		
-		// Halve new size if symmetry causes both group edges to be reduced
-		if (symGroupIndex == groupIndexIn)
-			newGroupSize /= 2;
-
-		DBG("Scale Structure: New group size is " + String(newGroupSize));
-
-		int newSizeIndex = scaleSizes.indexOf(newGroupSize);
-
-		DBG("Scale structure: Remainder group size index: " + String(newSizeIndex));
-
-		if (newSizeIndex >= 0)
-		{
-			for (int i = 0; i < degreeGroupIndexedSizes.size(); i++)
-			{
-				if (i != groupIndexIn && i != symGroupIndex)
-				{
-					newGrouping.add(degreeGroupIndexedSizes[i]);
-				}
-
-				else if (i == groupIndexIn && groupIndexIn == symGroupIndex)
-				{
-					newGrouping.add(newGroupSize);
-					newGrouping.add(groupSizeIndex);
-					newGrouping.add(newSizeIndex);
-				}
-
-				else if (i == groupIndexIn)
-				{
-					if (!newGroupClockwise)
-					{
-						newGrouping.add(groupSizeIndex);
-						newGrouping.add(newSizeIndex);
-					}
-					else
-					{
-						newGrouping.add(newSizeIndex);
-						newGrouping.add(groupSizeIndex);
-					}
-				}
-
-				else if (i == symGroupIndex)
-				{
-					// Inverse for symmetric group
-					if (newGroupClockwise)
-					{
-						newGrouping.add(groupSizeIndex);
-						newGrouping.add(newSizeIndex);
-					}
-					else
-					{
-						newGrouping.add(newSizeIndex);
-						newGrouping.add(groupSizeIndex);
-					}
-				}
-			}
-
-			setDegreeGrouping(newGrouping);
-		}
-		else
-			DBG("Size passed in is invalid");
+		DBG("ScaleStructure: Split Error - group 0 index present");
+		return;
 	}
+
+	int symGroupIndex = getSymmetricGroup(groupIndexIn);
+
+	bool newGroupClockwise = sizeChangeAmount > 0;
+	sizeChangeAmount = abs(sizeChangeAmount);
+
+	int groupSize = degreeGroupScaleSizes[groupIndexIn] - sizeChangeAmount;
+	// Subtract size again if group is symmetric with self
+	if (symGroupIndex == groupIndexIn)
+	{
+		groupSize -= sizeChangeAmount;
+	}
+
+	int groupSizeIndex = scaleSizes.indexOf(groupSize);
+	int newSizeIndex = scaleSizes.indexOf(sizeChangeAmount);
+
+	// Check if group's new size is valid
+	if (retainMOSGroupSizes && groupSizeIndex < 0 || newSizeIndex < 0)
+	{
+		DBG("Scale Structure: Split Error - size not supported by MOS");
+		return;
+	}
+
+	Array<int> newGrouping;
+	for (int i = 0; i < degreeGroupIndexedSizes.size(); i++)
+	{
+		if (i != groupIndexIn && i != symGroupIndex)
+		{
+			newGrouping.add(degreeGroupIndexedSizes[i]);
+		}
+
+		else if (i == groupIndexIn && groupIndexIn == symGroupIndex)
+		{
+			newGrouping.add(newSizeIndex);
+			newGrouping.add(groupSizeIndex);
+			newGrouping.add(newSizeIndex);
+		}
+
+		else if (i == groupIndexIn)
+		{
+			if (!newGroupClockwise)
+			{
+				newGrouping.add(groupSizeIndex);
+				newGrouping.add(newSizeIndex);
+			}
+			else
+			{
+				newGrouping.add(newSizeIndex);
+				newGrouping.add(groupSizeIndex);
+			}
+		}
+
+		else if (i == symGroupIndex)
+		{
+			// Inverse for symmetric group
+			if (newGroupClockwise)
+			{
+				newGrouping.add(groupSizeIndex);
+				newGrouping.add(newSizeIndex);
+			}
+			else
+			{
+				newGrouping.add(newSizeIndex);
+				newGrouping.add(groupSizeIndex);
+			}
+		}
+	}
+
+	setDegreeGrouping(newGrouping);
 }
 
 /*
-	Resizes two adjacent groups. The new group sizes added must equal the original sizes added.
-	If resizedClockwise is true, the group clockwise to the passed in groupIndex will be resized.
-	If retaining symmetry, this also effects the group on the other side.
+	Resizes two adjacent groups, where the passed in group's size will have the passed in sizeChangeAmount added.
+	If retaining symmetry, this also effects the groups on the other side.
 */
-void ScaleStructure::resizeDegreeGroup(int groupIndex, int groupSizeIndex, bool resizedClockwise)
+void ScaleStructure::resizeDegreeGroup(int groupIndex, int sizeChangeAmount)
 {
-	Array<int> newGrouping;
-
-	int adjGroupIndex = resizedClockwise ? groupIndex + 1 : groupIndex - 1;
-
-	// Checks if adjacent group is not group 0 and if the new size index is valid
-	if (adjGroupIndex != 0 && adjGroupIndex != degreeGroupIndexedSizes.size() &&
-		groupSizeIndex >= 0 && groupSizeIndex < scaleSizes.size())
+	int adjGroupIndex = groupIndex - 1;
+	int numGroups = degreeGroupScaleSizes.size();
+	
+	// makes sure group indicies are not group 0
+	if (groupIndex < 2 || groupIndex >= numGroups || adjGroupIndex < 1 || adjGroupIndex >= numGroups)
 	{
-		int adjGroupSize = degreeGroupScaleSizes[adjGroupIndex] + degreeGroupScaleSizes[groupIndex] - scaleSizes[groupSizeIndex];
-		int adjSizeIndex = scaleSizes.indexOf(adjGroupSize);
-
-		if (adjSizeIndex >= 0)
-		{
-			int symGroupIndex = getSymmetricGroup(groupIndex);
-			int symAdjGroup = getSymmetricGroup(adjGroupIndex);
-
-			for (int i = 0; i < degreeGroupIndexedSizes.size(); i++)
-			{
-				if (i == adjGroupIndex || i == symGroupIndex)
-					newGrouping.add(groupSizeIndex);
-
-				else if (i == adjGroupIndex || i == symAdjGroup)
-					newGrouping.add(adjSizeIndex);
-
-				else
-					newGrouping.add(degreeGroupIndexedSizes[i]);
-			}
-
-			setDegreeGrouping(newGrouping);
-		}
+		DBG("ScaleStructure: Resize Error - group 0 index present");
+		return;
 	}
+
+	int groupSize = degreeGroupScaleSizes[groupIndex] - sizeChangeAmount;
+	int symGroupIndex = getSymmetricGroup(groupIndex);
+
+	if (retainGroupingSymmetry && groupIndex == symGroupIndex)
+		groupSize -= sizeChangeAmount;
+
+	int symAdjGroup = getSymmetricGroup(adjGroupIndex);
+
+	int adjGroupSize = degreeGroupScaleSizes[adjGroupIndex] + sizeChangeAmount;
+
+	int groupSizeIndex = scaleSizes.indexOf(groupSize);
+	int adjSizeIndex = scaleSizes.indexOf(adjGroupSize);
+	
+	if (retainMOSGroupSizes && (groupSizeIndex < 0 || adjSizeIndex < 0))
+	{
+		DBG("ScaleStructure: Resize Error - sizes not supported by MOS");
+		return;
+	}
+
+	Array<int> newGrouping;
+	
+	if (!retainGroupingSymmetry)
+	{
+		symGroupIndex = -1;
+		symAdjGroup = -1;
+	}
+
+	for (int i = 0; i < numGroups; i++)
+	{
+		if (i == groupIndex || i == symGroupIndex)
+			newGrouping.add(groupSizeIndex);
+
+		else if (i == adjGroupIndex || i == symAdjGroup)
+			newGrouping.add(adjSizeIndex);
+
+		else
+			newGrouping.add(degreeGroupIndexedSizes[i]);
+	}
+
+	setDegreeGrouping(newGrouping);
 }
 
 /*
@@ -1225,38 +1251,57 @@ void ScaleStructure::resizeDegreeGroup(int groupIndex, int groupSizeIndex, bool 
 	If mergedClockwise is true, the group clockwise to the passed in groupIndex will be consumed.
 	If retaining symmetry, this also effects the group on the other side.
 */
-void ScaleStructure::mergeDegreeGroups(int groupIndex, bool mergedClockwise)
+void ScaleStructure::mergeDegreeGroups(int groupIndex)
 {
+	int numGroups = degreeGroupScaleSizes.size();
 	Array<int> newGrouping;
 
-	int adjGroupIndex = mergedClockwise ? groupIndex + 1 : groupIndex - 1;
-	
+	int adjGroupIndex = groupIndex - 1;
+
 	// Checks if adjacent group is not group 0 and if the new size index is valid
-	if (adjGroupIndex != 0 && adjGroupIndex != degreeGroupIndexedSizes.size())
+	if (groupIndex < 2 || groupIndex >= numGroups || adjGroupIndex < 1 || adjGroupIndex >= numGroups)
 	{
-		int newGroupSize = degreeGroupScaleSizes[groupIndex] + degreeGroupScaleSizes[adjGroupIndex];
-		int newSizeIndex = scaleSizes.indexOf(newGroupSize);
-
-		if (newSizeIndex >= 0)
-		{
-			int symGroupIndex = getSymmetricGroup(groupIndex);
-			int symAdjGroup = getSymmetricGroup(adjGroupIndex);
-
-			for (int i = 0; i < degreeGroupIndexedSizes.size(); i++)
-			{
-				if (i == adjGroupIndex || i == symGroupIndex)
-					newGrouping.add(newSizeIndex);
-
-				else if (i == adjGroupIndex || i == symAdjGroup)
-					continue;
-
-				else
-					newGrouping.add(degreeGroupIndexedSizes[i]);
-			}
-
-			setDegreeGrouping(newGrouping);
-		}
+		DBG("Scale Structure: Merge Error - group 0 index present");
+		return;
 	}
+
+	int newGroupSize = degreeGroupScaleSizes[groupIndex] + degreeGroupScaleSizes[adjGroupIndex];		
+	int symGroupIndex = getSymmetricGroup(groupIndex);
+	
+	if (retainGroupingSymmetry && groupIndex == symGroupIndex)
+	{
+		newGroupSize += degreeGroupScaleSizes[adjGroupIndex];
+	}
+	
+	int	symAdjGroup = getSymmetricGroup(adjGroupIndex);
+	int newSizeIndex = scaleSizes.indexOf(newGroupSize);
+
+	if (retainMOSGroupSizes && newSizeIndex < 0)
+	{
+		DBG("Scale Structure: Merge Error - size not supported by MOS");
+		return;
+	}
+
+	if (!retainGroupingSymmetry)
+	{
+		symGroupIndex = -1;
+		symAdjGroup = -1;
+	}
+
+	for (int i = 0; i < degreeGroupIndexedSizes.size(); i++)
+	{
+		if (i == groupIndex || i == symGroupIndex)
+			newGrouping.add(newSizeIndex);
+
+		else if (i == adjGroupIndex || i == symAdjGroup)
+			continue;
+
+		else
+			newGrouping.add(degreeGroupIndexedSizes[i]);
+	}
+
+	setDegreeGrouping(newGrouping);
+
 }
 
 int ScaleStructure::getSuggestedGeneratorIndex()
