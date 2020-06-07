@@ -105,20 +105,18 @@ private:
 
 	// Group sizing functionality
 	OwnedArray<GroupHandle> groupHandles;
+	int handleMouseOver = -1;
 	GroupHandle* handleBeingDragged = nullptr;
 	float handleDragThreshold;
+	float handleDraggedToDegIndex = -1;
+	float lastDraggedIndex = -1;
+	int handleDragAmt = 0;
 
 	// Refers to the most counter-clockwise edge of a degree
 	Array<int> highlightedDegreeEdges; // TODO: turn this into Array<Point<int>> to differentiate symmetric edges
 	Array<Line<float>> highlightedEdgeLines;
-	
-	// The two highlighted degree indices that are closest to the dragged GroupHandle
-	// Counterclockwise, clockwise
-	Point<int> adjacentEdges; 
-	Point<int> adjacentEdgeIndicies;
-	Point<int> adjacentSizeIndicies;
 		
-	float handleDotAngRatio;
+	const float handleDotAngRatio = float_Pi / 100.0f;
 	float handleDotRadius;
 	float handleHighlightMult = 1.5f;
 	
@@ -161,6 +159,9 @@ private:
 	Array<Path> groupArcPaths;
 	PathStrokeType solidStroke = PathStrokeType(2.0f);
 	PathStrokeType dashedStroke = PathStrokeType(2.0f);
+
+	Path handleDragHighlight;
+	Path handleDragSymHighlight;
 
 	float sectorLabelSizeRatio = 0.875f;
 
