@@ -165,7 +165,7 @@ void GroupingCircle::paint (Graphics& g)
 		if (groupColour.isTransparent())
 			groupColour = Colours::lightgrey;
 
-		if (i == groupSectorMouseOver)
+		if (i == groupSectorMouseOver && !handleBeingDragged)
 			groupColour = groupColour.contrasting(highlightContrastRatio);
 
 		g.setColour(groupColour);
@@ -187,7 +187,7 @@ void GroupingCircle::paint (Graphics& g)
 				degreeColour = groupColour.contrasting(Colours::mediumvioletred, 1.0f / 3);
 			}
 
-			if (degIndex == degreeSectorMouseOver)
+			if (degIndex == degreeSectorMouseOver && !handleBeingDragged)
 				degreeColour = groupColour.contrasting(highlightContrastRatio);
 
 			Path& degreePath = degreeArcPaths.getReference(degIndex);
@@ -412,11 +412,8 @@ void GroupingCircle::resized()
 	{
 		if (abs(handleDragAmt) > 0)
 		{
-			DBG("CIRCLE: Drawing drag highlight");
 			int dragFrom = handleBeingDragged->getDegreeIndex();
 			int dragTo = handleDraggedToDegIndex;
-			//if (handleBeingDragged->isDraggingClockwise())
-			//	dragTo++;
 
 			handleDragHighlight.clear();
 			addAnnulusSector(
@@ -432,7 +429,7 @@ void GroupingCircle::resized()
 				int symGroup = scaleStructure.getSymmetricGroup(handleBeingDragged->getGroupIndex());
 				dragFrom = groupChain.indexOf(scaleStructure.getDegreeGroupings()[symGroup][0]);
 				
-				if (handleBeingDragged->isDraggingClockwise())
+				if (!handleBeingDragged->addsGroupWhenDragged() || handleBeingDragged->isDraggingClockwise())
 					dragFrom += groupSizes[symGroup];
 
 				dragTo = dragFrom - handleDragAmt;
@@ -776,8 +773,6 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 				if (degreesMouseMoved < -scaleStructure.getPeriod() / 2)
 					degreesMouseMoved = scaleStructure.getPeriod() + degreesMouseMoved;
 
-				//DBG("CIRCLE: MouseIncrements = " + String(degreesMouseMoved));
-
 				if (handleDraggedToDegIndex != degreeSectorMouseOver)
 				{
 					// Set drag direction of edge handles
@@ -808,15 +803,35 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 				if (angDistance >= handleDragThreshold)
 				{
 					handleDragAmt += (abs(degreesMouseMoved) / degreesMouseMoved);
-					DBG("CIRCLE: DragAmt: " + String(handleDragAmt));
-					DBG("CIRCLE: Handle dragged to " + String(handleDraggedToDegIndex));
 				}
 
-				lastDraggedIndex = handleDraggedToDegIndex;
-				handleDraggedToDegIndex = handleBeingDragged->getDegreeIndex() + handleDragAmt;
+				int groupIndex = handleBeingDragged->getGroupIndex();
+				int adjGroup = groupIndex - 1; // for edge handles only
+				int dragLimit;
 
-				resized();
-				repaint();
+				if (handleBeingDragged->addsGroupWhenDragged() || handleBeingDragged->isDraggingClockwise())
+				{
+					dragLimit = groupSizes[groupIndex];
+
+					if (groupIndex == scaleStructure.getSymmetricGroup(groupIndex))
+						dragLimit /= 2;
+				}
+				else
+				{
+					dragLimit = groupSizes[adjGroup];
+
+					if (adjGroup == scaleStructure.getSymmetricGroup(adjGroup))
+						dragLimit /= 2;
+				}
+					
+				if (abs(handleDragAmt) <= dragLimit)
+				{
+					lastDraggedIndex = handleDraggedToDegIndex;
+					handleDraggedToDegIndex = handleBeingDragged->getDegreeIndex() + handleDragAmt;
+
+					resized();
+					repaint();
+				}
 			}
 		}
 	}
