@@ -720,7 +720,7 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 			if (degreesMoved > groupSizes[0])
 				degreesMoved -= scaleStructure.getPeriod();
 
-			int offset = jlimit(0, groupSizes[0] - 1, lastOffsetOnClick + degreesMoved);
+			int offset = jlimit(0, (groupSizes[0] / scaleStructure.getPeriodFactor()) - 1, lastOffsetOnClick + degreesMoved);
 			if (offset != scaleStructure.getGeneratorOffset())
 			{
 				listeners.call(&Listener::offsetChanged, offset);
