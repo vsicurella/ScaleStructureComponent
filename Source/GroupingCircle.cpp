@@ -571,6 +571,11 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 		if (mouseRadius < degreeOuterRadius)
 		{
 			degreeSectorMouseOver = degreeSectorOfAngle(getNormalizedMouseAngle(event));
+
+			// Helpers for offset manipulation
+			lastDegClicked = degreeSectorMouseOver;
+			lastOffsetOnClick = scaleStructure.getGeneratorOffset();
+
 			int degree = groupChain[degreeSectorMouseOver];
 			// Show menu
 			if (event.mods.isRightButtonDown())
@@ -706,31 +711,29 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 
 	if (mouseDownRadius >= degreeInnerRadius)
 	{
+		// Dragging a degree
+		// TODO: improve
 		if (mouseDownRadius < degreeOuterRadius)
 		{
-			int mouseDownDegreeIndex = degreeSectorOfAngle(mouseAngle);
+			int degreesMoved = degreeSectorMouseOver - lastDegClicked;
 
-			if (degreeSectorMouseOver != mouseDownDegreeIndex)
+			if (degreesMoved > groupSizes[0])
+				degreesMoved -= scaleStructure.getPeriod();
+
+			int offset = jlimit(0, groupSizes[0] - 1, lastOffsetOnClick + degreesMoved);
+			if (offset != scaleStructure.getGeneratorOffset())
 			{
-				int offset = mouseDownDegreeIndex - degreeSectorMouseOver + scaleStructure.getGeneratorOffset();
+				listeners.call(&Listener::offsetChanged, offset);
 
-				if (offset > -1 && offset < scaleStructure.getScaleSize())
-				{
-					//generatorOffset.setValue(offset);
-					listeners.call(&Listener::offsetChanged, offset);
-
-					DBG("Moved by " + String(mouseDownDegreeIndex - degreeSectorMouseOver) + "\tNew offset: " + String(offset));
-					dirty = true;
-				}
-
-				lastDegreeSectorMouseIn = degreeSectorMouseOver;
-				degreeSectorMouseOver = mouseDownDegreeIndex;
-
+				DBG("Moved by " + String(degreesMoved) + "\tNew offset: " + String(offset));
+				dirty = true;
 			}
 		}
 
+		// In group sectors
 		else if (mouseDownRadius <= groupOuterRadius)
 		{
+			// Dragging a handle
 			if (handleBeingDragged)
 			{
 				float degreesMouseMoved = mouseAngle / angleIncrement - handleBeingDragged->getDegreeIndex();

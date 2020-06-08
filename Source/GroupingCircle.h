@@ -126,6 +126,8 @@ private:
 	int groupSectorMouseOver = -1;
 	int lastDegreeSectorMouseIn = -1;
 	int lastGroupSectorMouseIn = -1;
+	int lastDegClicked = -1;
+	int lastOffsetOnClick = 0;
 
 	// Drawing related members
 	float borderRatio = 127.0f / 128.0f;
