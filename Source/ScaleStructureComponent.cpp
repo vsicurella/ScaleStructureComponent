@@ -421,6 +421,7 @@ void ScaleStructureComponent::onPeriodFactorChange(int factorIndexIn)
 	updateScaleSizes();
 	updateOffsetLabel();
 	updatePGLabel();
+	updateLsLabel();
 	circle->updateGenerator();
 
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);

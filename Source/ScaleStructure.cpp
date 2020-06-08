@@ -1557,18 +1557,25 @@ void ScaleStructure::useSuggestedSizeGrouping()
 String ScaleStructure::getIntervalSteps(Point<int>& stepSizesOut, bool withModifications)
 {
 	Array<int> sizes;
-	Array<int>& chain = withModifications ? groupChain : generatorChain;
-	for (int i = 0; i < getScaleSize(); i++)
+
+	if (!withModifications)
 	{
-		for (int p = 0; p < periodFactorSelected; p++)
-			sizes.add(chain[i + fPeriod * p]);
+		for (int i = 0; i < getScaleSize(); i++)
+		{
+			for (int p = 0; p < periodFactorSelected; p++)
+				sizes.add(generatorChain[i + fPeriod * p]);
+		}
+	}
+	else
+	{
+		sizes = degreeGroupings[0];
 	}
 
 	sizes.add(period);
 	sizes.sort();
 
 	String steps = "";
-	for (int i = 1; i <= getScaleSize(); i++)
+	for (int i = 1; i <= getScaleSize() * periodFactorSelected; i++)
 	{
 		sizes.set(i - 1, sizes[i] - sizes[i - 1]);
 		steps += String(sizes[i - 1]) + " ";
