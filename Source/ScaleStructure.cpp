@@ -1205,14 +1205,19 @@ void ScaleStructure::resizeDegreeGroup(int groupIndex, int sizeChangeAmount)
 	}
 
 	int groupSize = degreeGroupScaleSizes[groupIndex] - sizeChangeAmount;
+	
 	int symGroupIndex = getSymmetricGroup(groupIndex);
-
-	if (retainGroupingSymmetry && groupIndex == symGroupIndex)
-		groupSize -= sizeChangeAmount;
-
 	int symAdjGroup = getSymmetricGroup(adjGroupIndex);
 
 	int adjGroupSize = degreeGroupScaleSizes[adjGroupIndex] + sizeChangeAmount;
+
+	if (retainGroupingSymmetry)
+	{
+		if (groupIndex == symGroupIndex)
+			groupSize -= sizeChangeAmount;
+		else if (adjGroupIndex == symAdjGroup)
+			adjGroupSize += sizeChangeAmount;
+	}
 
 	int groupSizeIndex = scaleSizes.indexOf(groupSize);
 	int adjSizeIndex = scaleSizes.indexOf(adjGroupSize);
@@ -1267,13 +1272,23 @@ void ScaleStructure::mergeDegreeGroups(int groupIndex)
 
 	int newGroupSize = degreeGroupScaleSizes[groupIndex] + degreeGroupScaleSizes[adjGroupIndex];		
 	int symGroupIndex = getSymmetricGroup(groupIndex);
+	int symAdjGroup = symGroupIndex + 1;
 	
-	if (retainGroupingSymmetry && groupIndex == symGroupIndex)
+	bool ignoreSymIndicies = !retainGroupingSymmetry;
+	if (retainGroupingSymmetry)
 	{
-		newGroupSize += degreeGroupScaleSizes[adjGroupIndex];
+		if (groupIndex == symGroupIndex)
+		{
+			newGroupSize += degreeGroupScaleSizes[adjGroupIndex];
+			ignoreSymIndicies = true;
+		}
+		else if (adjGroupIndex == symAdjGroup)
+		{
+			newGroupSize += degreeGroupScaleSizes[groupIndex];
+			ignoreSymIndicies = true;
+		}
 	}
 	
-	int	symAdjGroup = getSymmetricGroup(adjGroupIndex);
 	int newSizeIndex = scaleSizes.indexOf(newGroupSize);
 
 	if (retainMOSGroupSizes && newSizeIndex < 0)
@@ -1282,26 +1297,29 @@ void ScaleStructure::mergeDegreeGroups(int groupIndex)
 		return;
 	}
 
-	if (!retainGroupingSymmetry)
-	{
-		symGroupIndex = -1;
-		symAdjGroup = -1;
-	}
-
 	for (int i = 0; i < degreeGroupIndexedSizes.size(); i++)
 	{
-		if (i == groupIndex || i == symGroupIndex)
+		if (i == adjGroupIndex || i == symAdjGroup)
+			continue;
+
+		else if (i == groupIndex)
 			newGrouping.add(newSizeIndex);
 
-		else if (i == adjGroupIndex || i == symAdjGroup)
-			continue;
+		else if (i == symGroupIndex)
+		{
+			if (ignoreSymIndicies)
+			{
+				continue;
+			}
+
+			newGrouping.add(newSizeIndex);
+		}
 
 		else
 			newGrouping.add(degreeGroupIndexedSizes[i]);
 	}
 
 	setDegreeGrouping(newGrouping);
-
 }
 
 int ScaleStructure::getSuggestedGeneratorIndex()
