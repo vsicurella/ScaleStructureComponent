@@ -898,42 +898,45 @@ Array<Point<int>> ScaleStructure::findIndiciesForGroupResizing(int groupIndexIn)
 
 		// Happens when number of groups is odd and the degree edge is in the exact middle
 		// TODO: make this a special handle that can add a group in the middle
-		if (groupIndexIn == symAdjGroup)
+		if (retainGroupingSymmetry && groupIndexIn == symAdjGroup)
 			return degreeIndiciesOut;
 
 		int degIndex = groupChain.indexOf(degreeGroupings[groupIndexIn][0]);
 		int symDegIndex = groupChain.indexOf(degreeGroupings[symAdjGroup][0]); // manipulated in opposite direction
 
-		int newSize, adjSize;
+		int newSize, adjSize, dif;
 		// Find CW degree indicies
 		for (int i = 1; i <= groupSize; i++)
 		{
 			// skip if sizes are not supported by MOS
 			if (retainMOSGroupSizes)
 			{
-				newSize = groupSize - i;
-				adjSize = adjGroupSize + i;
+				dif = scaleSizes[i] * periodFactorSelected;
+				newSize = groupSize - dif;
+				adjSize = adjGroupSize + dif;
 
 				if (retainGroupingSymmetry)
 				{
 					if (groupIndexIn == symGroup)
-						newSize -= i;
+						newSize -= dif;
 
 					if (adjGroupIndex == symAdjGroup)
-						adjSize += i;
+						adjSize += dif;
 
 					if (newSize < 0)
 						continue;
 				}
 
-				if ((newSize >= 0 && scaleSizes.indexOf(adjSize) < 0) || (newSize != 0 && scaleSizes.indexOf(newSize) < 0))
+				if ((newSize >= 0 && scaleSizes.indexOf(adjSize / periodFactorSelected) < 0) || (newSize != 0 && scaleSizes.indexOf(newSize / periodFactorSelected) < 0))
 					continue;
 			}
+			else
+				dif = i;
 
 			if (retainGroupingSymmetry)
-				degreeIndiciesOut.add({ degIndex + i, symDegIndex - i });
+				degreeIndiciesOut.add({ degIndex + dif, symDegIndex - dif });
 			else
-				degreeIndiciesOut.add({ degIndex + i, -1 });
+				degreeIndiciesOut.add({ degIndex + dif, -1 });
 		}
 
 		// Find CCW degree indicies
@@ -943,31 +946,34 @@ Array<Point<int>> ScaleStructure::findIndiciesForGroupResizing(int groupIndexIn)
 			// skip if sizes are not supported by MOS
 			if (retainMOSGroupSizes)
 			{
-				newSize = groupSize + i;
-				adjSize = adjGroupSize - i;
+				dif = scaleSizes[i] * periodFactorSelected;
+				newSize = groupSize + dif;
+				adjSize = adjGroupSize - dif;
 
 				if (retainGroupingSymmetry)
 				{
 					if (groupIndexIn == symGroup)
-						newSize += i;
+						newSize += dif;
 
 					if (adjGroupIndex == symAdjGroup)
-						adjSize -= i;
+						adjSize -= dif;
 
 					if (adjSize < 0)
 						continue;
 				}
 
-				if ((adjSize >= 0 && scaleSizes.indexOf(newSize) < 0) || (adjSize != 0 && scaleSizes.indexOf(adjSize) < 0))
+				if ((adjSize >= 0 && scaleSizes.indexOf(newSize / periodFactorSelected) < 0) || (adjSize != 0 && scaleSizes.indexOf(adjSize / periodFactorSelected) < 0))
 					continue;
 			}
+			else
+				dif = i;
 
 			Point<int> indiciesOut;
 
 			if (retainGroupingSymmetry)
-				indiciesOut = { degIndex - i, symDegIndex + i };
+				indiciesOut = { degIndex - dif, symDegIndex + dif };
 			else
-				indiciesOut = { degIndex - i, -1 };
+				indiciesOut = { degIndex - dif, -1 };
 
 			if (addedFirstEdge)
 				degreeIndiciesOut.add(indiciesOut);
@@ -993,7 +999,7 @@ Array<Point<int>> ScaleStructure::findIndiciesForGroupSplitting(int groupIndexIn
 	if (groupIndexIn > 0 && groupIndexIn < numGroups)
 	{
 		int groupSizeIndex = degreeGroupIndexedSizes[groupIndexIn];
-		int groupSize = scaleSizes[groupSizeIndex];
+		int groupSize = scaleSizes[groupSizeIndex] * periodFactorSelected;
 		int symGroup = getSymmetricGroup(groupIndexIn);
 		
 		// Degree indicies to reference whether group is being split via CCW or CW direction
@@ -1034,7 +1040,7 @@ Array<Point<int>> ScaleStructure::findIndiciesForGroupSplitting(int groupIndexIn
 		for (int i = 1, dif = 0; i < indexLimit && dif < degLimit ; i++)
 		{
 			if (retainMOSGroupSizes)
-				dif = scaleSizes[i];
+				dif = scaleSizes[i] * periodFactorSelected;
 			else
 				dif = i;
 
@@ -1047,7 +1053,7 @@ Array<Point<int>> ScaleStructure::findIndiciesForGroupSplitting(int groupIndexIn
 					remSize -= dif;
 
 				// accept 0, where group will split into equal parts
-				if (remSize != 0 && scaleSizes.indexOf(remSize) < 0)
+				if (remSize != 0 && scaleSizes.indexOf(remSize / periodFactorSelected) < 0)
 					continue;
 			}
 
@@ -1125,16 +1131,16 @@ void ScaleStructure::splitDegreeGroup(int groupIndexIn, int sizeChangeAmount)
 
 	int groupSize = degreeGroupScaleSizes[groupIndexIn] - sizeChangeAmount;
 	// Subtract size again if group is symmetric with self
-	if (symGroupIndex == groupIndexIn)
+	if (retainGroupingSymmetry && symGroupIndex == groupIndexIn)
 	{
 		groupSize -= sizeChangeAmount;
 	}
 
-	int groupSizeIndex = scaleSizes.indexOf(groupSize);
-	int newSizeIndex = scaleSizes.indexOf(sizeChangeAmount);
+	int groupSizeIndex = scaleSizes.indexOf(groupSize / periodFactorSelected);
+	int newSizeIndex = scaleSizes.indexOf(sizeChangeAmount / periodFactorSelected);
 
 	// Check if group's new size is valid
-	if (retainMOSGroupSizes && groupSizeIndex < 0 || newSizeIndex < 0)
+	if (retainMOSGroupSizes && groupSize != 0 && (groupSizeIndex < 0 || newSizeIndex < 0))
 	{
 		DBG("Scale Structure: Split Error - size not supported by MOS");
 		return;
@@ -1151,12 +1157,16 @@ void ScaleStructure::splitDegreeGroup(int groupIndexIn, int sizeChangeAmount)
 		else if (i == groupIndexIn && groupIndexIn == symGroupIndex)
 		{
 			newGrouping.add(newSizeIndex);
-			newGrouping.add(groupSizeIndex);
+
+			if (groupSize > 0)
+				newGrouping.add(groupSizeIndex);
+
 			newGrouping.add(newSizeIndex);
 		}
 
 		else if (i == groupIndexIn)
 		{
+
 			if (!newGroupClockwise)
 			{
 				newGrouping.add(groupSizeIndex);
@@ -1219,8 +1229,8 @@ void ScaleStructure::resizeDegreeGroup(int groupIndex, int sizeChangeAmount)
 			adjGroupSize += sizeChangeAmount;
 	}
 
-	int groupSizeIndex = scaleSizes.indexOf(groupSize);
-	int adjSizeIndex = scaleSizes.indexOf(adjGroupSize);
+	int groupSizeIndex = scaleSizes.indexOf(groupSize / periodFactorSelected);
+	int adjSizeIndex = scaleSizes.indexOf(adjGroupSize / periodFactorSelected);
 	
 	if (retainMOSGroupSizes && (groupSizeIndex < 0 || adjSizeIndex < 0))
 	{
@@ -1289,7 +1299,7 @@ void ScaleStructure::mergeDegreeGroups(int groupIndex)
 		}
 	}
 	
-	int newSizeIndex = scaleSizes.indexOf(newGroupSize);
+	int newSizeIndex = scaleSizes.indexOf(newGroupSize / periodFactorSelected);
 
 	if (retainMOSGroupSizes && newSizeIndex < 0)
 	{
