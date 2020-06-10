@@ -61,7 +61,7 @@ public:
 		virtual void allModificationsReset() = 0;
 
 		virtual void groupingSplit(int groupIndex, int sizeChangeAmount) = 0;
-		virtual void groupingResized(int groupIndex, int sizeChangeAmount) = 0;
+		virtual void groupingResized(int groupIndex, int sizeChangeAmount, bool draggedClockwise) = 0;
 		virtual void groupingsMerged(int groupIndex) = 0;
 	};
 

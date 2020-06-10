@@ -61,7 +61,7 @@ public:
 	void degreeIndexAltered(int degree, Point<int> alteration) override;
 	void allModificationsReset() override;
 	void groupingSplit(int groupIndex, int sizeChangeAmount) override;
-	void groupingResized(int groupIndex, int sizeChangeAmount) override;
+	void groupingResized(int groupIndex, int sizeChangeAmount, bool draggedClockwise) override;
 	void groupingsMerged(int groupIndex) override;
 
 	void loadScaleStructureSettings();

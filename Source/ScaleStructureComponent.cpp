@@ -310,10 +310,10 @@ void ScaleStructureComponent::groupingSplit(int groupIndex, int sizeChangeAmount
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 }
 
-void ScaleStructureComponent::groupingResized(int groupIndex, int sizeChangeAmount)
+void ScaleStructureComponent::groupingResized(int groupIndex, int sizeChangeAmount, bool draggedClockwise)
 {
-	DBG("SSC: Group " + String(groupIndex) + " resized by " + String(sizeChangeAmount));
-	scaleStructure.resizeDegreeGroup(groupIndex, sizeChangeAmount);
+	DBG("SSC: Group " + String(groupIndex) + " resized by " + String(sizeChangeAmount) +", " + (!draggedClockwise ? "counter" : "") + "clockwise");
+	scaleStructure.resizeDegreeGroup(groupIndex, sizeChangeAmount, draggedClockwise);
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureChanged);
 }
 

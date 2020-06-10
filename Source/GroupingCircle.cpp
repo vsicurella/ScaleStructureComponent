@@ -852,7 +852,7 @@ void GroupingCircle::mouseUp(const MouseEvent& event)
 				if (groupsMerged)
 					listeners.call(&Listener::groupingsMerged, groupIndex);
 				else
-					listeners.call(&Listener::groupingResized, groupIndex, handleDragAmt);
+					listeners.call(&Listener::groupingResized, groupIndex, handleDragAmt, handleBeingDragged->isDraggingClockwise());
 			}
 
 			handleBeingDragged = nullptr;

@@ -304,7 +304,7 @@ public:
 		Resizes two adjacent groups, where the passed in group's size will have the passed in sizeChangeAmount added.
 		If retaining symmetry, this also effects the groups on the other side.
 	*/
-	void resizeDegreeGroup(int groupIndex, int sizeChangeAmount);
+	void resizeDegreeGroup(int groupIndex, int sizeChangeAmount, bool draggedClockwise);
 
 	/*
 		Merges two adjacent groups. The new group size must be a valid size that the scale structure supports.
