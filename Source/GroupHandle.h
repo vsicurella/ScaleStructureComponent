@@ -98,7 +98,7 @@ private:
 	Colour colour;
 	bool mouseIsOver = false;
 
-	const float lineThickness = 4.0f;
+	const float lineThickness = 7.0f;
 	const float mouseOverMultiplier = 1.5f;
 
 	Path handlePath;

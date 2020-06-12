@@ -203,13 +203,15 @@ void GroupingCircle::paint (Graphics& g)
 		}
 	}
 
-	// Draw edge handles
-	for (int i = 0; i < groupHandles.size(); i++)
+	if (handleBeingDragged || mouseRadius >= degreeOuterRadius && mouseRadius < groupOuterRadius)
 	{
-		GroupHandle* handle = groupHandles.getUnchecked(i);
-		
-		g.setColour(handle->getColour());
-		g.fillPath(handle->getPath());
+		// Draw edge handles
+		for (int i = 0; i < groupHandles.size(); i++)
+		{
+			GroupHandle* handle = groupHandles.getUnchecked(i);
+			g.setColour(handle->getColour());
+			g.fillPath(handle->getPath());
+		}
 	}
 
 	float dashPattern[2] = {
@@ -263,6 +265,8 @@ void GroupingCircle::resized()
 
 	groupMiddleRadius = (groupOuterRadius + degreeOuterRadius) / 2.0f;
 	degreeMiddleRadius = (degreeOuterRadius + degreeInnerRadius) / 2.0f;
+
+	handlePlacementRadius = (groupOuterRadius - degreeOuterRadius) * 0.75f + degreeOuterRadius;
 
 	groupOuterCircleBounds = getBounds().toFloat().reduced(proportionOfWidth(1 - borderRatio));
 	groupInnerCircleBounds = groupOuterCircleBounds.reduced(groupRingWidth);
@@ -376,10 +380,10 @@ void GroupingCircle::resized()
 		if (handle->addsGroupWhenDragged())
 		{
 			if (handle->isDraggingClockwise())
-				handle->setPosition(Point<float>(theta + handleDotAngRatio, groupMiddleRadius), center);
+				handle->setPosition(Point<float>(theta + handleDotAngRatio, handlePlacementRadius), center);
 			
 			else
-				handle->setPosition(Point<float>(theta - handleDotAngRatio, groupMiddleRadius), center);
+				handle->setPosition(Point<float>(theta - handleDotAngRatio, handlePlacementRadius), center);
 
 			handle->setSize(handleDotRadius);
 		}

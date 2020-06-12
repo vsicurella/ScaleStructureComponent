@@ -119,6 +119,7 @@ private:
 	const float handleDotAngRatio = float_Pi / 100.0f;
 	float handleDotRadius;
 	float handleHighlightMult = 1.5f;
+	float handlePlacementRadius;
 	
 	// Mouse functionality
 	int mouseRadius, mouseDownRadius;

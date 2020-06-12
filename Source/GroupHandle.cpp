@@ -76,10 +76,11 @@ Path GroupHandle::getDot(float dotRadius) const
 */
 Path GroupHandle::getLine(float lineThickness) const
 {
-	Path line;
-	line.addLineSegment(getGroupEdgeLine(center, position, size), lineThickness);
+	Line<float> line = getGroupEdgeLine(center, position, size);
+	Path diamond;
+	diamond.addPolygon(line.getPointAlongLineProportionally(1/size), 4, lineThickness, position.x + float_Pi / 2);
 
-	return line;
+	return diamond;
 }
 
 /*
@@ -98,26 +99,7 @@ Colour GroupHandle::getColour() const
 bool GroupHandle::isMouseOver(const MouseEvent& event)
 {
 	bool isOver = handlePath.contains(event.position, 100.0f);
-
-	if (isOver && !mouseIsOver)
-	{
-		mouseIsOver = true;
-
-		if (addsGroup)
-			handlePath = getDot(size * mouseOverMultiplier);
-		else
-			handlePath = getLine(lineThickness * mouseOverMultiplier);
-	}
-	else if (!isOver && mouseIsOver)
-	{
-		mouseIsOver = false;
-
-		if (addsGroup)
-			handlePath = getDot(size);
-		else
-			handlePath = getLine(lineThickness);
-	}
-
+	setMouseOver(isOver);
 	return isOver;
 }
 
@@ -157,7 +139,7 @@ void GroupHandle::setSize(float sizeIn)
 	if (addsGroup)
 		handlePath = getDot(size);
 	else
-		handlePath = getLine(2.0f);
+		handlePath = getLine(lineThickness);
 }
 
 void GroupHandle::setColour(Colour colourIn)
