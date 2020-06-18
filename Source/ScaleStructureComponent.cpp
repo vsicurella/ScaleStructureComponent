@@ -28,7 +28,7 @@
 
 //==============================================================================
 ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructureIn, Array<Colour>& colourTableIn)
-    : scaleStructure(scaleStructureIn), colourTable(colourTableIn)
+    : scaleStructure(scaleStructureIn), colourTable(colourTableIn), noteNames(scaleStructureIn)
 {
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
@@ -105,6 +105,8 @@ ScaleStructureComponent::ScaleStructureComponent (ScaleStructure& scaleStructure
 
 	circle = dynamic_cast<GroupingCircle*>(circleComponent.get());
 	circle->addListener(this);
+
+	circle->setNoteNameSystem(&noteNames);
 
 	loadScaleStructureSettings();
     //[/UserPreSize]
@@ -264,6 +266,8 @@ void ScaleStructureComponent::selectorValueChanged(NumberSelector* selectorThatH
 	listeners.call(&ScaleStructureComponent::Listener::scaleStructureStepSizesChanged,
 		scaleStructure.getStepSize().x,
 		scaleStructure.getStepSize().y);
+
+	noteNames.useAlphabeticalDefault();
 
 	generatorOffset = scaleStructure.getGeneratorOffset();
 	circle->updateGenerator();

@@ -13,6 +13,7 @@
 #include <JuceHeader.h>
 #include "ScaleStructure.h"
 #include "GroupHandle.h"
+#include "NoteNames.h"
 
 //==============================================================================
 /*
@@ -37,6 +38,9 @@ public:
 
 	void updatePeriod();
 	void updateGenerator();
+
+	void setNoteNameSystem(NoteNames* noteNamesIn);
+	void setShowNoteLabels(bool showLabels);
 
 	void degreeToModSelectedCallback(int degreeIndex);
 	void cancelDegreeMods();
@@ -96,6 +100,9 @@ private:
 
 	PopupMenu groupMenu;
 	PopupMenu degreeMenu;
+
+	NoteNames* noteNames = nullptr;
+	bool showNoteNameLabels = false;
 	
 	// MODMOS functionality
 	int degreeIndexToMod = -1;

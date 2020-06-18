@@ -26,6 +26,7 @@
 #include "GroupingCircle.h"
 #include "ScaleStructure.h"
 #include "TransparentDropDown.h"
+#include "NoteNames.h"
 
 //[/Headers]
 
@@ -118,8 +119,8 @@ private:
 	// Functional Elements
 	ScaleStructure& scaleStructure;
 	Array<Colour>& colourTable;
-
 	GroupingCircle* circle;
+	NoteNames noteNames;
 
 	// Components
 	std::unique_ptr<NumberSelector> generatorSlider;

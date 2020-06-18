@@ -144,6 +144,18 @@ void GroupingCircle::updateGenerator()
 	repaint();
 }
 
+void GroupingCircle::setNoteNameSystem(NoteNames* noteNamesIn)
+{
+	noteNames = noteNamesIn;
+}
+
+void GroupingCircle::setShowNoteLabels(bool showLabels)
+{
+	showNoteNameLabels = showLabels;
+	resized();
+	repaint();
+}
+
 void GroupingCircle::paint (Graphics& g)
 {
 	g.fillAll(Colour());
@@ -319,19 +331,28 @@ void GroupingCircle::resized()
 
 		// fill labels with text
 		degree = groupChain[i];
-		degreeLabel->insertTextAtCaret(String(degree));
-		
-		alteration = degreeAlterations[degree];
-		if (alteration.x >= 0 && alteration.y != 0)
+
+		if (showNoteNameLabels && noteNames)
+		{ 
+			degreeLabel->setFont(noteNames->getNoteNameFont());
+			degreeLabel->insertTextAtCaret(noteNames->getChainIndexName(i));
+		}
+		else
 		{
-			degreeText = "";
-			if (alteration.y > 0)
-				degreeText += "+";
-		
-			degreeText += String(alteration.y);
-			degreeLabel->setFont(Font(round(degreeLabelSize / 4.0f)));
-			degreeLabel->insertTextAtCaret(degreeText);
-		}		
+			degreeLabel->insertTextAtCaret(String(degree));
+
+			alteration = degreeAlterations[degree];
+			if (alteration.x >= 0 && alteration.y != 0)
+			{
+				degreeText = "";
+				if (alteration.y > 0)
+					degreeText += "+";
+
+				degreeText += String(alteration.y);
+				degreeLabel->setFont(Font(round(degreeLabelSize / 4.0f)));
+				degreeLabel->insertTextAtCaret(degreeText);
+			}
+		}
 
 		degreeLabelWidth = degreeLabel->getTextWidth();
 		degreeLabel->setSize(jmax(degreeLabelWidth, degreeLabelSize), degreeLabelSize);
@@ -588,6 +609,7 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 
 				int degreeIndexMouseOn = degreeSectorMouseOver;
 				bool& hideMods = cancelMods;
+				bool& showNames = showNoteNameLabels;
 								
 				auto selectionCallback = [this](int degIndex) {
 					degreeToModSelectedCallback(degIndex);
@@ -614,6 +636,10 @@ void GroupingCircle::mouseDown(const MouseEvent& event)
 				});
 
 				degreeMenu.addItem("Reset all modifications", true, false, resetCallback);
+
+				degreeMenu.addItem("Toggle Note Names", true, showNoteNameLabels, [&showNames](void) {
+					showNames = !showNames;
+				});
 
 				degreeMenu.showMenuAsync(options);
 			}
@@ -703,11 +729,10 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 
 	bool degreeSectorChanged = false;
 	float mouseAngle = getNormalizedMouseAngle(event);
-	int degSector = degreeSectorOfAngle(mouseAngle);
-	if (degSector != degreeSectorMouseOver)
+	degreeSectorMouseOver = degreeSectorOfAngle(mouseAngle);
+	if (degreeSectorMouseOver != degreeSectorMouseOver)
 	{
 		lastDegreeSectorMouseIn = degreeSectorMouseOver;
-		degreeSectorMouseOver = degSector;
 		degreeSectorChanged = true;
 	}
 
@@ -721,7 +746,7 @@ void GroupingCircle::mouseDrag(const MouseEvent& event)
 		{
 			int degreesMoved = degreeSectorMouseOver - lastDegClicked;
 
-			if (degreesMoved > groupSizes[0])
+			if (degreesMoved > scaleStructure.getPeriod())
 				degreesMoved -= scaleStructure.getPeriod();
 
 			int offset = jlimit(0, (groupSizes[0] / scaleStructure.getPeriodFactor()) - 1, lastOffsetOnClick + degreesMoved);
