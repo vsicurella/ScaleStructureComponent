@@ -10,7 +10,8 @@
 
 #pragma once
 #include <JuceHeader.h>
-#include "ScaleMath.h"
+#include "Common.h"
+#include "Symmetry.h"
 
 class ScaleStructure
 {
@@ -30,6 +31,9 @@ class ScaleStructure
 	Array<Point<int>> keyboardTypes; // Erv Wilson's notation
 	Array<PointPair<int>> pgCoords; // Hex Coordinates of period and generator
 	Array<Point<int>> stepSizes; // Hex step sizes
+
+	// Array of scale steps each scale size level creates
+	Array<Array<int>> scalesInIntervals;
 
 	// A list of scale degrees from the generator stacked period number of times. Takes offset into account.
 	// For fractional periods, 
@@ -52,6 +56,9 @@ class ScaleStructure
 
 	// Map of group chain indicies -> degree group index
 	Array<int> degreeGroupChainMap;
+
+	// Sorted array of scale degrees that make up the first degree group
+	Array<int> nominalScaleDegrees;
 
 	// List of user-chosen alterations by group chain index
 	// X-value is chroma level, Y-value is alteration amount
@@ -87,6 +94,8 @@ private:
 
 	// Uses scale properties to determine hex step sizes
 	void calculateStepSizes();
+
+	void calculateIntervalScales();
 
 	// Enumerates the scale as a chain of generators
 	void calculateGeneratorChain();
@@ -251,11 +260,16 @@ public:
 	void setSizeIndex(int index);
 	void setGeneratorOffset(int offsetIn);
 
+	void setRetainGroupingSymmetry(bool isSymmetric);
+	void setRetainMOSSizes(bool retainSizes);
+
 	/*
 		Input a mapping of scale degrees and chroma alteration values.
 		Must be equal to size of period
 	*/
 	bool setChromaAlterations(Array<Point<int>> chromaAlterationsIn);
+
+	Array<int> getNominalScaleDegrees() const;
 
 	/*
 		Returns the degree group on the other side of the grouping cirle horizontally if groupings are symmetric.

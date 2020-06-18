@@ -4,6 +4,8 @@
               jucerVersion="5.4.7">
   <MAINGROUP id="beGhad" name="ScaleStructureController">
     <GROUP id="{C32CC330-DD57-B0CF-1455-158ECD9B3F8C}" name="Source">
+      <FILE id="Vk8hG6" name="NoteNames.cpp" compile="1" resource="0" file="Source/NoteNames.cpp"/>
+      <FILE id="uCP30x" name="NoteNames.h" compile="0" resource="0" file="Source/NoteNames.h"/>
       <FILE id="axJ8j6" name="GroupHandle.cpp" compile="1" resource="0" file="Source/GroupHandle.cpp"/>
       <FILE id="EUP47S" name="GroupHandle.h" compile="0" resource="0" file="Source/GroupHandle.h"/>
       <FILE id="mu4zKT" name="TransparentDropDown.h" compile="0" resource="0"
@@ -12,7 +14,6 @@
             file="Source/NumberSelector.cpp"/>
       <FILE id="xtusXg" name="NumberSelector.h" compile="0" resource="0"
             file="Source/NumberSelector.h"/>
-      <FILE id="vxJv0r" name="ScaleMath.h" compile="0" resource="0" file="Source/ScaleMath.h"/>
       <FILE id="jr4cmn" name="GroupingCircle.cpp" compile="1" resource="0"
             file="Source/GroupingCircle.cpp"/>
       <FILE id="G5eldq" name="GroupingCircle.h" compile="0" resource="0"

@@ -378,6 +378,11 @@ Array<Point<int>> ScaleStructure::findDegreeMods(int degreeIndex, int chromaLeve
 	return degreeModCandidates;
 }
 
+Array<int> ScaleStructure::getNominalScaleDegrees() const
+{
+	return nominalScaleDegrees;
+}
+
 Array<Point<int>> ScaleStructure::getChromaAlterations() const
 {
 	return chromaAlterations;
@@ -534,8 +539,17 @@ void ScaleStructure::setSizeIndex(int index)
 void ScaleStructure::setGeneratorOffset(int offsetIn)
 {
 	generatorOffset = offsetIn;
-	calculateGeneratorChain();
 	fillSymmetricGrouping();
+}
+
+void ScaleStructure::setRetainGroupingSymmetry(bool isSymmetric)
+{
+	retainGroupingSymmetry = isSymmetric;
+}
+
+void ScaleStructure::setRetainMOSSizes(bool retainSizes)
+{
+	retainMOSGroupSizes = retainSizes;
 }
 
 bool ScaleStructure::setChromaAlterations(Array<Point<int>> chromaAlterationsIn)
@@ -605,14 +619,6 @@ void ScaleStructure::calculateProperties()
 		}
 	}
 
-	String dbgstr = "";
-	for (auto s : keyboardTypes)
-	{
-		dbgstr += "(" + s.toString() + "), ";
-	}
-
-	DBG("\tSizes available: " + dbgstr);
-
 	calculateStepSizes();
 }
 
@@ -655,6 +661,33 @@ void ScaleStructure::calculateStepSizes()
 	}
 }
 
+void ScaleStructure::calculateIntervalScales()
+{
+	scalesInIntervals.clear();
+
+	for (auto size : scaleSizes)
+	{
+		Array<int> sizes, scale;
+
+		for (int i = 0; i < size; i++)
+		{
+			for (int p = 0; p < periodFactorSelected; p++)
+				sizes.add(generatorChain[i + fPeriod * p]);
+		}
+
+		sizes.add(period);
+		sizes.sort();
+
+		String steps = "";
+		for (int i = 1; i <= getScaleSize() * periodFactorSelected; i++)
+		{
+			scale.add(i - 1, sizes[i] - sizes[i - 1]);
+		}
+
+		scalesInIntervals.add(scale);
+	}
+}
+
 void ScaleStructure::calculateGeneratorChain()
 {
 	generatorChain.clear();
@@ -664,7 +697,7 @@ void ScaleStructure::calculateGeneratorChain()
 
 	for (int i = 0; i < fPeriod; i++)
 	{
-		generatorChain.add(modulo((i - generatorOffset) * gen, fPeriod));
+		generatorChain.add(modulo(i * gen, fPeriod));
 		dbgstr += String(generatorChain[i]) + ", ";
 	}
 
@@ -679,6 +712,8 @@ void ScaleStructure::calculateGeneratorChain()
 	}
 
 	DBG("SS Generator Chain: " + dbgstr);
+
+	calculateIntervalScales();
 }
 
 void ScaleStructure::fillSymmetricGrouping(bool applyAlterations)
@@ -702,7 +737,7 @@ void ScaleStructure::fillSymmetricGrouping(bool applyAlterations)
 		{
 			for (int groupInd = 0; groupInd < groupSize; groupInd++)
 			{
-				degree = generatorChain[ind + groupInd + fPeriod * f];
+				degree = generatorChain[modulo(ind + groupInd + fPeriod * f - generatorOffset, period)];
 				degreeGroupings.getReference(group).add(degree);
 				
 				degreeGroupChainMap.set(groupChain.size(), group);
@@ -716,6 +751,10 @@ void ScaleStructure::fillSymmetricGrouping(bool applyAlterations)
 
 	if (applyAlterations)
 		applyChromaAlterations();
+
+	nominalScaleDegrees.clear();
+	nominalScaleDegrees = degreeGroupings[0];
+	nominalScaleDegrees.sort();
 
 	// DEBUG PRINTING
 
@@ -1727,8 +1766,15 @@ String ScaleStructure::getIntervalSteps(Point<int>& stepSizesOut, bool withModif
 
 String ScaleStructure::getIntervalSteps(bool withModifications)
 {
-	Point<int> dummySteps;
-	return getIntervalSteps(dummySteps, withModifications);
+	if (withModifications)
+	{
+		Point<int> dummySteps;
+		return getIntervalSteps(dummySteps, withModifications);
+	}
+	else
+	{
+		return arrayToString(scalesInIntervals[sizeIndexSelected]);
+	}
 }
 
 String ScaleStructure::getLsSteps()
