@@ -161,10 +161,10 @@ void ScaleStructureComponent::resized()
     //[UserResized] Add your own custom resize handling here..
 
 	// TODO: implement (probably ex-projucer) this so that the bounds don't have to be set twice
-	periodSlider->setSize(proportionOfWidth(0.25f), proportionOfHeight(0.15f));
+	periodSlider->setSize(proportionOfWidth(0.2f), proportionOfHeight(0.155f));
 	periodSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.4f, 0));
 
-	generatorSlider->setSize(proportionOfWidth(0.25f), proportionOfHeight(0.15f));
+	generatorSlider->setSize(proportionOfWidth(0.2f), proportionOfHeight(0.155f));
 	generatorSlider->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 0.125f, float_Pi));
 
 	generatorValueLbl->setCentrePosition(circle->getIntPointFromCenter(circle->getInnerRadius() * 2.0f / 3.0f, float_Pi * 11.0f / 8.0f));

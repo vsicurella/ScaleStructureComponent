@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="Lx2rJp" name="ScaleStructureController" projectType="guiapp"
-              jucerVersion="5.4.7">
+              displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="beGhad" name="ScaleStructureController">
     <GROUP id="{C32CC330-DD57-B0CF-1455-158ECD9B3F8C}" name="Source">
       <FILE id="Vk8hG6" name="NoteNames.cpp" compile="1" resource="0" file="Source/NoteNames.cpp"/>
