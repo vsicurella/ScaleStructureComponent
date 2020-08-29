@@ -392,6 +392,8 @@ void GroupingCircle::resized()
 	}
 
 	float thetaOffset = -circleOffset - float_HalfPi;
+	float outerToInnerRatio = degreeInnerRadius > 0 ? groupOuterRadius / degreeInnerRadius : 0;
+
 	// Resize group handles
 	for (int i = 0; i < groupHandles.size(); i++)
 	{
@@ -411,7 +413,7 @@ void GroupingCircle::resized()
 		else
 		{
 			handle->setPosition(Point<float>(theta, degreeInnerRadius), center);
-			handle->setSize(groupOuterRadius / degreeInnerRadius);
+			handle->setSize(outerToInnerRatio);
 		}
 	}
 
@@ -420,7 +422,7 @@ void GroupingCircle::resized()
 	{
 		highlightedEdgeLines.clear();
 
-		float length = groupOuterRadius / degreeInnerRadius;
+		float length = outerToInnerRatio;
 		int index;
 		Line<float> line;
 		

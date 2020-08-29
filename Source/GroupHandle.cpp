@@ -78,7 +78,9 @@ Path GroupHandle::getLine(float lineThickness) const
 {
 	Line<float> line = getGroupEdgeLine(center, position, size);
 	Path diamond;
-	diamond.addPolygon(line.getPointAlongLineProportionally(1/size), 4, lineThickness, position.x + float_Pi / 2);
+
+	if (size > 0)
+		diamond.addPolygon(line.getPointAlongLineProportionally(1/size), 4, lineThickness, position.x + float_Pi / 2);
 
 	return diamond;
 }
